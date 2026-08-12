@@ -1,0 +1,34 @@
+[0.055s] Invoking command in '/root/dart_ws/build/yq_dart_aim': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /root/dart_ws/src/yq_dart_aim -DCMAKE_INSTALL_PREFIX=/root/dart_ws/install/yq_dart_aim
+[0.214s] -- Found ament_cmake: 1.3.12 (/opt/ros/humble/share/ament_cmake/cmake)
+[0.959s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[1.039s] -- Found rclcpp: 16.0.16 (/opt/ros/humble/share/rclcpp/cmake)
+[1.210s] -- Found rosidl_generator_c: 3.1.7 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+[1.227s] -- Found rosidl_adapter: 3.1.7 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[1.266s] -- Found rosidl_generator_cpp: 3.1.7 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+[1.328s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[1.406s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[1.612s] -- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+[1.622s] -- Found rmw_fastrtps_cpp: 6.2.9 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)
+[2.094s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[2.410s] -- Found sensor_msgs: 4.9.0 (/opt/ros/humble/share/sensor_msgs/cmake)
+[2.593s] -- Found cv_bridge: 3.2.1 (/opt/ros/humble/share/cv_bridge/cmake)
+[2.651s] -- Found image_transport: 3.1.12 (/opt/ros/humble/share/image_transport/cmake)
+[3.201s] -- Configuring done
+[3.290s] -- Generating done
+[3.314s] -- Build files have been written to: /root/dart_ws/build/yq_dart_aim
+[3.373s] Invoked command in '/root/dart_ws/build/yq_dart_aim' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /root/dart_ws/src/yq_dart_aim -DCMAKE_INSTALL_PREFIX=/root/dart_ws/install/yq_dart_aim
+[3.400s] Invoking command in '/root/dart_ws/build/yq_dart_aim': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /root/dart_ws/build/yq_dart_aim -- -j8 -l8
+[3.653s] Consolidate compiler generated dependencies of target dart_aim_node
+[4.134s] [ 50%] Building CXX object CMakeFiles/dart_aim_node.dir/src/dart_aim_node.cpp.o
+[25.386s] /root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp: In member function ‘void DartAimNode::openSerial(const string&)’:
+[25.386s] /root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp:254:27: error: ‘scanForACMDevice’ was not declared in this scope
+[25.387s]   254 |       std::string found = scanForACMDevice();
+[25.387s]       |                           ^~~~~~~~~~~~~~~~
+[25.496s] /root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp: In member function ‘void DartAimNode::imageCallback(sensor_msgs::msg::Image_<std::allocator<void> >::SharedPtr)’:
+[25.497s] /root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp:437:12: warning: unused variable ‘img_area’ [-Wunused-variable]
+[25.497s]   437 |     double img_area = width * height;
+[25.497s]       |            ^~~~~~~~
+[43.802s] gmake[2]: *** [CMakeFiles/dart_aim_node.dir/build.make:76: CMakeFiles/dart_aim_node.dir/src/dart_aim_node.cpp.o] Error 1
+[43.804s] gmake[1]: *** [CMakeFiles/Makefile2:137: CMakeFiles/dart_aim_node.dir/all] Error 2
+[43.804s] gmake: *** [Makefile:146: all] Error 2
+[43.812s] Invoked command in '/root/dart_ws/build/yq_dart_aim' returned '2': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /root/dart_ws/build/yq_dart_aim -- -j8 -l8

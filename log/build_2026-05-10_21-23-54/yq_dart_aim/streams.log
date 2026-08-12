@@ -1,0 +1,7 @@
+[0.104s] Invoking command in '/root/dart_ws/build/yq_dart_aim': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /root/dart_ws/build/yq_dart_aim -- -j8 -l8
+[0.582s] [35m[1mConsolidate compiler generated dependencies of target dart_aim_node[0m
+[0.818s] [ 50%] [32mBuilding CXX object CMakeFiles/dart_aim_node.dir/src/dart_aim_node.cpp.o[0m
+[13.397s] gmake[2]: *** [CMakeFiles/dart_aim_node.dir/build.make:76: CMakeFiles/dart_aim_node.dir/src/dart_aim_node.cpp.o] Terminated
+[13.398s] gmake[1]: *** [CMakeFiles/Makefile2:137: CMakeFiles/dart_aim_node.dir/all] Error 2
+[13.399s] gmake: *** [Makefile:146: all] Error 2
+[13.456s] Invoked command in '/root/dart_ws/build/yq_dart_aim' returned '2': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /root/dart_ws/build/yq_dart_aim -- -j8 -l8

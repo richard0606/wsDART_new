@@ -1,0 +1,177 @@
+[0.000000] (-) TimerEvent: {}
+[0.000300] (-) JobUnselected: {'identifier': 'hik_camera'}
+[0.000376] (yq_dart_aim) JobQueued: {'identifier': 'yq_dart_aim', 'dependencies': OrderedDict()}
+[0.000441] (yq_dart_aim) JobStarted: {'identifier': 'yq_dart_aim'}
+[0.004216] (yq_dart_aim) JobProgress: {'identifier': 'yq_dart_aim', 'progress': 'cmake'}
+[0.004458] (yq_dart_aim) Command: {'cmd': ['/home/rich/.local/bin/cmake', '/home/rich/mygithub/our_dart/dart_ws_on/src/yq_dart_aim', '-DCMAKE_INSTALL_PREFIX=/home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim'], 'cwd': '/home/rich/mygithub/our_dart/dart_ws_on/build/yq_dart_aim', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('LANGUAGE', 'zh_CN:zh'), ('USER', 'rich'), ('AGENT', '1'), ('XDG_SESSION_TYPE', 'x11'), ('SHLVL', '2'), ('LD_LIBRARY_PATH', '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/home/rich'), ('OLDPWD', '/home/rich/mygithub/our_dart/dart_ws_on'), ('DESKTOP_SESSION', 'ubuntu'), ('NVM_BIN', '/home/rich/.nvm/versions/node/v20.20.2/bin'), ('NVM_INC', '/home/rich/.nvm/versions/node/v20.20.2/include/node'), ('ROS_PYTHON_VERSION', '3'), ('GNOME_SHELL_SESSION_MODE', 'ubuntu'), ('GTK_MODULES', 'gail:atk-bridge'), ('MIMOCODE_CLAUDE_IMPORTED', '1'), ('DBUS_STARTER_BUS_TYPE', 'session'), ('SYSTEMD_EXEC_PID', '1711'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus,guid=bbbe218fadd753e7dfb1a40c6a7afdd3'), ('COLORTERM', 'truecolor'), ('MIMOCODE_PROCESS_ROLE', 'worker'), ('NVM_DIR', '/home/rich/.nvm'), ('ROS_DISTRO', 'humble'), ('GTK_IM_MODULE', 'ibus'), ('LOGNAME', 'rich'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('MIMOCODE_RUN_ID', '97ac8444-a264-4b5b-98e2-6b20517cc4eb'), ('USERNAME', 'rich'), ('TERM', 'xterm-256color'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('ROS_LOCALHOST_ONLY', '0'), ('WINDOWPATH', '2'), ('PATH', '/home/rich/.mimocode/bin:/home/rich/LicheeRV-Nano-Build/host-tools/gcc/riscv64-linux-musl-x86_64/bin:/home/rich/.local/bin:/home/rich/.nvm/versions/node/v20.20.2/bin:/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin'), ('SESSION_MANAGER', 'local/rm:@/tmp/.ICE-unix/1711,unix/rm:/tmp/.ICE-unix/1711'), ('XDG_MENU_PREFIX', 'gnome-'), ('GNOME_TERMINAL_SCREEN', '/org/gnome/Terminal/screen/4740f1ed_12c8_4523_95bd_9fd34080a424'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('DISPLAY', ':0'), ('LANG', 'zh_CN.UTF-8'), ('XDG_CURRENT_DESKTOP', 'ubuntu:GNOME'), ('XMODIFIERS', '@im=ibus'), ('XDG_SESSION_DESKTOP', 'ubuntu'), ('XAUTHORITY', '/run/user/1000/gdm/Xauthority'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('GNOME_TERMINAL_SERVICE', ':1.127'), ('SSH_AGENT_LAUNCHER', 'gnome-keyring'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('AMENT_PREFIX_PATH', '/opt/ros/humble'), ('SHELL', '/bin/bash'), ('MIMOCODE', '1'), ('QT_ACCESSIBILITY', '1'), ('GDMSESSION', 'ubuntu'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('MIMOCODE_PID', '36271'), ('GPG_AGENT_INFO', '/run/user/1000/gnupg/S.gpg-agent:0:1'), ('QT_IM_MODULE', 'ibus'), ('PWD', '/home/rich/mygithub/our_dart/dart_ws_on/build/yq_dart_aim'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-ubuntu:/etc/xdg'), ('NVM_CD_FLAGS', ''), ('DBUS_STARTER_ADDRESS', 'unix:path=/run/user/1000/bus,guid=bbbe218fadd753e7dfb1a40c6a7afdd3'), ('XDG_DATA_DIRS', '/usr/share/ubuntu:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('COLCON', '1'), ('VTE_VERSION', '6800'), ('CMAKE_PREFIX_PATH', '/opt/ros/humble')]), 'shell': False}
+[0.007514] (yq_dart_aim) StderrLine: {'line': b'CMake Deprecation Warning at CMakeLists.txt:1 (cmake_minimum_required):\n'}
+[0.007600] (yq_dart_aim) StderrLine: {'line': b'  Compatibility with CMake < 3.10 will be removed from a future version of\n'}
+[0.007657] (yq_dart_aim) StderrLine: {'line': b'  CMake.\n'}
+[0.007709] (yq_dart_aim) StderrLine: {'line': b'\n'}
+[0.007760] (yq_dart_aim) StderrLine: {'line': b'  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax\n'}
+[0.007811] (yq_dart_aim) StderrLine: {'line': b'  to tell CMake that the project requires at least <min> but has been updated\n'}
+[0.007861] (yq_dart_aim) StderrLine: {'line': b'  to work with policies introduced by <max> or earlier.\n'}
+[0.007910] (yq_dart_aim) StderrLine: {'line': b'\n'}
+[0.007960] (yq_dart_aim) StderrLine: {'line': b'\n'}
+[0.099963] (-) TimerEvent: {}
+[0.112789] (yq_dart_aim) StdoutLine: {'line': b'-- The C compiler identification is GNU 11.4.0\n'}
+[0.200141] (-) TimerEvent: {}
+[0.229550] (yq_dart_aim) StdoutLine: {'line': b'-- The CXX compiler identification is GNU 11.4.0\n'}
+[0.236217] (yq_dart_aim) StdoutLine: {'line': b'-- Detecting C compiler ABI info\n'}
+[0.300254] (-) TimerEvent: {}
+[0.312933] (yq_dart_aim) StdoutLine: {'line': b'-- Detecting C compiler ABI info - done\n'}
+[0.325953] (yq_dart_aim) StdoutLine: {'line': b'-- Check for working C compiler: /usr/bin/cc - skipped\n'}
+[0.326561] (yq_dart_aim) StdoutLine: {'line': b'-- Detecting C compile features\n'}
+[0.327224] (yq_dart_aim) StdoutLine: {'line': b'-- Detecting C compile features - done\n'}
+[0.341750] (yq_dart_aim) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info\n'}
+[0.400347] (-) TimerEvent: {}
+[0.432100] (yq_dart_aim) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info - done\n'}
+[0.450117] (yq_dart_aim) StdoutLine: {'line': b'-- Check for working CXX compiler: /usr/bin/c++ - skipped\n'}
+[0.450346] (yq_dart_aim) StdoutLine: {'line': b'-- Detecting CXX compile features\n'}
+[0.450603] (yq_dart_aim) StdoutLine: {'line': b'-- Detecting CXX compile features - done\n'}
+[0.458463] (yq_dart_aim) StdoutLine: {'line': b'-- Found ament_cmake: 1.3.14 (/opt/ros/humble/share/ament_cmake/cmake)\n'}
+[0.500426] (-) TimerEvent: {}
+[0.577018] (yq_dart_aim) StdoutLine: {'line': b'-- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter\n'}
+[0.600495] (-) TimerEvent: {}
+[0.649587] (yq_dart_aim) StdoutLine: {'line': b'-- Found rclcpp: 16.0.19 (/opt/ros/humble/share/rclcpp/cmake)\n'}
+[0.687750] (yq_dart_aim) StdoutLine: {'line': b'-- Found rosidl_generator_c: 3.1.9 (/opt/ros/humble/share/rosidl_generator_c/cmake)\n'}
+[0.691636] (yq_dart_aim) StdoutLine: {'line': b'-- Found rosidl_adapter: 3.1.9 (/opt/ros/humble/share/rosidl_adapter/cmake)\n'}
+[0.698920] (yq_dart_aim) StdoutLine: {'line': b'-- Found rosidl_generator_cpp: 3.1.9 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)\n'}
+[0.700548] (-) TimerEvent: {}
+[0.710483] (yq_dart_aim) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c\n'}
+[0.723834] (yq_dart_aim) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp\n'}
+[0.761435] (yq_dart_aim) StdoutLine: {'line': b'-- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)\n'}
+[0.763693] (yq_dart_aim) StdoutLine: {'line': b'-- Found rmw_fastrtps_cpp: 6.2.10 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)\n'}
+[0.800649] (-) TimerEvent: {}
+[0.843418] (yq_dart_aim) StdoutLine: {'line': b'-- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.2")\n'}
+[0.875359] (yq_dart_aim) StdoutLine: {'line': b'-- Found FastRTPS: /opt/ros/humble/include\n'}
+[0.900762] (-) TimerEvent: {}
+[0.909312] (yq_dart_aim) StdoutLine: {'line': b"-- Using RMW implementation 'rmw_fastrtps_cpp' as default\n"}
+[0.917865] (yq_dart_aim) StdoutLine: {'line': b'-- Performing Test CMAKE_HAVE_LIBC_PTHREAD\n'}
+[0.995259] (yq_dart_aim) StdoutLine: {'line': b'-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success\n'}
+[0.997167] (yq_dart_aim) StdoutLine: {'line': b'-- Found Threads: TRUE\n'}
+[1.000879] (-) TimerEvent: {}
+[1.055664] (yq_dart_aim) StdoutLine: {'line': b'-- Found sensor_msgs: 4.9.1 (/opt/ros/humble/share/sensor_msgs/cmake)\n'}
+[1.084135] (yq_dart_aim) StdoutLine: {'line': b'-- Found cv_bridge: 3.2.1 (/opt/ros/humble/share/cv_bridge/cmake)\n'}
+[1.093867] (yq_dart_aim) StdoutLine: {'line': b'-- Found image_transport: 3.1.13 (/opt/ros/humble/share/image_transport/cmake)\n'}
+[1.100967] (-) TimerEvent: {}
+[1.120692] (yq_dart_aim) StdoutLine: {'line': b'-- Found OpenCV: /usr (found version "4.5.4")\n'}
+[1.160127] (yq_dart_aim) StdoutLine: {'line': b'-- Configuring done (1.2s)\n'}
+[1.172286] (yq_dart_aim) StdoutLine: {'line': b'-- Generating done (0.0s)\n'}
+[1.174373] (yq_dart_aim) StdoutLine: {'line': b'-- Build files have been written to: /home/rich/mygithub/our_dart/dart_ws_on/build/yq_dart_aim\n'}
+[1.181323] (yq_dart_aim) CommandEnded: {'returncode': 0}
+[1.181714] (yq_dart_aim) JobProgress: {'identifier': 'yq_dart_aim', 'progress': 'build'}
+[1.182338] (yq_dart_aim) Command: {'cmd': ['/home/rich/.local/bin/cmake', '--build', '/home/rich/mygithub/our_dart/dart_ws_on/build/yq_dart_aim', '--', '-j20', '-l20'], 'cwd': '/home/rich/mygithub/our_dart/dart_ws_on/build/yq_dart_aim', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('LANGUAGE', 'zh_CN:zh'), ('USER', 'rich'), ('AGENT', '1'), ('XDG_SESSION_TYPE', 'x11'), ('SHLVL', '2'), ('LD_LIBRARY_PATH', '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/home/rich'), ('OLDPWD', '/home/rich/mygithub/our_dart/dart_ws_on'), ('DESKTOP_SESSION', 'ubuntu'), ('NVM_BIN', '/home/rich/.nvm/versions/node/v20.20.2/bin'), ('NVM_INC', '/home/rich/.nvm/versions/node/v20.20.2/include/node'), ('ROS_PYTHON_VERSION', '3'), ('GNOME_SHELL_SESSION_MODE', 'ubuntu'), ('GTK_MODULES', 'gail:atk-bridge'), ('MIMOCODE_CLAUDE_IMPORTED', '1'), ('DBUS_STARTER_BUS_TYPE', 'session'), ('SYSTEMD_EXEC_PID', '1711'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus,guid=bbbe218fadd753e7dfb1a40c6a7afdd3'), ('COLORTERM', 'truecolor'), ('MIMOCODE_PROCESS_ROLE', 'worker'), ('NVM_DIR', '/home/rich/.nvm'), ('ROS_DISTRO', 'humble'), ('GTK_IM_MODULE', 'ibus'), ('LOGNAME', 'rich'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('MIMOCODE_RUN_ID', '97ac8444-a264-4b5b-98e2-6b20517cc4eb'), ('USERNAME', 'rich'), ('TERM', 'xterm-256color'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('ROS_LOCALHOST_ONLY', '0'), ('WINDOWPATH', '2'), ('PATH', '/home/rich/.mimocode/bin:/home/rich/LicheeRV-Nano-Build/host-tools/gcc/riscv64-linux-musl-x86_64/bin:/home/rich/.local/bin:/home/rich/.nvm/versions/node/v20.20.2/bin:/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin'), ('SESSION_MANAGER', 'local/rm:@/tmp/.ICE-unix/1711,unix/rm:/tmp/.ICE-unix/1711'), ('XDG_MENU_PREFIX', 'gnome-'), ('GNOME_TERMINAL_SCREEN', '/org/gnome/Terminal/screen/4740f1ed_12c8_4523_95bd_9fd34080a424'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('DISPLAY', ':0'), ('LANG', 'zh_CN.UTF-8'), ('XDG_CURRENT_DESKTOP', 'ubuntu:GNOME'), ('XMODIFIERS', '@im=ibus'), ('XDG_SESSION_DESKTOP', 'ubuntu'), ('XAUTHORITY', '/run/user/1000/gdm/Xauthority'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('GNOME_TERMINAL_SERVICE', ':1.127'), ('SSH_AGENT_LAUNCHER', 'gnome-keyring'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('AMENT_PREFIX_PATH', '/opt/ros/humble'), ('SHELL', '/bin/bash'), ('MIMOCODE', '1'), ('QT_ACCESSIBILITY', '1'), ('GDMSESSION', 'ubuntu'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('MIMOCODE_PID', '36271'), ('GPG_AGENT_INFO', '/run/user/1000/gnupg/S.gpg-agent:0:1'), ('QT_IM_MODULE', 'ibus'), ('PWD', '/home/rich/mygithub/our_dart/dart_ws_on/build/yq_dart_aim'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-ubuntu:/etc/xdg'), ('NVM_CD_FLAGS', ''), ('DBUS_STARTER_ADDRESS', 'unix:path=/run/user/1000/bus,guid=bbbe218fadd753e7dfb1a40c6a7afdd3'), ('XDG_DATA_DIRS', '/usr/share/ubuntu:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('COLCON', '1'), ('VTE_VERSION', '6800'), ('CMAKE_PREFIX_PATH', '/opt/ros/humble')]), 'shell': False}
+[1.201067] (-) TimerEvent: {}
+[1.207822] (yq_dart_aim) StdoutLine: {'line': b'[ 16%] Building CXX object CMakeFiles/dart_aim_node.dir/src/image_processor.cpp.o\n'}
+[1.208182] (yq_dart_aim) StdoutLine: {'line': b'[ 33%] Building CXX object CMakeFiles/dart_aim_node.dir/src/dart_aim_node.cpp.o\n'}
+[1.208741] (yq_dart_aim) StdoutLine: {'line': b'[ 50%] Building CXX object CMakeFiles/dart_aim_node.dir/src/target_detector.cpp.o\n'}
+[1.208940] (yq_dart_aim) StdoutLine: {'line': b'[ 66%] Building CXX object CMakeFiles/dart_aim_node.dir/src/coordinate_calculator.cpp.o\n'}
+[1.209750] (yq_dart_aim) StdoutLine: {'line': b'[ 83%] Building CXX object CMakeFiles/dart_aim_node.dir/src/serial_manager.cpp.o\n'}
+[1.301170] (-) TimerEvent: {}
+[1.401363] (-) TimerEvent: {}
+[1.501519] (-) TimerEvent: {}
+[1.601693] (-) TimerEvent: {}
+[1.654007] (yq_dart_aim) StderrLine: {'line': b'/home/rich/mygithub/our_dart/dart_ws_on/src/yq_dart_aim/src/target_detector.cpp: In member function \xe2\x80\x98cv::Point2f yq_dart_aim::TargetDetector::selectTarget(const std::vector<yq_dart_aim::TargetInfo>&, int, bool)\xe2\x80\x99:\n'}
+[1.654188] (yq_dart_aim) StderrLine: {'line': b'/home/rich/mygithub/our_dart/dart_ws_on/src/yq_dart_aim/src/target_detector.cpp:46:68: warning: unused parameter \xe2\x80\x98is_startup\xe2\x80\x99 [-Wunused-parameter]\n'}
+[1.654304] (yq_dart_aim) StderrLine: {'line': b'   46 |                                           int current_target, bool is_startup) {\n'}
+[1.654356] (yq_dart_aim) StderrLine: {'line': b'      |                                                               ~~~~~^~~~~~~~~~\n'}
+[1.689631] (yq_dart_aim) StderrLine: {'line': b'/home/rich/mygithub/our_dart/dart_ws_on/src/yq_dart_aim/src/serial_manager.cpp: In lambda function:\n'}
+[1.689761] (yq_dart_aim) StderrLine: {'line': b'/home/rich/mygithub/our_dart/dart_ws_on/src/yq_dart_aim/src/serial_manager.cpp:98:43: error: \xe2\x80\x98SERIAL_RX_TIMEOUT\xe2\x80\x99 was not declared in this scope\n'}
+[1.689796] (yq_dart_aim) StderrLine: {'line': b'   98 |                             if (elapsed > SERIAL_RX_TIMEOUT.count()) {\n'}
+[1.689823] (yq_dart_aim) StderrLine: {'line': b'      |                                           ^~~~~~~~~~~~~~~~~\n'}
+[1.697669] (yq_dart_aim) StderrLine: {'line': b'/home/rich/mygithub/our_dart/dart_ws_on/src/yq_dart_aim/src/serial_manager.cpp: In member function \xe2\x80\x98void yq_dart_aim::SerialManager::send(float, float)\xe2\x80\x99:\n'}
+[1.697717] (yq_dart_aim) StderrLine: {'line': b'/home/rich/mygithub/our_dart/dart_ws_on/src/yq_dart_aim/src/serial_manager.cpp:184:26: error: \xe2\x80\x98SERIAL_HEADER\xe2\x80\x99 was not declared in this scope\n'}
+[1.697753] (yq_dart_aim) StderrLine: {'line': b'  184 |     unsigned char head = SERIAL_HEADER;\n'}
+[1.697777] (yq_dart_aim) StderrLine: {'line': b'      |                          ^~~~~~~~~~~~~\n'}
+[1.701599] (yq_dart_aim) StderrLine: {'line': b'/home/rich/mygithub/our_dart/dart_ws_on/src/yq_dart_aim/src/serial_manager.cpp:185:26: error: \xe2\x80\x98SERIAL_TAIL\xe2\x80\x99 was not declared in this scope\n'}
+[1.701691] (-) TimerEvent: {}
+[1.701703] (yq_dart_aim) StderrLine: {'line': b'  185 |     unsigned char tail = SERIAL_TAIL;\n'}
+[1.701730] (yq_dart_aim) StderrLine: {'line': b'      |                          ^~~~~~~~~~~\n'}
+[1.708264] (yq_dart_aim) StderrLine: {'line': b'/home/rich/mygithub/our_dart/dart_ws_on/src/yq_dart_aim/src/serial_manager.cpp: In member function \xe2\x80\x98void yq_dart_aim::SerialManager::parseData(yq_dart_aim::SerialPortState&, const string&)\xe2\x80\x99:\n'}
+[1.708334] (yq_dart_aim) StderrLine: {'line': b'/home/rich/mygithub/our_dart/dart_ws_on/src/yq_dart_aim/src/serial_manager.cpp:291:38: error: \xe2\x80\x98SERIAL_HEADER\xe2\x80\x99 was not declared in this scope\n'}
+[1.708362] (yq_dart_aim) StderrLine: {'line': b'  291 |             if (port.rx_buffer[i] == SERIAL_HEADER) {\n'}
+[1.708386] (yq_dart_aim) StderrLine: {'line': b'      |                                      ^~~~~~~~~~~~~\n'}
+[1.712256] (yq_dart_aim) StderrLine: {'line': b'/home/rich/mygithub/our_dart/dart_ws_on/src/yq_dart_aim/src/serial_manager.cpp:319:41: error: \xe2\x80\x98SERIAL_TAIL\xe2\x80\x99 was not declared in this scope\n'}
+[1.712291] (yq_dart_aim) StderrLine: {'line': b'  319 |         if (port.rx_buffer[tail_idx] != SERIAL_TAIL) {\n'}
+[1.712317] (yq_dart_aim) StderrLine: {'line': b'      |                                         ^~~~~~~~~~~\n'}
+[1.712678] (yq_dart_aim) StderrLine: {'line': b'/home/rich/mygithub/our_dart/dart_ws_on/src/yq_dart_aim/src/serial_manager.cpp:281:73: warning: unused parameter \xe2\x80\x98port_name\xe2\x80\x99 [-Wunused-parameter]\n'}
+[1.712742] (yq_dart_aim) StderrLine: {'line': b'  281 | void SerialManager::parseData(SerialPortState& port, const std::string& port_name) {\n'}
+[1.712765] (yq_dart_aim) StderrLine: {'line': b'      |                                                      ~~~~~~~~~~~~~~~~~~~^~~~~~~~~\n'}
+[1.801817] (-) TimerEvent: {}
+[1.811917] (yq_dart_aim) StderrLine: {'line': b'gmake[2]: *** [CMakeFiles/dart_aim_node.dir/build.make:135\xef\xbc\x9aCMakeFiles/dart_aim_node.dir/src/serial_manager.cpp.o] \xe9\x94\x99\xe8\xaf\xaf 1\n'}
+[1.812065] (yq_dart_aim) StderrLine: {'line': b'gmake[2]: *** \xe6\xad\xa3\xe5\x9c\xa8\xe7\xad\x89\xe5\xbe\x85\xe6\x9c\xaa\xe5\xae\x8c\xe6\x88\x90\xe7\x9a\x84\xe4\xbb\xbb\xe5\x8a\xa1....\n'}
+[1.901965] (-) TimerEvent: {}
+[2.002172] (-) TimerEvent: {}
+[2.102383] (-) TimerEvent: {}
+[2.202614] (-) TimerEvent: {}
+[2.302815] (-) TimerEvent: {}
+[2.403026] (-) TimerEvent: {}
+[2.503242] (-) TimerEvent: {}
+[2.603453] (-) TimerEvent: {}
+[2.703663] (-) TimerEvent: {}
+[2.803887] (-) TimerEvent: {}
+[2.904063] (-) TimerEvent: {}
+[3.004342] (-) TimerEvent: {}
+[3.104561] (-) TimerEvent: {}
+[3.204770] (-) TimerEvent: {}
+[3.304985] (-) TimerEvent: {}
+[3.405221] (-) TimerEvent: {}
+[3.505519] (-) TimerEvent: {}
+[3.605781] (-) TimerEvent: {}
+[3.705956] (-) TimerEvent: {}
+[3.806113] (-) TimerEvent: {}
+[3.906361] (-) TimerEvent: {}
+[4.006527] (-) TimerEvent: {}
+[4.106717] (-) TimerEvent: {}
+[4.206874] (-) TimerEvent: {}
+[4.307027] (-) TimerEvent: {}
+[4.407192] (-) TimerEvent: {}
+[4.507338] (-) TimerEvent: {}
+[4.607518] (-) TimerEvent: {}
+[4.707702] (-) TimerEvent: {}
+[4.807876] (-) TimerEvent: {}
+[4.908035] (-) TimerEvent: {}
+[5.008206] (-) TimerEvent: {}
+[5.108367] (-) TimerEvent: {}
+[5.208527] (-) TimerEvent: {}
+[5.308711] (-) TimerEvent: {}
+[5.408920] (-) TimerEvent: {}
+[5.509091] (-) TimerEvent: {}
+[5.609240] (-) TimerEvent: {}
+[5.709398] (-) TimerEvent: {}
+[5.809563] (-) TimerEvent: {}
+[5.909739] (-) TimerEvent: {}
+[6.009928] (-) TimerEvent: {}
+[6.110163] (-) TimerEvent: {}
+[6.210326] (-) TimerEvent: {}
+[6.310470] (-) TimerEvent: {}
+[6.410637] (-) TimerEvent: {}
+[6.510813] (-) TimerEvent: {}
+[6.610993] (-) TimerEvent: {}
+[6.711141] (-) TimerEvent: {}
+[6.811392] (-) TimerEvent: {}
+[6.911657] (-) TimerEvent: {}
+[7.011830] (-) TimerEvent: {}
+[7.111979] (-) TimerEvent: {}
+[7.212150] (-) TimerEvent: {}
+[7.312326] (-) TimerEvent: {}
+[7.412473] (-) TimerEvent: {}
+[7.512634] (-) TimerEvent: {}
+[7.612815] (-) TimerEvent: {}
+[7.712982] (-) TimerEvent: {}
+[7.813145] (-) TimerEvent: {}
+[7.913328] (-) TimerEvent: {}
+[8.013479] (-) TimerEvent: {}
+[8.113680] (-) TimerEvent: {}
+[8.213861] (-) TimerEvent: {}
+[8.314044] (-) TimerEvent: {}
+[8.414213] (-) TimerEvent: {}
+[8.514425] (-) TimerEvent: {}
+[8.614578] (-) TimerEvent: {}
+[8.714745] (-) TimerEvent: {}
+[8.718538] (yq_dart_aim) StderrLine: {'line': b'gmake[1]: *** [CMakeFiles/Makefile2:153\xef\xbc\x9aCMakeFiles/dart_aim_node.dir/all] \xe9\x94\x99\xe8\xaf\xaf 2\n'}
+[8.718791] (yq_dart_aim) StderrLine: {'line': b'gmake: *** [Makefile:146\xef\xbc\x9aall] \xe9\x94\x99\xe8\xaf\xaf 2\n'}
+[8.719894] (yq_dart_aim) CommandEnded: {'returncode': 2}
+[8.724788] (yq_dart_aim) JobEnded: {'identifier': 'yq_dart_aim', 'rc': 2}
+[8.735180] (-) EventReactorShutdown: {}

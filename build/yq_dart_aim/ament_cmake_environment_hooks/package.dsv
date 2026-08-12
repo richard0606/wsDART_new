@@ -1,0 +1,4 @@
+source;share/yq_dart_aim/local_setup.bash
+source;share/yq_dart_aim/local_setup.dsv
+source;share/yq_dart_aim/local_setup.sh
+source;share/yq_dart_aim/local_setup.zsh

@@ -1,0 +1,31 @@
+[0.065s] Invoking command in '/root/dart_ws/build/yq_dart_aim': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /root/dart_ws/build/yq_dart_aim -- -j8 -l8
+[0.555s] Consolidate compiler generated dependencies of target dart_aim_node
+[0.707s] [ 50%] Building CXX object CMakeFiles/dart_aim_node.dir/src/dart_aim_node.cpp.o
+[105.448s] [100%] Linking CXX executable dart_aim_node
+[108.434s] [100%] Built target dart_aim_node
+[108.504s] Invoked command in '/root/dart_ws/build/yq_dart_aim' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /root/dart_ws/build/yq_dart_aim -- -j8 -l8
+[108.569s] Invoking command in '/root/dart_ws/build/yq_dart_aim': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /root/dart_ws/build/yq_dart_aim
+[108.605s] -- Install configuration: "Release"
+[108.608s] -- Execute custom install script
+[108.610s] -- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/lib/yq_dart_aim/dart_aim_node
+[108.616s] -- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/launch/MvSdkLog/CamCtrl_00.log
+[108.616s] -- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/launch/MvSdkLog/USB3_00.log
+[108.617s] -- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/launch/MvSdkLog/USB3_01.log
+[108.618s] -- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/launch/start.launch.py
+[108.618s] -- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/config/params.yaml
+[108.619s] -- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/ament_index/resource_index/package_run_dependencies/yq_dart_aim
+[108.620s] -- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/ament_index/resource_index/parent_prefix_path/yq_dart_aim
+[108.620s] -- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/environment/ament_prefix_path.sh
+[108.621s] -- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/environment/ament_prefix_path.dsv
+[108.623s] -- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/environment/path.sh
+[108.624s] -- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/environment/path.dsv
+[108.625s] -- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/local_setup.bash
+[108.626s] -- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/local_setup.sh
+[108.627s] -- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/local_setup.zsh
+[108.627s] -- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/local_setup.dsv
+[108.628s] -- Symlinking: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/package.dsv
+[108.668s] -- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/ament_index/resource_index/packages/yq_dart_aim
+[108.669s] -- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/cmake/yq_dart_aimConfig.cmake
+[108.670s] -- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/cmake/yq_dart_aimConfig-version.cmake
+[108.670s] -- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/package.xml
+[108.678s] Invoked command in '/root/dart_ws/build/yq_dart_aim' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /root/dart_ws/build/yq_dart_aim

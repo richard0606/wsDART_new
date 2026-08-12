@@ -1,0 +1,38 @@
+CMake Deprecation Warning at CMakeLists.txt:1 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+/home/rich/mygithub/our_dart/dart_ws_on/src/yq_dart_aim/src/target_detector.cpp: In member function ‘cv::Point2f yq_dart_aim::TargetDetector::selectTarget(const std::vector<yq_dart_aim::TargetInfo>&, int, bool)’:
+/home/rich/mygithub/our_dart/dart_ws_on/src/yq_dart_aim/src/target_detector.cpp:46:68: warning: unused parameter ‘is_startup’ [-Wunused-parameter]
+   46 |                                           int current_target, bool is_startup) {
+      |                                                               ~~~~~^~~~~~~~~~
+/home/rich/mygithub/our_dart/dart_ws_on/src/yq_dart_aim/src/serial_manager.cpp: In lambda function:
+/home/rich/mygithub/our_dart/dart_ws_on/src/yq_dart_aim/src/serial_manager.cpp:98:43: error: ‘SERIAL_RX_TIMEOUT’ was not declared in this scope
+   98 |                             if (elapsed > SERIAL_RX_TIMEOUT.count()) {
+      |                                           ^~~~~~~~~~~~~~~~~
+/home/rich/mygithub/our_dart/dart_ws_on/src/yq_dart_aim/src/serial_manager.cpp: In member function ‘void yq_dart_aim::SerialManager::send(float, float)’:
+/home/rich/mygithub/our_dart/dart_ws_on/src/yq_dart_aim/src/serial_manager.cpp:184:26: error: ‘SERIAL_HEADER’ was not declared in this scope
+  184 |     unsigned char head = SERIAL_HEADER;
+      |                          ^~~~~~~~~~~~~
+/home/rich/mygithub/our_dart/dart_ws_on/src/yq_dart_aim/src/serial_manager.cpp:185:26: error: ‘SERIAL_TAIL’ was not declared in this scope
+  185 |     unsigned char tail = SERIAL_TAIL;
+      |                          ^~~~~~~~~~~
+/home/rich/mygithub/our_dart/dart_ws_on/src/yq_dart_aim/src/serial_manager.cpp: In member function ‘void yq_dart_aim::SerialManager::parseData(yq_dart_aim::SerialPortState&, const string&)’:
+/home/rich/mygithub/our_dart/dart_ws_on/src/yq_dart_aim/src/serial_manager.cpp:291:38: error: ‘SERIAL_HEADER’ was not declared in this scope
+  291 |             if (port.rx_buffer[i] == SERIAL_HEADER) {
+      |                                      ^~~~~~~~~~~~~
+/home/rich/mygithub/our_dart/dart_ws_on/src/yq_dart_aim/src/serial_manager.cpp:319:41: error: ‘SERIAL_TAIL’ was not declared in this scope
+  319 |         if (port.rx_buffer[tail_idx] != SERIAL_TAIL) {
+      |                                         ^~~~~~~~~~~
+/home/rich/mygithub/our_dart/dart_ws_on/src/yq_dart_aim/src/serial_manager.cpp:281:73: warning: unused parameter ‘port_name’ [-Wunused-parameter]
+  281 | void SerialManager::parseData(SerialPortState& port, const std::string& port_name) {
+      |                                                      ~~~~~~~~~~~~~~~~~~~^~~~~~~~~
+gmake[2]: *** [CMakeFiles/dart_aim_node.dir/build.make:135：CMakeFiles/dart_aim_node.dir/src/serial_manager.cpp.o] 错误 1
+gmake[2]: *** 正在等待未完成的任务....
+gmake[1]: *** [CMakeFiles/Makefile2:153：CMakeFiles/dart_aim_node.dir/all] 错误 2
+gmake: *** [Makefile:146：all] 错误 2

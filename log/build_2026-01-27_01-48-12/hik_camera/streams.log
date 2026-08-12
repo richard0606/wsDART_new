@@ -1,0 +1,42 @@
+[0.088s] Invoking command in '/root/dart_ws/build/hik_camera': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /root/dart_ws/build/hik_camera -- -j8 -l8
+[0.359s] [ 25%] [32mBuilding CXX object CMakeFiles/hik_camera_node.dir/rclcpp_components/node_main_hik_camera_node.cpp.o[0m
+[0.364s] [ 50%] [32mBuilding CXX object CMakeFiles/hik_camera.dir/src/hik_camera_node.cpp.o[0m
+[21.805s] [ 75%] [32m[1mLinking CXX executable hik_camera_node[0m
+[22.919s] [ 75%] Built target hik_camera_node
+[24.566s] [100%] [32m[1mLinking CXX shared library libhik_camera.so[0m
+[25.900s] [100%] Built target hik_camera
+[25.956s] Invoked command in '/root/dart_ws/build/hik_camera' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /root/dart_ws/build/hik_camera -- -j8 -l8
+[26.011s] Invoking command in '/root/dart_ws/build/hik_camera': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /root/dart_ws/build/hik_camera
+[26.052s] -- Install configuration: ""
+[26.056s] -- Execute custom install script
+[26.061s] -- Up-to-date symlink: /root/dart_ws/install/hik_camera/lib/libFormatConversion.so
+[26.062s] -- Up-to-date symlink: /root/dart_ws/install/hik_camera/lib/libMVRender.so
+[26.063s] -- Up-to-date symlink: /root/dart_ws/install/hik_camera/lib/libMediaProcess.so
+[26.064s] -- Up-to-date symlink: /root/dart_ws/install/hik_camera/lib/libMvCameraControl.so
+[26.065s] -- Up-to-date symlink: /root/dart_ws/install/hik_camera/lib/libMvUsb3vTL.so
+[26.066s] -- Up-to-date symlink: /root/dart_ws/install/hik_camera/lib/hik_camera/hik_camera_node
+[26.067s] -- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/environment/library_path.sh
+[26.068s] -- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/environment/library_path.dsv
+[26.070s] -- Up-to-date symlink: /root/dart_ws/install/hik_camera/lib/libhik_camera.so
+[26.073s] -- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/config/camera_info.yaml
+[26.074s] -- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/config/camera_params.yaml
+[26.075s] -- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/launch/hik_camera.launch.py
+[26.076s] -- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/ament_index/resource_index/package_run_dependencies/hik_camera
+[26.078s] -- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/ament_index/resource_index/parent_prefix_path/hik_camera
+[26.079s] -- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/environment/ament_prefix_path.sh
+[26.080s] -- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/environment/ament_prefix_path.dsv
+[26.082s] -- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/environment/path.sh
+[26.083s] -- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/environment/path.dsv
+[26.085s] -- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/local_setup.bash
+[26.086s] -- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/local_setup.sh
+[26.087s] -- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/local_setup.zsh
+[26.088s] -- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/local_setup.dsv
+[26.089s] -- Symlinking: /root/dart_ws/install/hik_camera/share/hik_camera/package.dsv
+[26.131s] -- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/ament_index/resource_index/packages/hik_camera
+[26.133s] -- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/ament_index/resource_index/rclcpp_components/hik_camera
+[26.134s] -- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/cmake/ament_cmake_export_dependencies-extras.cmake
+[26.135s] -- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/cmake/ament_cmake_export_libraries-extras.cmake
+[26.136s] -- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/cmake/hik_cameraConfig.cmake
+[26.137s] -- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/cmake/hik_cameraConfig-version.cmake
+[26.138s] -- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/package.xml
+[26.148s] Invoked command in '/root/dart_ws/build/hik_camera' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /root/dart_ws/build/hik_camera

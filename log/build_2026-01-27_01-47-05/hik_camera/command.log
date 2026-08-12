@@ -1,0 +1,1 @@
+Invoking command in '/root/dart_ws/build/hik_camera': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /root/dart_ws/build/hik_camera -- -j8 -l8

@@ -1,0 +1,33 @@
+[ 16%] Building CXX object CMakeFiles/dart_aim_node.dir/src/serial_manager.cpp.o
+/home/rich/mygithub/our_dart/dart_ws_on/src/yq_dart_aim/src/serial_manager.cpp: In member function ‘void yq_dart_aim::SerialManager::parseData(yq_dart_aim::SerialPortState&, const string&)’:
+/home/rich/mygithub/our_dart/dart_ws_on/src/yq_dart_aim/src/serial_manager.cpp:282:73: warning: unused parameter ‘port_name’ [-Wunused-parameter]
+  282 | void SerialManager::parseData(SerialPortState& port, const std::string& port_name) {
+      |                                                      ~~~~~~~~~~~~~~~~~~~^~~~~~~~~
+[ 33%] Linking CXX executable dart_aim_node
+[100%] Built target dart_aim_node
+-- Install configuration: ""
+-- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/lib/yq_dart_aim/dart_aim_node
+-- Set non-toolchain portion of runtime path of "/home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/lib/yq_dart_aim/dart_aim_node" to ""
+-- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/launch
+-- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/launch/MvSdkLog
+-- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/launch/MvSdkLog/CamCtrl_00.log
+-- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/launch/MvSdkLog/USB3_00.log
+-- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/launch/MvSdkLog/USB3_01.log
+-- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/launch/start.launch.py
+-- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/config
+-- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/config/params.yaml
+-- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/ament_index/resource_index/package_run_dependencies/yq_dart_aim
+-- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/ament_index/resource_index/parent_prefix_path/yq_dart_aim
+-- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/environment/ament_prefix_path.sh
+-- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/environment/ament_prefix_path.dsv
+-- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/environment/path.sh
+-- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/environment/path.dsv
+-- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/local_setup.bash
+-- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/local_setup.sh
+-- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/local_setup.zsh
+-- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/local_setup.dsv
+-- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/package.dsv
+-- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/ament_index/resource_index/packages/yq_dart_aim
+-- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/cmake/yq_dart_aimConfig.cmake
+-- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/cmake/yq_dart_aimConfig-version.cmake
+-- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/package.xml

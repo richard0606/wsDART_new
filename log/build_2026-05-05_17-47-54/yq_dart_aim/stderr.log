@@ -1,0 +1,11 @@
+/root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp: In member function ‘void DartAimNode::openSerial(const string&)’:
+/root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp:254:27: error: ‘scanForACMDevice’ was not declared in this scope
+  254 |       std::string found = scanForACMDevice();
+      |                           ^~~~~~~~~~~~~~~~
+/root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp: In member function ‘void DartAimNode::imageCallback(sensor_msgs::msg::Image_<std::allocator<void> >::SharedPtr)’:
+/root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp:437:12: warning: unused variable ‘img_area’ [-Wunused-variable]
+  437 |     double img_area = width * height;
+      |            ^~~~~~~~
+gmake[2]: *** [CMakeFiles/dart_aim_node.dir/build.make:76: CMakeFiles/dart_aim_node.dir/src/dart_aim_node.cpp.o] Error 1
+gmake[1]: *** [CMakeFiles/Makefile2:137: CMakeFiles/dart_aim_node.dir/all] Error 2
+gmake: *** [Makefile:146: all] Error 2

@@ -1,0 +1,485 @@
+[0.000000] (-) TimerEvent: {}
+[0.000639] (-) JobUnselected: {'identifier': 'hik_camera'}
+[0.001710] (yq_dart_aim) JobQueued: {'identifier': 'yq_dart_aim', 'dependencies': OrderedDict()}
+[0.002426] (yq_dart_aim) JobStarted: {'identifier': 'yq_dart_aim'}
+[0.038672] (yq_dart_aim) JobProgress: {'identifier': 'yq_dart_aim', 'progress': 'cmake'}
+[0.041990] (yq_dart_aim) JobProgress: {'identifier': 'yq_dart_aim', 'progress': 'build'}
+[0.045851] (yq_dart_aim) Command: {'cmd': ['/usr/bin/cmake', '--build', '/root/dart_ws/build/yq_dart_aim', '--', '-j8', '-l8'], 'cwd': '/root/dart_ws/build/yq_dart_aim', 'env': OrderedDict([('VSCODE_CWD', '/root'), ('VSCODE_ESM_ENTRYPOINT', 'vs/workbench/api/node/extensionHostProcess'), ('AI_AGENT', 'claude-code_2-1-128_agent'), ('LANGUAGE', 'en_US.UTF-8'), ('USER', 'root'), ('SSH_CLIENT', '192.168.127.222 57165 22'), ('CLAUDE_CODE_ENTRYPOINT', 'claude-vscode'), ('VSCODE_NLS_CONFIG', '{"userLocale":"zh-cn","osLocale":"zh-cn","resolvedLanguage":"zh-cn","defaultMessagesFile":"/root/.vscode-server/cli/servers/Stable-10c8e557c8b9f9ed0a87f61f1c9a44bde731c409/server/out/nls.messages.json","languagePack":{"translationsConfigFile":"/root/.vscode-server/data/clp/b912e1cc94c8380c6bb426bdce2c540f.zh-cn/tcf.json","messagesFile":"/root/.vscode-server/data/clp/b912e1cc94c8380c6bb426bdce2c540f.zh-cn/10c8e557c8b9f9ed0a87f61f1c9a44bde731c409/nls.messages.json","corruptMarkerFile":"/root/.vscode-server/data/clp/b912e1cc94c8380c6bb426bdce2c540f.zh-cn/corrupted.info"},"locale":"zh-cn","availableLanguages":{"*":"zh-cn"},"_languagePackId":"b912e1cc94c8380c6bb426bdce2c540f.zh-cn","_languagePackSupport":true,"_translationsConfigFile":"/root/.vscode-server/data/clp/b912e1cc94c8380c6bb426bdce2c540f.zh-cn/tcf.json","_cacheRoot":"/root/.vscode-server/data/clp/b912e1cc94c8380c6bb426bdce2c540f.zh-cn","_resolvedLanguagePackCoreLocation":"/root/.vscode-server/data/clp/b912e1cc94c8380c6bb426bdce2c540f.zh-cn/10c8e557c8b9f9ed0a87f61f1c9a44bde731c409","_corruptedFile":"/root/.vscode-server/data/clp/b912e1cc94c8380c6bb426bdce2c540f.zh-cn/corrupted.info"}'), ('GIT_EDITOR', 'true'), ('VSCODE_HANDLES_UNCAUGHT_ERRORS', 'true'), ('XDG_SESSION_TYPE', 'tty'), ('CLAUDE_AGENT_SDK_VERSION', '0.2.128'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/root/dart_ws/install/hik_camera/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib:/usr/hobot/lib:/app/lib:/app/pub/lib:/middleware/lib:/middleware/pub/lib:/usr/hobot/lib/sensor:/system/lib:/system/usr/lib:/lib:'), ('BROWSER', '/root/.vscode-server/cli/servers/Stable-10c8e557c8b9f9ed0a87f61f1c9a44bde731c409/server/bin/helpers/browser.sh'), ('MOTD_SHOWN', 'pam'), ('HOME', '/root'), ('VSCODE_RECONNECTION_GRACE_TIME', '10800000'), ('VSCODE_IPC_HOOK_CLI', '/run/user/0/vscode-ipc-68c7875b-6ab5-4320-9e00-f479b6f39fba.sock'), ('ANTHROPIC_DEFAULT_SONNET_MODEL', 'MiniMax-M2.7'), ('ROS_PYTHON_VERSION', '3'), ('skipWebFetchPreflight', 'true'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/0/bus'), ('DEBUGINFOD_URLS', ''), ('VSCODE_L10N_BUNDLE_LOCATION', 'vscode-local:/c%3A/Users/33680/.vscode/extensions/ms-ceintl.vscode-language-pack-zh-hans-1.118.2026050120/translations/extensions/vscode.markdown-language-features.i18n.json'), ('COLCON_PREFIX_PATH', '/root/dart_ws/install'), ('API_TIMEOUT_MS', '3000000'), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'root'), ('VSCODE_HANDLES_SIGPIPE', 'true'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('ANTHROPIC_BASE_URL', 'https://api.minimaxi.com/anthropic'), ('XDG_SESSION_ID', '2'), ('VSCODE_CLI_REQUIRE_TOKEN', '9b79597d-b3ac-4d30-ba30-4013e255803e'), ('ROS_LOCALHOST_ONLY', '0'), ('ANTHROPIC_DEFAULT_OPUS_MODEL', 'MiniMax-M2.7'), ('MCP_CONNECTION_NONBLOCKING', 'true'), ('PATH', '/root/.nvm/versions/node/v20.20.2/bin:/usr/hobot/bin/:/root/.vscode-server/cli/servers/Stable-10c8e557c8b9f9ed0a87f61f1c9a44bde731c409/server/bin/remote-cli:/opt/ros/humble/bin:/usr/hobot/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin'), ('VSCODE_AGENT_FOLDER', '/root/.vscode-server'), ('COREPACK_ENABLE_AUTO_PIN', '0'), ('XDG_RUNTIME_DIR', '/run/user/0'), ('NoDefaultCurrentDirectoryInExePath', '1'), ('LANG', 'en_US.UTF-8'), ('ANTHROPIC_DEFAULT_HAIKU_MODEL', 'MiniMax-M2.7'), ('LS_COLORS', ''), ('AMENT_PREFIX_PATH', '/root/dart_ws/install/yq_dart_aim:/root/dart_ws/install/hik_camera:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('ANTHROPIC_AUTH_TOKEN', 'sk-cp-kp2t5OhyGMB49SMyS-k15cvVKvYbaHLLcfOmapqGS16YCvjEPa3ZiWZnACc5nPBOWik1kXzOcCXBehA-q8ImKacndx4ZthWCn20_Jf8oZbfJvNc0tbE_gU4'), ('ELECTRON_RUN_AS_NODE', '1'), ('CLAUDE_CODE_ENABLE_SDK_FILE_CHECKPOINTING', 'true'), ('CLAUDECODE', '1'), ('PWD', '/root/dart_ws/build/yq_dart_aim'), ('SSH_CONNECTION', '192.168.127.222 57165 192.168.127.10 22'), ('XDG_DATA_DIRS', '/usr/share/gnome:/usr/local/share/:/usr/share/'), ('CLAUDE_CODE_EXECPATH', '/root/.vscode-server/extensions/anthropic.claude-code-2.1.128-linux-arm64/resources/native-binary/claude'), ('CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC', '1'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/root/dart_ws/install/yq_dart_aim:/root/dart_ws/install/hik_camera:/opt/ros/humble')]), 'shell': False}
+[0.098759] (-) TimerEvent: {}
+[0.199274] (-) TimerEvent: {}
+[0.292011] (yq_dart_aim) StdoutLine: {'line': b'Consolidate compiler generated dependencies of target dart_aim_node\n'}
+[0.299508] (-) TimerEvent: {}
+[0.363889] (yq_dart_aim) StdoutLine: {'line': b'[ 50%] Building CXX object CMakeFiles/dart_aim_node.dir/src/dart_aim_node.cpp.o\n'}
+[0.399729] (-) TimerEvent: {}
+[0.500342] (-) TimerEvent: {}
+[0.600882] (-) TimerEvent: {}
+[0.701401] (-) TimerEvent: {}
+[0.801921] (-) TimerEvent: {}
+[0.902428] (-) TimerEvent: {}
+[1.002936] (-) TimerEvent: {}
+[1.103450] (-) TimerEvent: {}
+[1.203963] (-) TimerEvent: {}
+[1.304475] (-) TimerEvent: {}
+[1.404987] (-) TimerEvent: {}
+[1.505501] (-) TimerEvent: {}
+[1.606023] (-) TimerEvent: {}
+[1.706650] (-) TimerEvent: {}
+[1.807167] (-) TimerEvent: {}
+[1.907675] (-) TimerEvent: {}
+[2.008196] (-) TimerEvent: {}
+[2.108702] (-) TimerEvent: {}
+[2.209230] (-) TimerEvent: {}
+[2.309741] (-) TimerEvent: {}
+[2.410262] (-) TimerEvent: {}
+[2.510786] (-) TimerEvent: {}
+[2.611319] (-) TimerEvent: {}
+[2.711846] (-) TimerEvent: {}
+[2.812355] (-) TimerEvent: {}
+[2.912893] (-) TimerEvent: {}
+[3.013419] (-) TimerEvent: {}
+[3.113945] (-) TimerEvent: {}
+[3.214483] (-) TimerEvent: {}
+[3.315031] (-) TimerEvent: {}
+[3.415567] (-) TimerEvent: {}
+[3.516135] (-) TimerEvent: {}
+[3.616705] (-) TimerEvent: {}
+[3.717236] (-) TimerEvent: {}
+[3.817721] (-) TimerEvent: {}
+[3.918240] (-) TimerEvent: {}
+[4.018750] (-) TimerEvent: {}
+[4.119296] (-) TimerEvent: {}
+[4.219820] (-) TimerEvent: {}
+[4.320298] (-) TimerEvent: {}
+[4.420816] (-) TimerEvent: {}
+[4.521368] (-) TimerEvent: {}
+[4.621927] (-) TimerEvent: {}
+[4.722459] (-) TimerEvent: {}
+[4.822968] (-) TimerEvent: {}
+[4.923507] (-) TimerEvent: {}
+[5.024041] (-) TimerEvent: {}
+[5.124599] (-) TimerEvent: {}
+[5.225145] (-) TimerEvent: {}
+[5.325705] (-) TimerEvent: {}
+[5.426275] (-) TimerEvent: {}
+[5.526845] (-) TimerEvent: {}
+[5.627400] (-) TimerEvent: {}
+[5.727959] (-) TimerEvent: {}
+[5.828468] (-) TimerEvent: {}
+[5.928976] (-) TimerEvent: {}
+[6.029493] (-) TimerEvent: {}
+[6.130042] (-) TimerEvent: {}
+[6.230552] (-) TimerEvent: {}
+[6.331055] (-) TimerEvent: {}
+[6.431605] (-) TimerEvent: {}
+[6.532150] (-) TimerEvent: {}
+[6.632686] (-) TimerEvent: {}
+[6.733204] (-) TimerEvent: {}
+[6.833724] (-) TimerEvent: {}
+[6.934224] (-) TimerEvent: {}
+[7.034706] (-) TimerEvent: {}
+[7.135220] (-) TimerEvent: {}
+[7.235730] (-) TimerEvent: {}
+[7.336221] (-) TimerEvent: {}
+[7.436740] (-) TimerEvent: {}
+[7.537285] (-) TimerEvent: {}
+[7.637836] (-) TimerEvent: {}
+[7.738371] (-) TimerEvent: {}
+[7.838886] (-) TimerEvent: {}
+[7.939413] (-) TimerEvent: {}
+[8.039934] (-) TimerEvent: {}
+[8.140467] (-) TimerEvent: {}
+[8.240990] (-) TimerEvent: {}
+[8.341487] (-) TimerEvent: {}
+[8.441997] (-) TimerEvent: {}
+[8.542541] (-) TimerEvent: {}
+[8.643178] (-) TimerEvent: {}
+[8.743712] (-) TimerEvent: {}
+[8.844268] (-) TimerEvent: {}
+[8.944768] (-) TimerEvent: {}
+[9.045265] (-) TimerEvent: {}
+[9.145787] (-) TimerEvent: {}
+[9.246309] (-) TimerEvent: {}
+[9.346814] (-) TimerEvent: {}
+[9.447326] (-) TimerEvent: {}
+[9.547882] (-) TimerEvent: {}
+[9.648429] (-) TimerEvent: {}
+[9.748985] (-) TimerEvent: {}
+[9.849512] (-) TimerEvent: {}
+[9.950025] (-) TimerEvent: {}
+[10.050527] (-) TimerEvent: {}
+[10.151071] (-) TimerEvent: {}
+[10.251635] (-) TimerEvent: {}
+[10.352146] (-) TimerEvent: {}
+[10.452658] (-) TimerEvent: {}
+[10.553202] (-) TimerEvent: {}
+[10.653742] (-) TimerEvent: {}
+[10.754265] (-) TimerEvent: {}
+[10.854741] (-) TimerEvent: {}
+[10.955215] (-) TimerEvent: {}
+[11.055675] (-) TimerEvent: {}
+[11.156173] (-) TimerEvent: {}
+[11.256675] (-) TimerEvent: {}
+[11.357156] (-) TimerEvent: {}
+[11.457664] (-) TimerEvent: {}
+[11.558256] (-) TimerEvent: {}
+[11.658794] (-) TimerEvent: {}
+[11.759333] (-) TimerEvent: {}
+[11.859802] (-) TimerEvent: {}
+[11.960245] (-) TimerEvent: {}
+[12.060674] (-) TimerEvent: {}
+[12.161164] (-) TimerEvent: {}
+[12.261667] (-) TimerEvent: {}
+[12.362127] (-) TimerEvent: {}
+[12.462611] (-) TimerEvent: {}
+[12.563133] (-) TimerEvent: {}
+[12.663665] (-) TimerEvent: {}
+[12.764186] (-) TimerEvent: {}
+[12.864673] (-) TimerEvent: {}
+[12.965128] (-) TimerEvent: {}
+[13.065614] (-) TimerEvent: {}
+[13.166140] (-) TimerEvent: {}
+[13.266642] (-) TimerEvent: {}
+[13.367132] (-) TimerEvent: {}
+[13.467635] (-) TimerEvent: {}
+[13.568186] (-) TimerEvent: {}
+[13.668731] (-) TimerEvent: {}
+[13.769246] (-) TimerEvent: {}
+[13.869701] (-) TimerEvent: {}
+[13.970149] (-) TimerEvent: {}
+[14.070634] (-) TimerEvent: {}
+[14.171137] (-) TimerEvent: {}
+[14.271624] (-) TimerEvent: {}
+[14.372086] (-) TimerEvent: {}
+[14.472575] (-) TimerEvent: {}
+[14.573098] (-) TimerEvent: {}
+[14.673623] (-) TimerEvent: {}
+[14.774122] (-) TimerEvent: {}
+[14.874588] (-) TimerEvent: {}
+[14.975034] (-) TimerEvent: {}
+[15.075524] (-) TimerEvent: {}
+[15.176034] (-) TimerEvent: {}
+[15.276556] (-) TimerEvent: {}
+[15.377072] (-) TimerEvent: {}
+[15.477600] (-) TimerEvent: {}
+[15.578168] (-) TimerEvent: {}
+[15.678664] (-) TimerEvent: {}
+[15.779146] (-) TimerEvent: {}
+[15.879619] (-) TimerEvent: {}
+[15.980074] (-) TimerEvent: {}
+[16.080562] (-) TimerEvent: {}
+[16.181035] (-) TimerEvent: {}
+[16.281491] (-) TimerEvent: {}
+[16.381958] (-) TimerEvent: {}
+[16.482460] (-) TimerEvent: {}
+[16.582986] (-) TimerEvent: {}
+[16.683514] (-) TimerEvent: {}
+[16.784008] (-) TimerEvent: {}
+[16.884455] (-) TimerEvent: {}
+[16.984883] (-) TimerEvent: {}
+[17.085351] (-) TimerEvent: {}
+[17.185842] (-) TimerEvent: {}
+[17.286313] (-) TimerEvent: {}
+[17.386763] (-) TimerEvent: {}
+[17.487233] (-) TimerEvent: {}
+[17.587746] (-) TimerEvent: {}
+[17.688311] (-) TimerEvent: {}
+[17.788807] (-) TimerEvent: {}
+[17.889290] (-) TimerEvent: {}
+[17.989752] (-) TimerEvent: {}
+[18.090243] (-) TimerEvent: {}
+[18.190724] (-) TimerEvent: {}
+[18.291204] (-) TimerEvent: {}
+[18.391695] (-) TimerEvent: {}
+[18.492196] (-) TimerEvent: {}
+[18.592726] (-) TimerEvent: {}
+[18.693221] (-) TimerEvent: {}
+[18.793700] (-) TimerEvent: {}
+[18.894159] (-) TimerEvent: {}
+[18.994595] (-) TimerEvent: {}
+[19.095076] (-) TimerEvent: {}
+[19.195580] (-) TimerEvent: {}
+[19.296078] (-) TimerEvent: {}
+[19.396564] (-) TimerEvent: {}
+[19.497076] (-) TimerEvent: {}
+[19.597620] (-) TimerEvent: {}
+[19.698200] (-) TimerEvent: {}
+[19.798705] (-) TimerEvent: {}
+[19.899193] (-) TimerEvent: {}
+[19.999665] (-) TimerEvent: {}
+[20.100155] (-) TimerEvent: {}
+[20.200652] (-) TimerEvent: {}
+[20.301165] (-) TimerEvent: {}
+[20.401686] (-) TimerEvent: {}
+[20.502218] (-) TimerEvent: {}
+[20.602747] (-) TimerEvent: {}
+[20.703291] (-) TimerEvent: {}
+[20.803813] (-) TimerEvent: {}
+[20.904312] (-) TimerEvent: {}
+[21.004782] (-) TimerEvent: {}
+[21.105273] (-) TimerEvent: {}
+[21.205773] (-) TimerEvent: {}
+[21.306276] (-) TimerEvent: {}
+[21.406750] (-) TimerEvent: {}
+[21.409381] (yq_dart_aim) StderrLine: {'line': b'/root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp:265:36: error: \xe2\x80\x98UInt8MultiArray\xe2\x80\x99 is not a member of \xe2\x80\x98std_msgs::msg\xe2\x80\x99; did you mean \xe2\x80\x98Float32MultiArray\xe2\x80\x99?\n'}
+[21.410211] (yq_dart_aim) StderrLine: {'line': b'  265 |   rclcpp::Publisher<std_msgs::msg::UInt8MultiArray>::SharedPtr serial_debug_pub_;\n'}
+[21.410676] (yq_dart_aim) StderrLine: {'line': b'      |                                    ^~~~~~~~~~~~~~~\n'}
+[21.411523] (yq_dart_aim) StderrLine: {'line': b'      |                                    Float32MultiArray\n'}
+[21.411964] (yq_dart_aim) StderrLine: {'line': b'/root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp:265:51: error: template argument 1 is invalid\n'}
+[21.412395] (yq_dart_aim) StderrLine: {'line': b'  265 |   rclcpp::Publisher<std_msgs::msg::UInt8MultiArray>::SharedPtr serial_debug_pub_;\n'}
+[21.412821] (yq_dart_aim) StderrLine: {'line': b'      |                                                   ^\n'}
+[21.413250] (yq_dart_aim) StderrLine: {'line': b'/root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp:265:54: error: expected \xe2\x80\x98;\xe2\x80\x99 at end of member declaration\n'}
+[21.413679] (yq_dart_aim) StderrLine: {'line': b'  265 |   rclcpp::Publisher<std_msgs::msg::UInt8MultiArray>::SharedPtr serial_debug_pub_;\n'}
+[21.414106] (yq_dart_aim) StderrLine: {'line': b'      |                                                      ^~~~~~~~~\n'}
+[21.414535] (yq_dart_aim) StderrLine: {'line': b'      |                                                               ;\n'}
+[21.446754] (yq_dart_aim) StderrLine: {'line': b'/root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp:265:64: error: \xe2\x80\x98serial_debug_pub_\xe2\x80\x99 does not name a type\n'}
+[21.447518] (yq_dart_aim) StderrLine: {'line': b'  265 |   rclcpp::Publisher<std_msgs::msg::UInt8MultiArray>::SharedPtr serial_debug_pub_;\n'}
+[21.448035] (yq_dart_aim) StderrLine: {'line': b'      |                                                                ^~~~~~~~~~~~~~~~~\n'}
+[21.506957] (-) TimerEvent: {}
+[21.607483] (-) TimerEvent: {}
+[21.649151] (yq_dart_aim) StderrLine: {'line': b'/root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp: In constructor \xe2\x80\x98DartAimNode::DartAimNode(const rclcpp::NodeOptions&)\xe2\x80\x99:\n'}
+[21.649939] (yq_dart_aim) StderrLine: {'line': b'/root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp:161:5: error: \xe2\x80\x98serial_debug_pub_\xe2\x80\x99 was not declared in this scope; did you mean \xe2\x80\x98serial_pub_\xe2\x80\x99?\n'}
+[21.650462] (yq_dart_aim) StderrLine: {'line': b'  161 |     serial_debug_pub_ = this->create_publisher<std_msgs::msg::UInt8MultiArray>("/serial_debug", 10);\n'}
+[21.650918] (yq_dart_aim) StderrLine: {'line': b'      |     ^~~~~~~~~~~~~~~~~\n'}
+[21.651357] (yq_dart_aim) StderrLine: {'line': b'      |     serial_pub_\n'}
+[21.651793] (yq_dart_aim) StderrLine: {'line': b'/root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp:161:63: error: \xe2\x80\x98UInt8MultiArray\xe2\x80\x99 is not a member of \xe2\x80\x98std_msgs::msg\xe2\x80\x99; did you mean \xe2\x80\x98Float32MultiArray\xe2\x80\x99?\n'}
+[21.652236] (yq_dart_aim) StderrLine: {'line': b'  161 |     serial_debug_pub_ = this->create_publisher<std_msgs::msg::UInt8MultiArray>("/serial_debug", 10);\n'}
+[21.652675] (yq_dart_aim) StderrLine: {'line': b'      |                                                               ^~~~~~~~~~~~~~~\n'}
+[21.653114] (yq_dart_aim) StderrLine: {'line': b'      |                                                               Float32MultiArray\n'}
+[21.653552] (yq_dart_aim) StderrLine: {'line': b'/root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp:161:79: error: no matching function for call to \xe2\x80\x98DartAimNode::create_publisher<<expression error> >(const char [14], int)\xe2\x80\x99\n'}
+[21.653993] (yq_dart_aim) StderrLine: {'line': b'  161 |     serial_debug_pub_ = this->create_publisher<std_msgs::msg::UInt8MultiArray>("/serial_debug", 10);\n'}
+[21.654430] (yq_dart_aim) StderrLine: {'line': b'      |                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~\n'}
+[21.654868] (yq_dart_aim) StderrLine: {'line': b'In file included from /opt/ros/humble/include/rclcpp/rclcpp/node.hpp:1321,\n'}
+[21.655344] (yq_dart_aim) StderrLine: {'line': b'                 from /opt/ros/humble/include/rclcpp/rclcpp/executors/single_threaded_executor.hpp:28,\n'}
+[21.655782] (yq_dart_aim) StderrLine: {'line': b'                 from /opt/ros/humble/include/rclcpp/rclcpp/executors.hpp:22,\n'}
+[21.656216] (yq_dart_aim) StderrLine: {'line': b'                 from /opt/ros/humble/include/rclcpp/rclcpp/rclcpp.hpp:155,\n'}
+[21.656653] (yq_dart_aim) StderrLine: {'line': b'                 from /root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp:1:\n'}
+[21.657085] (yq_dart_aim) StderrLine: {'line': b'/opt/ros/humble/include/rclcpp/rclcpp/node_impl.hpp:73:1: note: candidate: \xe2\x80\x98template<class MessageT, class AllocatorT, class PublisherT> std::shared_ptr<PublisherT> rclcpp::Node::create_publisher(const string&, const rclcpp::QoS&, const rclcpp::PublisherOptionsWithAllocator<AllocatorT>&)\xe2\x80\x99\n'}
+[21.657531] (yq_dart_aim) StderrLine: {'line': b'   73 | Node::create_publisher(\n'}
+[21.658019] (yq_dart_aim) StderrLine: {'line': b'      | ^~~~\n'}
+[21.658467] (yq_dart_aim) StderrLine: {'line': b'/opt/ros/humble/include/rclcpp/rclcpp/node_impl.hpp:73:1: note:   template argument deduction/substitution failed:\n'}
+[21.658947] (yq_dart_aim) StderrLine: {'line': b'/root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp:161:79: error: template argument 1 is invalid\n'}
+[21.659389] (yq_dart_aim) StderrLine: {'line': b'  161 |     serial_debug_pub_ = this->create_publisher<std_msgs::msg::UInt8MultiArray>("/serial_debug", 10);\n'}
+[21.659821] (yq_dart_aim) StderrLine: {'line': b'      |                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~\n'}
+[21.707653] (-) TimerEvent: {}
+[21.714850] (yq_dart_aim) StderrLine: {'line': b'/root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp: In lambda function:\n'}
+[21.715610] (yq_dart_aim) StderrLine: {'line': b'/root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp:222:28: error: \xe2\x80\x98UInt8MultiArray\xe2\x80\x99 is not a member of \xe2\x80\x98std_msgs::msg\xe2\x80\x99; did you mean \xe2\x80\x98Float32MultiArray\xe2\x80\x99?\n'}
+[21.716141] (yq_dart_aim) StderrLine: {'line': b'  222 |             std_msgs::msg::UInt8MultiArray debug_msg;\n'}
+[21.716578] (yq_dart_aim) StderrLine: {'line': b'      |                            ^~~~~~~~~~~~~~~\n'}
+[21.717017] (yq_dart_aim) StderrLine: {'line': b'      |                            Float32MultiArray\n'}
+[21.801862] (yq_dart_aim) StderrLine: {'line': b'/root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp:223:13: error: \xe2\x80\x98debug_msg\xe2\x80\x99 was not declared in this scope\n'}
+[21.802623] (yq_dart_aim) StderrLine: {'line': b'  223 |             debug_msg.data.assign(buf, buf + n);\n'}
+[21.803119] (yq_dart_aim) StderrLine: {'line': b'      |             ^~~~~~~~~\n'}
+[21.803569] (yq_dart_aim) StderrLine: {'line': b'/root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp:224:13: error: \xe2\x80\x98serial_debug_pub_\xe2\x80\x99 is not captured\n'}
+[21.804011] (yq_dart_aim) StderrLine: {'line': b'  224 |             serial_debug_pub_->publish(debug_msg);\n'}
+[21.804453] (yq_dart_aim) StderrLine: {'line': b'      |             ^~~~~~~~~~~~~~~~~\n'}
+[21.804892] (yq_dart_aim) StderrLine: {'line': b'/root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp:215:44: note: the lambda has no capture-default\n'}
+[21.805334] (yq_dart_aim) StderrLine: {'line': b'  215 |     serial_read_thread_ = std::thread([this]() {\n'}
+[21.805773] (yq_dart_aim) StderrLine: {'line': b'      |                                            ^\n'}
+[21.806206] (yq_dart_aim) StderrLine: {'line': b'/root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp:161:5: note: \xe2\x80\x98<typeprefixerror>serial_debug_pub_\xe2\x80\x99 declared here\n'}
+[21.806649] (yq_dart_aim) StderrLine: {'line': b'  161 |     serial_debug_pub_ = this->create_publisher<std_msgs::msg::UInt8MultiArray>("/serial_debug", 10);\n'}
+[21.807089] (yq_dart_aim) StderrLine: {'line': b'      |     ^~~~~~~~~~~~~~~~~\n'}
+[21.807726] (-) TimerEvent: {}
+[21.908100] (-) TimerEvent: {}
+[22.008528] (-) TimerEvent: {}
+[22.109006] (-) TimerEvent: {}
+[22.209505] (-) TimerEvent: {}
+[22.309990] (-) TimerEvent: {}
+[22.410492] (-) TimerEvent: {}
+[22.511034] (-) TimerEvent: {}
+[22.611574] (-) TimerEvent: {}
+[22.712127] (-) TimerEvent: {}
+[22.812642] (-) TimerEvent: {}
+[22.913152] (-) TimerEvent: {}
+[23.013660] (-) TimerEvent: {}
+[23.114179] (-) TimerEvent: {}
+[23.214695] (-) TimerEvent: {}
+[23.315213] (-) TimerEvent: {}
+[23.415721] (-) TimerEvent: {}
+[23.516249] (-) TimerEvent: {}
+[23.616798] (-) TimerEvent: {}
+[23.717358] (-) TimerEvent: {}
+[23.817986] (-) TimerEvent: {}
+[23.918516] (-) TimerEvent: {}
+[24.019145] (-) TimerEvent: {}
+[24.119667] (-) TimerEvent: {}
+[24.220205] (-) TimerEvent: {}
+[24.320747] (-) TimerEvent: {}
+[24.421281] (-) TimerEvent: {}
+[24.521807] (-) TimerEvent: {}
+[24.622360] (-) TimerEvent: {}
+[24.722927] (-) TimerEvent: {}
+[24.823451] (-) TimerEvent: {}
+[24.923996] (-) TimerEvent: {}
+[25.024528] (-) TimerEvent: {}
+[25.125059] (-) TimerEvent: {}
+[25.225597] (-) TimerEvent: {}
+[25.326132] (-) TimerEvent: {}
+[25.426673] (-) TimerEvent: {}
+[25.527226] (-) TimerEvent: {}
+[25.627769] (-) TimerEvent: {}
+[25.728363] (-) TimerEvent: {}
+[25.828901] (-) TimerEvent: {}
+[25.929457] (-) TimerEvent: {}
+[26.030003] (-) TimerEvent: {}
+[26.130548] (-) TimerEvent: {}
+[26.231090] (-) TimerEvent: {}
+[26.331638] (-) TimerEvent: {}
+[26.432197] (-) TimerEvent: {}
+[26.532756] (-) TimerEvent: {}
+[26.633293] (-) TimerEvent: {}
+[26.733833] (-) TimerEvent: {}
+[26.834376] (-) TimerEvent: {}
+[26.934924] (-) TimerEvent: {}
+[27.035471] (-) TimerEvent: {}
+[27.135999] (-) TimerEvent: {}
+[27.236528] (-) TimerEvent: {}
+[27.337064] (-) TimerEvent: {}
+[27.437610] (-) TimerEvent: {}
+[27.538187] (-) TimerEvent: {}
+[27.638724] (-) TimerEvent: {}
+[27.739257] (-) TimerEvent: {}
+[27.839779] (-) TimerEvent: {}
+[27.940302] (-) TimerEvent: {}
+[28.040830] (-) TimerEvent: {}
+[28.141356] (-) TimerEvent: {}
+[28.241882] (-) TimerEvent: {}
+[28.342414] (-) TimerEvent: {}
+[28.442957] (-) TimerEvent: {}
+[28.543495] (-) TimerEvent: {}
+[28.644031] (-) TimerEvent: {}
+[28.744568] (-) TimerEvent: {}
+[28.863695] (-) TimerEvent: {}
+[28.964231] (-) TimerEvent: {}
+[29.064768] (-) TimerEvent: {}
+[29.165321] (-) TimerEvent: {}
+[29.265866] (-) TimerEvent: {}
+[29.366404] (-) TimerEvent: {}
+[29.466951] (-) TimerEvent: {}
+[29.567493] (-) TimerEvent: {}
+[29.668022] (-) TimerEvent: {}
+[29.768562] (-) TimerEvent: {}
+[29.869098] (-) TimerEvent: {}
+[29.969642] (-) TimerEvent: {}
+[30.070182] (-) TimerEvent: {}
+[30.170719] (-) TimerEvent: {}
+[30.271253] (-) TimerEvent: {}
+[30.371781] (-) TimerEvent: {}
+[30.472319] (-) TimerEvent: {}
+[30.572847] (-) TimerEvent: {}
+[30.673381] (-) TimerEvent: {}
+[30.773921] (-) TimerEvent: {}
+[30.874469] (-) TimerEvent: {}
+[30.975013] (-) TimerEvent: {}
+[31.075556] (-) TimerEvent: {}
+[31.176096] (-) TimerEvent: {}
+[31.276628] (-) TimerEvent: {}
+[31.377158] (-) TimerEvent: {}
+[31.477688] (-) TimerEvent: {}
+[31.578278] (-) TimerEvent: {}
+[31.678826] (-) TimerEvent: {}
+[31.779364] (-) TimerEvent: {}
+[31.879891] (-) TimerEvent: {}
+[31.980428] (-) TimerEvent: {}
+[32.080957] (-) TimerEvent: {}
+[32.181493] (-) TimerEvent: {}
+[32.282025] (-) TimerEvent: {}
+[32.382565] (-) TimerEvent: {}
+[32.483095] (-) TimerEvent: {}
+[32.583626] (-) TimerEvent: {}
+[32.684162] (-) TimerEvent: {}
+[32.784700] (-) TimerEvent: {}
+[32.885221] (-) TimerEvent: {}
+[32.985742] (-) TimerEvent: {}
+[33.086266] (-) TimerEvent: {}
+[33.186798] (-) TimerEvent: {}
+[33.287334] (-) TimerEvent: {}
+[33.387892] (-) TimerEvent: {}
+[33.488404] (-) TimerEvent: {}
+[33.588927] (-) TimerEvent: {}
+[33.689460] (-) TimerEvent: {}
+[33.789985] (-) TimerEvent: {}
+[33.890516] (-) TimerEvent: {}
+[33.991003] (-) TimerEvent: {}
+[34.091505] (-) TimerEvent: {}
+[34.192031] (-) TimerEvent: {}
+[34.292534] (-) TimerEvent: {}
+[34.393045] (-) TimerEvent: {}
+[34.493570] (-) TimerEvent: {}
+[34.594104] (-) TimerEvent: {}
+[34.694636] (-) TimerEvent: {}
+[34.795163] (-) TimerEvent: {}
+[34.895691] (-) TimerEvent: {}
+[34.996227] (-) TimerEvent: {}
+[35.096761] (-) TimerEvent: {}
+[35.197349] (-) TimerEvent: {}
+[35.297904] (-) TimerEvent: {}
+[35.398424] (-) TimerEvent: {}
+[35.498946] (-) TimerEvent: {}
+[35.599475] (-) TimerEvent: {}
+[35.700025] (-) TimerEvent: {}
+[35.800555] (-) TimerEvent: {}
+[35.901092] (-) TimerEvent: {}
+[36.001634] (-) TimerEvent: {}
+[36.102174] (-) TimerEvent: {}
+[36.202717] (-) TimerEvent: {}
+[36.303257] (-) TimerEvent: {}
+[36.403794] (-) TimerEvent: {}
+[36.504317] (-) TimerEvent: {}
+[36.604844] (-) TimerEvent: {}
+[36.705406] (-) TimerEvent: {}
+[36.805955] (-) TimerEvent: {}
+[36.906501] (-) TimerEvent: {}
+[37.007004] (-) TimerEvent: {}
+[37.107527] (-) TimerEvent: {}
+[37.208084] (-) TimerEvent: {}
+[37.308616] (-) TimerEvent: {}
+[37.409160] (-) TimerEvent: {}
+[37.509698] (-) TimerEvent: {}
+[37.610235] (-) TimerEvent: {}
+[37.710777] (-) TimerEvent: {}
+[37.811314] (-) TimerEvent: {}
+[37.911852] (-) TimerEvent: {}
+[38.012388] (-) TimerEvent: {}
+[38.112924] (-) TimerEvent: {}
+[38.213461] (-) TimerEvent: {}
+[38.314003] (-) TimerEvent: {}
+[38.414545] (-) TimerEvent: {}
+[38.515086] (-) TimerEvent: {}
+[38.615627] (-) TimerEvent: {}
+[38.716173] (-) TimerEvent: {}
+[38.816717] (-) TimerEvent: {}
+[38.917209] (-) TimerEvent: {}
+[39.017674] (-) TimerEvent: {}
+[39.118211] (-) TimerEvent: {}
+[39.218725] (-) TimerEvent: {}
+[39.319236] (-) TimerEvent: {}
+[39.419709] (-) TimerEvent: {}
+[39.520188] (-) TimerEvent: {}
+[39.620710] (-) TimerEvent: {}
+[39.721223] (-) TimerEvent: {}
+[39.821714] (-) TimerEvent: {}
+[39.922222] (-) TimerEvent: {}
+[40.022740] (-) TimerEvent: {}
+[40.123268] (-) TimerEvent: {}
+[40.223803] (-) TimerEvent: {}
+[40.324356] (-) TimerEvent: {}
+[40.424921] (-) TimerEvent: {}
+[40.525452] (-) TimerEvent: {}
+[40.625998] (-) TimerEvent: {}
+[40.726545] (-) TimerEvent: {}
+[40.827056] (-) TimerEvent: {}
+[40.927571] (-) TimerEvent: {}
+[41.028095] (-) TimerEvent: {}
+[41.128601] (-) TimerEvent: {}
+[41.229107] (-) TimerEvent: {}
+[41.329624] (-) TimerEvent: {}
+[41.430130] (-) TimerEvent: {}
+[41.530639] (-) TimerEvent: {}
+[41.631155] (-) TimerEvent: {}
+[41.684700] (yq_dart_aim) StderrLine: {'line': b'gmake[2]: *** [CMakeFiles/dart_aim_node.dir/build.make:76: CMakeFiles/dart_aim_node.dir/src/dart_aim_node.cpp.o] Error 1\n'}
+[41.688195] (yq_dart_aim) StderrLine: {'line': b'gmake[1]: *** [CMakeFiles/Makefile2:137: CMakeFiles/dart_aim_node.dir/all] Error 2\n'}
+[41.691064] (yq_dart_aim) StderrLine: {'line': b'gmake: *** [Makefile:146: all] Error 2\n'}
+[41.703569] (yq_dart_aim) CommandEnded: {'returncode': 2}
+[41.731321] (-) TimerEvent: {}
+[41.783685] (yq_dart_aim) JobEnded: {'identifier': 'yq_dart_aim', 'rc': 2}
+[41.795276] (-) EventReactorShutdown: {}

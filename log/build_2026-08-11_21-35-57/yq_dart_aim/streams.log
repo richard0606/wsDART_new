@@ -1,0 +1,37 @@
+[0.006s] Invoking command in '/home/rich/mygithub/our_dart/dart_ws_on/build/yq_dart_aim': CMAKE_PREFIX_PATH=/opt/ros/humble /home/rich/.local/bin/cmake --build /home/rich/mygithub/our_dart/dart_ws_on/build/yq_dart_aim -- -j20 -l20
+[0.035s] [ 16%] Building CXX object CMakeFiles/dart_aim_node.dir/src/serial_manager.cpp.o
+[0.418s] /home/rich/mygithub/our_dart/dart_ws_on/src/yq_dart_aim/src/serial_manager.cpp: In member function ‘void yq_dart_aim::SerialManager::parseData(yq_dart_aim::SerialPortState&, const string&)’:
+[0.418s] /home/rich/mygithub/our_dart/dart_ws_on/src/yq_dart_aim/src/serial_manager.cpp:282:73: warning: unused parameter ‘port_name’ [-Wunused-parameter]
+[0.418s]   282 | void SerialManager::parseData(SerialPortState& port, const std::string& port_name) {
+[0.418s]       |                                                      ~~~~~~~~~~~~~~~~~~~^~~~~~~~~
+[0.634s] [ 33%] Linking CXX executable dart_aim_node
+[1.239s] [100%] Built target dart_aim_node
+[1.242s] Invoked command in '/home/rich/mygithub/our_dart/dart_ws_on/build/yq_dart_aim' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /home/rich/.local/bin/cmake --build /home/rich/mygithub/our_dart/dart_ws_on/build/yq_dart_aim -- -j20 -l20
+[1.247s] Invoking command in '/home/rich/mygithub/our_dart/dart_ws_on/build/yq_dart_aim': CMAKE_PREFIX_PATH=/opt/ros/humble /home/rich/.local/bin/cmake --install /home/rich/mygithub/our_dart/dart_ws_on/build/yq_dart_aim
+[1.249s] -- Install configuration: ""
+[1.249s] -- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/lib/yq_dart_aim/dart_aim_node
+[1.255s] -- Set non-toolchain portion of runtime path of "/home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/lib/yq_dart_aim/dart_aim_node" to ""
+[1.255s] -- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/launch
+[1.255s] -- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/launch/MvSdkLog
+[1.255s] -- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/launch/MvSdkLog/CamCtrl_00.log
+[1.255s] -- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/launch/MvSdkLog/USB3_00.log
+[1.256s] -- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/launch/MvSdkLog/USB3_01.log
+[1.259s] -- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/launch/start.launch.py
+[1.259s] -- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/config
+[1.259s] -- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/config/params.yaml
+[1.259s] -- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/ament_index/resource_index/package_run_dependencies/yq_dart_aim
+[1.259s] -- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/ament_index/resource_index/parent_prefix_path/yq_dart_aim
+[1.260s] -- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/environment/ament_prefix_path.sh
+[1.260s] -- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/environment/ament_prefix_path.dsv
+[1.260s] -- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/environment/path.sh
+[1.260s] -- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/environment/path.dsv
+[1.260s] -- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/local_setup.bash
+[1.260s] -- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/local_setup.sh
+[1.260s] -- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/local_setup.zsh
+[1.260s] -- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/local_setup.dsv
+[1.260s] -- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/package.dsv
+[1.260s] -- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/ament_index/resource_index/packages/yq_dart_aim
+[1.260s] -- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/cmake/yq_dart_aimConfig.cmake
+[1.260s] -- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/cmake/yq_dart_aimConfig-version.cmake
+[1.260s] -- Installing: /home/rich/mygithub/our_dart/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/package.xml
+[1.261s] Invoked command in '/home/rich/mygithub/our_dart/dart_ws_on/build/yq_dart_aim' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /home/rich/.local/bin/cmake --install /home/rich/mygithub/our_dart/dart_ws_on/build/yq_dart_aim

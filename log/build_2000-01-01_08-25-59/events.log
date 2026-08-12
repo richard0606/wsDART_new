@@ -1,0 +1,848 @@
+[0.000000] (-) TimerEvent: {}
+[0.001137] (hik_camera) JobQueued: {'identifier': 'hik_camera', 'dependencies': OrderedDict()}
+[0.002194] (yq_dart_aim) JobQueued: {'identifier': 'yq_dart_aim', 'dependencies': OrderedDict()}
+[0.002832] (hik_camera) JobStarted: {'identifier': 'hik_camera'}
+[0.037519] (yq_dart_aim) JobStarted: {'identifier': 'yq_dart_aim'}
+[0.059003] (hik_camera) JobProgress: {'identifier': 'hik_camera', 'progress': 'cmake'}
+[0.063745] (hik_camera) JobProgress: {'identifier': 'hik_camera', 'progress': 'build'}
+[0.067425] (hik_camera) Command: {'cmd': ['/usr/bin/cmake', '--build', '/root/dart_ws/build/hik_camera', '--clean-first', '--', '-j8', '-l8'], 'cwd': '/root/dart_ws/build/hik_camera', 'env': OrderedDict([('LANGUAGE', 'en_US.UTF-8'), ('USER', 'root'), ('SSH_CLIENT', '192.168.127.20 63767 22'), ('XDG_SESSION_TYPE', 'tty'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib:/usr/hobot/lib:/app/lib:/app/pub/lib:/middleware/lib:/middleware/pub/lib:/usr/hobot/lib/sensor:/system/lib:/system/usr/lib:/lib:'), ('MOTD_SHOWN', 'pam'), ('HOME', '/root'), ('OLDPWD', '/root'), ('SSH_TTY', '/dev/pts/0'), ('ROS_PYTHON_VERSION', '3'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/0/bus'), ('DEBUGINFOD_URLS', ''), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'root'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('TERM', 'xterm'), ('XDG_SESSION_ID', '6'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/opt/ros/humble/bin:/usr/hobot/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin'), ('XDG_RUNTIME_DIR', '/run/user/0'), ('DISPLAY', 'localhost:10.0'), ('LANG', 'en_US.UTF-8'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('AMENT_PREFIX_PATH', '/opt/ros/humble'), ('SHELL', '/bin/bash'), ('PWD', '/root/dart_ws/build/hik_camera'), ('SSH_CONNECTION', '192.168.127.20 63767 192.168.127.10 22'), ('XDG_DATA_DIRS', '/usr/share/gnome:/usr/local/share/:/usr/share/'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/opt/ros/humble')]), 'shell': False}
+[0.082263] (yq_dart_aim) JobProgress: {'identifier': 'yq_dart_aim', 'progress': 'cmake'}
+[0.089457] (yq_dart_aim) JobProgress: {'identifier': 'yq_dart_aim', 'progress': 'build'}
+[0.090875] (yq_dart_aim) Command: {'cmd': ['/usr/bin/cmake', '--build', '/root/dart_ws/build/yq_dart_aim', '--clean-first', '--', '-j8', '-l8'], 'cwd': '/root/dart_ws/build/yq_dart_aim', 'env': OrderedDict([('LANGUAGE', 'en_US.UTF-8'), ('USER', 'root'), ('SSH_CLIENT', '192.168.127.20 63767 22'), ('XDG_SESSION_TYPE', 'tty'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib:/usr/hobot/lib:/app/lib:/app/pub/lib:/middleware/lib:/middleware/pub/lib:/usr/hobot/lib/sensor:/system/lib:/system/usr/lib:/lib:'), ('MOTD_SHOWN', 'pam'), ('HOME', '/root'), ('OLDPWD', '/root'), ('SSH_TTY', '/dev/pts/0'), ('ROS_PYTHON_VERSION', '3'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/0/bus'), ('DEBUGINFOD_URLS', ''), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'root'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('TERM', 'xterm'), ('XDG_SESSION_ID', '6'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/opt/ros/humble/bin:/usr/hobot/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin'), ('XDG_RUNTIME_DIR', '/run/user/0'), ('DISPLAY', 'localhost:10.0'), ('LANG', 'en_US.UTF-8'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('AMENT_PREFIX_PATH', '/opt/ros/humble'), ('SHELL', '/bin/bash'), ('PWD', '/root/dart_ws/build/yq_dart_aim'), ('SSH_CONNECTION', '192.168.127.20 63767 192.168.127.10 22'), ('XDG_DATA_DIRS', '/usr/share/gnome:/usr/local/share/:/usr/share/'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/opt/ros/humble')]), 'shell': False}
+[0.098842] (-) TimerEvent: {}
+[0.199613] (-) TimerEvent: {}
+[0.202882] (hik_camera) StderrLine: {'line': b"gmake: Warning: File 'Makefile' has modification time 822660409 s in the future\n"}
+[0.203856] (yq_dart_aim) StderrLine: {'line': b"gmake: Warning: File 'Makefile' has modification time 822660409 s in the future\n"}
+[0.208733] (yq_dart_aim) StderrLine: {'line': b"gmake[1]: Warning: File 'CMakeFiles/Makefile2' has modification time 822660409 s in the future\n"}
+[0.209733] (hik_camera) StderrLine: {'line': b"gmake[1]: Warning: File 'CMakeFiles/Makefile2' has modification time 822660409 s in the future\n"}
+[0.214613] (hik_camera) StderrLine: {'line': b"gmake[2]: Warning: File 'CMakeFiles/uninstall.dir/progress.make' has modification time 822660409 s in the future\n"}
+[0.215394] (yq_dart_aim) StderrLine: {'line': b"gmake[2]: Warning: File 'CMakeFiles/uninstall.dir/progress.make' has modification time 822660409 s in the future\n"}
+[0.262925] (yq_dart_aim) StderrLine: {'line': b'gmake[2]: warning:  Clock skew detected.  Your build may be incomplete.\n'}
+[0.263831] (hik_camera) StderrLine: {'line': b'gmake[2]: warning:  Clock skew detected.  Your build may be incomplete.\n'}
+[0.269578] (yq_dart_aim) StderrLine: {'line': b"gmake[2]: Warning: File 'CMakeFiles/yq_dart_aim_uninstall.dir/progress.make' has modification time 822660409 s in the future\n"}
+[0.270607] (hik_camera) StderrLine: {'line': b"gmake[2]: Warning: File 'CMakeFiles/hik_camera_uninstall.dir/progress.make' has modification time 822660409 s in the future\n"}
+[0.299785] (-) TimerEvent: {}
+[0.307730] (hik_camera) StderrLine: {'line': b'gmake[2]: warning:  Clock skew detected.  Your build may be incomplete.\n'}
+[0.308680] (yq_dart_aim) StderrLine: {'line': b'gmake[2]: warning:  Clock skew detected.  Your build may be incomplete.\n'}
+[0.317008] (hik_camera) StderrLine: {'line': b"gmake[2]: Warning: File 'CMakeFiles/hik_camera.dir/flags.make' has modification time 822660409 s in the future\n"}
+[0.318027] (yq_dart_aim) StderrLine: {'line': b"gmake[2]: Warning: File 'CMakeFiles/dart_aim_node.dir/flags.make' has modification time 822660409 s in the future\n"}
+[0.359101] (yq_dart_aim) StderrLine: {'line': b'gmake[2]: warning:  Clock skew detected.  Your build may be incomplete.\n'}
+[0.360015] (hik_camera) StderrLine: {'line': b'gmake[2]: warning:  Clock skew detected.  Your build may be incomplete.\n'}
+[0.360597] (yq_dart_aim) StderrLine: {'line': b'gmake[1]: warning:  Clock skew detected.  Your build may be incomplete.\n'}
+[0.361081] (yq_dart_aim) StderrLine: {'line': b'gmake: warning:  Clock skew detected.  Your build may be incomplete.\n'}
+[0.366639] (hik_camera) StderrLine: {'line': b"gmake[2]: Warning: File 'CMakeFiles/hik_camera_node.dir/flags.make' has modification time 822660408 s in the future\n"}
+[0.367490] (yq_dart_aim) StderrLine: {'line': b"gmake: Warning: File 'Makefile' has modification time 822660409 s in the future\n"}
+[0.399962] (-) TimerEvent: {}
+[0.406561] (hik_camera) StderrLine: {'line': b'gmake[2]: warning:  Clock skew detected.  Your build may be incomplete.\n'}
+[0.407502] (hik_camera) StderrLine: {'line': b'gmake[1]: warning:  Clock skew detected.  Your build may be incomplete.\n'}
+[0.408035] (hik_camera) StderrLine: {'line': b'gmake: warning:  Clock skew detected.  Your build may be incomplete.\n'}
+[0.414913] (hik_camera) StderrLine: {'line': b"gmake: Warning: File 'Makefile' has modification time 822660408 s in the future\n"}
+[0.500145] (-) TimerEvent: {}
+[0.523801] (yq_dart_aim) StderrLine: {'line': b"gmake[1]: Warning: File 'CMakeFiles/Makefile2' has modification time 822660408 s in the future\n"}
+[0.529543] (yq_dart_aim) StderrLine: {'line': b"gmake[2]: Warning: File 'CMakeFiles/dart_aim_node.dir/flags.make' has modification time 822660408 s in the future\n"}
+[0.530658] (hik_camera) StderrLine: {'line': b"gmake[1]: Warning: File 'CMakeFiles/Makefile2' has modification time 822660408 s in the future\n"}
+[0.536688] (hik_camera) StderrLine: {'line': b"gmake[2]: Warning: File 'CMakeFiles/hik_camera.dir/flags.make' has modification time 822660408 s in the future\n"}
+[0.537736] (hik_camera) StderrLine: {'line': b"gmake[2]: Warning: File 'CMakeFiles/hik_camera_node.dir/flags.make' has modification time 822660408 s in the future\n"}
+[0.570852] (yq_dart_aim) StderrLine: {'line': b'gmake[2]: warning:  Clock skew detected.  Your build may be incomplete.\n'}
+[0.575539] (hik_camera) StderrLine: {'line': b'gmake[2]: warning:  Clock skew detected.  Your build may be incomplete.\n'}
+[0.576466] (hik_camera) StderrLine: {'line': b'gmake[2]: warning:  Clock skew detected.  Your build may be incomplete.\n'}
+[0.577426] (yq_dart_aim) StderrLine: {'line': b"gmake[2]: Warning: File 'CMakeFiles/dart_aim_node.dir/flags.make' has modification time 822660408 s in the future\n"}
+[0.582018] (hik_camera) StderrLine: {'line': b"gmake[2]: Warning: File 'CMakeFiles/hik_camera_node.dir/flags.make' has modification time 822660408 s in the future\n"}
+[0.583178] (hik_camera) StderrLine: {'line': b"gmake[2]: Warning: File 'CMakeFiles/hik_camera.dir/flags.make' has modification time 822660408 s in the future\n"}
+[0.600420] (-) TimerEvent: {}
+[0.612209] (yq_dart_aim) StdoutLine: {'line': b'[ 50%] \x1b[32mBuilding CXX object CMakeFiles/dart_aim_node.dir/src/dart_aim_node.cpp.o\x1b[0m\n'}
+[0.615521] (hik_camera) StdoutLine: {'line': b'[ 50%] \x1b[32mBuilding CXX object CMakeFiles/hik_camera.dir/src/hik_camera_node.cpp.o\x1b[0m\n'}
+[0.616445] (hik_camera) StdoutLine: {'line': b'[ 50%] \x1b[32mBuilding CXX object CMakeFiles/hik_camera_node.dir/rclcpp_components/node_main_hik_camera_node.cpp.o\x1b[0m\n'}
+[0.700636] (-) TimerEvent: {}
+[0.801654] (-) TimerEvent: {}
+[0.902948] (-) TimerEvent: {}
+[1.003863] (-) TimerEvent: {}
+[1.104704] (-) TimerEvent: {}
+[1.205559] (-) TimerEvent: {}
+[1.306465] (-) TimerEvent: {}
+[1.407421] (-) TimerEvent: {}
+[1.508523] (-) TimerEvent: {}
+[1.609498] (-) TimerEvent: {}
+[1.710418] (-) TimerEvent: {}
+[1.811286] (-) TimerEvent: {}
+[1.912141] (-) TimerEvent: {}
+[2.012982] (-) TimerEvent: {}
+[2.113827] (-) TimerEvent: {}
+[2.214690] (-) TimerEvent: {}
+[2.315625] (-) TimerEvent: {}
+[2.416590] (-) TimerEvent: {}
+[2.517564] (-) TimerEvent: {}
+[2.618637] (-) TimerEvent: {}
+[2.719674] (-) TimerEvent: {}
+[2.820662] (-) TimerEvent: {}
+[2.921566] (-) TimerEvent: {}
+[3.022443] (-) TimerEvent: {}
+[3.123417] (-) TimerEvent: {}
+[3.224430] (-) TimerEvent: {}
+[3.325401] (-) TimerEvent: {}
+[3.426361] (-) TimerEvent: {}
+[3.527337] (-) TimerEvent: {}
+[3.628268] (-) TimerEvent: {}
+[3.729300] (-) TimerEvent: {}
+[3.830295] (-) TimerEvent: {}
+[3.931256] (-) TimerEvent: {}
+[4.032328] (-) TimerEvent: {}
+[4.133271] (-) TimerEvent: {}
+[4.234232] (-) TimerEvent: {}
+[4.335168] (-) TimerEvent: {}
+[4.436104] (-) TimerEvent: {}
+[4.537018] (-) TimerEvent: {}
+[4.637959] (-) TimerEvent: {}
+[4.739021] (-) TimerEvent: {}
+[4.840008] (-) TimerEvent: {}
+[4.940946] (-) TimerEvent: {}
+[5.041933] (-) TimerEvent: {}
+[5.142954] (-) TimerEvent: {}
+[5.244017] (-) TimerEvent: {}
+[5.345037] (-) TimerEvent: {}
+[5.446039] (-) TimerEvent: {}
+[5.547047] (-) TimerEvent: {}
+[5.648026] (-) TimerEvent: {}
+[5.749029] (-) TimerEvent: {}
+[5.850016] (-) TimerEvent: {}
+[5.950992] (-) TimerEvent: {}
+[6.051970] (-) TimerEvent: {}
+[6.152964] (-) TimerEvent: {}
+[6.253931] (-) TimerEvent: {}
+[6.354970] (-) TimerEvent: {}
+[6.456034] (-) TimerEvent: {}
+[6.557048] (-) TimerEvent: {}
+[6.657997] (-) TimerEvent: {}
+[6.758938] (-) TimerEvent: {}
+[6.859847] (-) TimerEvent: {}
+[6.960741] (-) TimerEvent: {}
+[7.061632] (-) TimerEvent: {}
+[7.162566] (-) TimerEvent: {}
+[7.263573] (-) TimerEvent: {}
+[7.364532] (-) TimerEvent: {}
+[7.465490] (-) TimerEvent: {}
+[7.566433] (-) TimerEvent: {}
+[7.667348] (-) TimerEvent: {}
+[7.768263] (-) TimerEvent: {}
+[7.869186] (-) TimerEvent: {}
+[7.970079] (-) TimerEvent: {}
+[8.071006] (-) TimerEvent: {}
+[8.172019] (-) TimerEvent: {}
+[8.273033] (-) TimerEvent: {}
+[8.374173] (-) TimerEvent: {}
+[8.475151] (-) TimerEvent: {}
+[8.576131] (-) TimerEvent: {}
+[8.677062] (-) TimerEvent: {}
+[8.777997] (-) TimerEvent: {}
+[8.878965] (-) TimerEvent: {}
+[8.979868] (-) TimerEvent: {}
+[9.080799] (-) TimerEvent: {}
+[9.181782] (-) TimerEvent: {}
+[9.282808] (-) TimerEvent: {}
+[9.383965] (-) TimerEvent: {}
+[9.484981] (-) TimerEvent: {}
+[9.585956] (-) TimerEvent: {}
+[9.686873] (-) TimerEvent: {}
+[9.787761] (-) TimerEvent: {}
+[9.888668] (-) TimerEvent: {}
+[9.989566] (-) TimerEvent: {}
+[10.090465] (-) TimerEvent: {}
+[10.191391] (-) TimerEvent: {}
+[10.292395] (-) TimerEvent: {}
+[10.393386] (-) TimerEvent: {}
+[10.494380] (-) TimerEvent: {}
+[10.595340] (-) TimerEvent: {}
+[10.696250] (-) TimerEvent: {}
+[10.797149] (-) TimerEvent: {}
+[10.898037] (-) TimerEvent: {}
+[10.998953] (-) TimerEvent: {}
+[11.099822] (-) TimerEvent: {}
+[11.200714] (-) TimerEvent: {}
+[11.301645] (-) TimerEvent: {}
+[11.402646] (-) TimerEvent: {}
+[11.503603] (-) TimerEvent: {}
+[11.604482] (-) TimerEvent: {}
+[11.705333] (-) TimerEvent: {}
+[11.806168] (-) TimerEvent: {}
+[11.907022] (-) TimerEvent: {}
+[12.007864] (-) TimerEvent: {}
+[12.108750] (-) TimerEvent: {}
+[12.209586] (-) TimerEvent: {}
+[12.310460] (-) TimerEvent: {}
+[12.411388] (-) TimerEvent: {}
+[12.512286] (-) TimerEvent: {}
+[12.613179] (-) TimerEvent: {}
+[12.714063] (-) TimerEvent: {}
+[12.814925] (-) TimerEvent: {}
+[12.915857] (-) TimerEvent: {}
+[13.016706] (-) TimerEvent: {}
+[13.117550] (-) TimerEvent: {}
+[13.218370] (-) TimerEvent: {}
+[13.319250] (-) TimerEvent: {}
+[13.420210] (-) TimerEvent: {}
+[13.521129] (-) TimerEvent: {}
+[13.622004] (-) TimerEvent: {}
+[13.722890] (-) TimerEvent: {}
+[13.823775] (-) TimerEvent: {}
+[13.924621] (-) TimerEvent: {}
+[14.025450] (-) TimerEvent: {}
+[14.126297] (-) TimerEvent: {}
+[14.227104] (-) TimerEvent: {}
+[14.328015] (-) TimerEvent: {}
+[14.429124] (-) TimerEvent: {}
+[14.530039] (-) TimerEvent: {}
+[14.630952] (-) TimerEvent: {}
+[14.731810] (-) TimerEvent: {}
+[14.832657] (-) TimerEvent: {}
+[14.933510] (-) TimerEvent: {}
+[15.034367] (-) TimerEvent: {}
+[15.135243] (-) TimerEvent: {}
+[15.236160] (-) TimerEvent: {}
+[15.337112] (-) TimerEvent: {}
+[15.438093] (-) TimerEvent: {}
+[15.539125] (-) TimerEvent: {}
+[15.640022] (-) TimerEvent: {}
+[15.740890] (-) TimerEvent: {}
+[15.841767] (-) TimerEvent: {}
+[15.942636] (-) TimerEvent: {}
+[16.043579] (-) TimerEvent: {}
+[16.144530] (-) TimerEvent: {}
+[16.245458] (-) TimerEvent: {}
+[16.346455] (-) TimerEvent: {}
+[16.447515] (-) TimerEvent: {}
+[16.548513] (-) TimerEvent: {}
+[16.649437] (-) TimerEvent: {}
+[16.750317] (-) TimerEvent: {}
+[16.851206] (-) TimerEvent: {}
+[16.952089] (-) TimerEvent: {}
+[17.052926] (-) TimerEvent: {}
+[17.153770] (-) TimerEvent: {}
+[17.254658] (-) TimerEvent: {}
+[17.355591] (-) TimerEvent: {}
+[17.456561] (-) TimerEvent: {}
+[17.557518] (-) TimerEvent: {}
+[17.658506] (-) TimerEvent: {}
+[17.759488] (-) TimerEvent: {}
+[17.860370] (-) TimerEvent: {}
+[17.961215] (-) TimerEvent: {}
+[18.062087] (-) TimerEvent: {}
+[18.162949] (-) TimerEvent: {}
+[18.263830] (-) TimerEvent: {}
+[18.364731] (-) TimerEvent: {}
+[18.465673] (-) TimerEvent: {}
+[18.566684] (-) TimerEvent: {}
+[18.667645] (-) TimerEvent: {}
+[18.768603] (-) TimerEvent: {}
+[18.869529] (-) TimerEvent: {}
+[18.970427] (-) TimerEvent: {}
+[19.071349] (-) TimerEvent: {}
+[19.172273] (-) TimerEvent: {}
+[19.273142] (-) TimerEvent: {}
+[19.373977] (-) TimerEvent: {}
+[19.474873] (-) TimerEvent: {}
+[19.575809] (-) TimerEvent: {}
+[19.676739] (-) TimerEvent: {}
+[19.777636] (-) TimerEvent: {}
+[19.878517] (-) TimerEvent: {}
+[19.979361] (-) TimerEvent: {}
+[20.080201] (-) TimerEvent: {}
+[20.181016] (-) TimerEvent: {}
+[20.281851] (-) TimerEvent: {}
+[20.382672] (-) TimerEvent: {}
+[20.483569] (-) TimerEvent: {}
+[20.584472] (-) TimerEvent: {}
+[20.685376] (-) TimerEvent: {}
+[20.786184] (-) TimerEvent: {}
+[20.887002] (-) TimerEvent: {}
+[20.948019] (hik_camera) StdoutLine: {'line': b'[ 75%] \x1b[32m\x1b[1mLinking CXX executable hik_camera_node\x1b[0m\n'}
+[20.987176] (-) TimerEvent: {}
+[21.088132] (-) TimerEvent: {}
+[21.189126] (-) TimerEvent: {}
+[21.290129] (-) TimerEvent: {}
+[21.391164] (-) TimerEvent: {}
+[21.496593] (-) TimerEvent: {}
+[21.597590] (-) TimerEvent: {}
+[21.698576] (-) TimerEvent: {}
+[21.799475] (-) TimerEvent: {}
+[21.900344] (-) TimerEvent: {}
+[21.965014] (hik_camera) StderrLine: {'line': b'gmake[2]: warning:  Clock skew detected.  Your build may be incomplete.\n'}
+[22.000543] (-) TimerEvent: {}
+[22.001542] (hik_camera) StdoutLine: {'line': b'[ 75%] Built target hik_camera_node\n'}
+[22.100729] (-) TimerEvent: {}
+[22.201603] (-) TimerEvent: {}
+[22.302497] (-) TimerEvent: {}
+[22.403338] (-) TimerEvent: {}
+[22.504171] (-) TimerEvent: {}
+[22.605023] (-) TimerEvent: {}
+[22.705911] (-) TimerEvent: {}
+[22.806838] (-) TimerEvent: {}
+[22.828038] (hik_camera) StdoutLine: {'line': b'[100%] \x1b[32m\x1b[1mLinking CXX shared library libhik_camera.so\x1b[0m\n'}
+[22.907012] (-) TimerEvent: {}
+[23.007991] (-) TimerEvent: {}
+[23.109067] (-) TimerEvent: {}
+[23.209959] (-) TimerEvent: {}
+[23.310784] (-) TimerEvent: {}
+[23.411674] (-) TimerEvent: {}
+[23.512532] (-) TimerEvent: {}
+[23.613461] (-) TimerEvent: {}
+[23.714466] (-) TimerEvent: {}
+[23.815408] (-) TimerEvent: {}
+[23.916215] (-) TimerEvent: {}
+[24.017013] (-) TimerEvent: {}
+[24.117833] (-) TimerEvent: {}
+[24.140178] (hik_camera) StderrLine: {'line': b'gmake[2]: warning:  Clock skew detected.  Your build may be incomplete.\n'}
+[24.174572] (hik_camera) StdoutLine: {'line': b'[100%] Built target hik_camera\n'}
+[24.179333] (hik_camera) StderrLine: {'line': b'gmake[1]: warning:  Clock skew detected.  Your build may be incomplete.\n'}
+[24.215545] (hik_camera) StderrLine: {'line': b'gmake: warning:  Clock skew detected.  Your build may be incomplete.\n'}
+[24.217992] (-) TimerEvent: {}
+[24.224896] (hik_camera) CommandEnded: {'returncode': 0}
+[24.250309] (hik_camera) JobProgress: {'identifier': 'hik_camera', 'progress': 'install'}
+[24.289007] (hik_camera) Command: {'cmd': ['/usr/bin/cmake', '--install', '/root/dart_ws/build/hik_camera'], 'cwd': '/root/dart_ws/build/hik_camera', 'env': OrderedDict([('LANGUAGE', 'en_US.UTF-8'), ('USER', 'root'), ('SSH_CLIENT', '192.168.127.20 63767 22'), ('XDG_SESSION_TYPE', 'tty'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib:/usr/hobot/lib:/app/lib:/app/pub/lib:/middleware/lib:/middleware/pub/lib:/usr/hobot/lib/sensor:/system/lib:/system/usr/lib:/lib:'), ('MOTD_SHOWN', 'pam'), ('HOME', '/root'), ('OLDPWD', '/root'), ('SSH_TTY', '/dev/pts/0'), ('ROS_PYTHON_VERSION', '3'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/0/bus'), ('DEBUGINFOD_URLS', ''), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'root'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('TERM', 'xterm'), ('XDG_SESSION_ID', '6'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/opt/ros/humble/bin:/usr/hobot/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin'), ('XDG_RUNTIME_DIR', '/run/user/0'), ('DISPLAY', 'localhost:10.0'), ('LANG', 'en_US.UTF-8'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('AMENT_PREFIX_PATH', '/opt/ros/humble'), ('SHELL', '/bin/bash'), ('PWD', '/root/dart_ws/build/hik_camera'), ('SSH_CONNECTION', '192.168.127.20 63767 192.168.127.10 22'), ('XDG_DATA_DIRS', '/usr/share/gnome:/usr/local/share/:/usr/share/'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/opt/ros/humble')]), 'shell': False}
+[24.318183] (-) TimerEvent: {}
+[24.328349] (hik_camera) StdoutLine: {'line': b'-- Install configuration: ""\n'}
+[24.331205] (hik_camera) StdoutLine: {'line': b'-- Execute custom install script\n'}
+[24.335068] (hik_camera) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/hik_camera/lib/libFormatConversion.so\n'}
+[24.335957] (hik_camera) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/hik_camera/lib/libMVRender.so\n'}
+[24.336699] (hik_camera) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/hik_camera/lib/libMediaProcess.so\n'}
+[24.337470] (hik_camera) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/hik_camera/lib/libMvCameraControl.so\n'}
+[24.338288] (hik_camera) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/hik_camera/lib/libMvUsb3vTL.so\n'}
+[24.340615] (hik_camera) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/hik_camera/lib/hik_camera/hik_camera_node\n'}
+[24.342484] (hik_camera) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/environment/library_path.sh\n'}
+[24.343573] (hik_camera) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/environment/library_path.dsv\n'}
+[24.345159] (hik_camera) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/hik_camera/lib/libhik_camera.so\n'}
+[24.348166] (hik_camera) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/config/camera_info.yaml\n'}
+[24.349050] (hik_camera) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/config/camera_params.yaml\n'}
+[24.351100] (hik_camera) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/launch/hik_camera.launch.py\n'}
+[24.373294] (hik_camera) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/ament_index/resource_index/package_run_dependencies/hik_camera\n'}
+[24.374830] (hik_camera) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/ament_index/resource_index/parent_prefix_path/hik_camera\n'}
+[24.376118] (hik_camera) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/environment/ament_prefix_path.sh\n'}
+[24.377363] (hik_camera) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/environment/ament_prefix_path.dsv\n'}
+[24.378691] (hik_camera) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/environment/path.sh\n'}
+[24.381834] (hik_camera) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/environment/path.dsv\n'}
+[24.383003] (hik_camera) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/local_setup.bash\n'}
+[24.384206] (hik_camera) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/local_setup.sh\n'}
+[24.385411] (hik_camera) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/local_setup.zsh\n'}
+[24.386672] (hik_camera) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/local_setup.dsv\n'}
+[24.387489] (hik_camera) StdoutLine: {'line': b'-- Symlinking: /root/dart_ws/install/hik_camera/share/hik_camera/package.dsv\n'}
+[24.418369] (-) TimerEvent: {}
+[24.429956] (hik_camera) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/ament_index/resource_index/packages/hik_camera\n'}
+[24.431390] (hik_camera) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/ament_index/resource_index/rclcpp_components/hik_camera\n'}
+[24.432860] (hik_camera) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/cmake/ament_cmake_export_dependencies-extras.cmake\n'}
+[24.433991] (hik_camera) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/cmake/ament_cmake_export_libraries-extras.cmake\n'}
+[24.435140] (hik_camera) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/cmake/hik_cameraConfig.cmake\n'}
+[24.435981] (hik_camera) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/cmake/hik_cameraConfig-version.cmake\n'}
+[24.436805] (hik_camera) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/hik_camera/share/hik_camera/package.xml\n'}
+[24.444713] (hik_camera) CommandEnded: {'returncode': 0}
+[24.519981] (-) TimerEvent: {}
+[24.613476] (hik_camera) JobEnded: {'identifier': 'hik_camera', 'rc': 0}
+[24.620144] (-) TimerEvent: {}
+[24.720940] (-) TimerEvent: {}
+[24.821797] (-) TimerEvent: {}
+[24.922675] (-) TimerEvent: {}
+[25.023551] (-) TimerEvent: {}
+[25.124403] (-) TimerEvent: {}
+[25.225260] (-) TimerEvent: {}
+[25.326121] (-) TimerEvent: {}
+[25.427018] (-) TimerEvent: {}
+[25.527852] (-) TimerEvent: {}
+[25.628697] (-) TimerEvent: {}
+[25.729639] (-) TimerEvent: {}
+[25.830531] (-) TimerEvent: {}
+[25.931405] (-) TimerEvent: {}
+[26.032280] (-) TimerEvent: {}
+[26.133172] (-) TimerEvent: {}
+[26.234043] (-) TimerEvent: {}
+[26.334929] (-) TimerEvent: {}
+[26.435839] (-) TimerEvent: {}
+[26.536737] (-) TimerEvent: {}
+[26.637641] (-) TimerEvent: {}
+[26.738582] (-) TimerEvent: {}
+[26.839481] (-) TimerEvent: {}
+[26.940324] (-) TimerEvent: {}
+[27.041190] (-) TimerEvent: {}
+[27.142075] (-) TimerEvent: {}
+[27.242959] (-) TimerEvent: {}
+[27.343853] (-) TimerEvent: {}
+[27.444754] (-) TimerEvent: {}
+[27.545632] (-) TimerEvent: {}
+[27.646493] (-) TimerEvent: {}
+[27.747376] (-) TimerEvent: {}
+[27.848263] (-) TimerEvent: {}
+[27.949167] (-) TimerEvent: {}
+[28.050052] (-) TimerEvent: {}
+[28.150950] (-) TimerEvent: {}
+[28.251817] (-) TimerEvent: {}
+[28.352686] (-) TimerEvent: {}
+[28.453534] (-) TimerEvent: {}
+[28.554390] (-) TimerEvent: {}
+[28.655228] (-) TimerEvent: {}
+[28.756185] (-) TimerEvent: {}
+[28.857078] (-) TimerEvent: {}
+[28.957965] (-) TimerEvent: {}
+[29.058869] (-) TimerEvent: {}
+[29.159751] (-) TimerEvent: {}
+[29.260649] (-) TimerEvent: {}
+[29.361572] (-) TimerEvent: {}
+[29.462419] (-) TimerEvent: {}
+[29.563241] (-) TimerEvent: {}
+[29.664057] (-) TimerEvent: {}
+[29.764922] (-) TimerEvent: {}
+[29.865801] (-) TimerEvent: {}
+[29.966634] (-) TimerEvent: {}
+[30.067464] (-) TimerEvent: {}
+[30.168298] (-) TimerEvent: {}
+[30.269187] (-) TimerEvent: {}
+[30.370036] (-) TimerEvent: {}
+[30.470886] (-) TimerEvent: {}
+[30.571697] (-) TimerEvent: {}
+[30.672500] (-) TimerEvent: {}
+[30.773344] (-) TimerEvent: {}
+[30.874221] (-) TimerEvent: {}
+[30.975076] (-) TimerEvent: {}
+[31.075908] (-) TimerEvent: {}
+[31.176743] (-) TimerEvent: {}
+[31.277575] (-) TimerEvent: {}
+[31.378410] (-) TimerEvent: {}
+[31.479346] (-) TimerEvent: {}
+[31.580237] (-) TimerEvent: {}
+[31.681107] (-) TimerEvent: {}
+[31.781990] (-) TimerEvent: {}
+[31.882867] (-) TimerEvent: {}
+[31.983704] (-) TimerEvent: {}
+[32.084556] (-) TimerEvent: {}
+[32.185457] (-) TimerEvent: {}
+[32.286334] (-) TimerEvent: {}
+[32.387213] (-) TimerEvent: {}
+[32.488040] (-) TimerEvent: {}
+[32.588913] (-) TimerEvent: {}
+[32.689728] (-) TimerEvent: {}
+[32.790582] (-) TimerEvent: {}
+[32.891469] (-) TimerEvent: {}
+[32.992329] (-) TimerEvent: {}
+[33.093200] (-) TimerEvent: {}
+[33.194062] (-) TimerEvent: {}
+[33.294927] (-) TimerEvent: {}
+[33.395773] (-) TimerEvent: {}
+[33.496600] (-) TimerEvent: {}
+[33.597411] (-) TimerEvent: {}
+[33.698229] (-) TimerEvent: {}
+[33.799169] (-) TimerEvent: {}
+[33.900065] (-) TimerEvent: {}
+[34.000904] (-) TimerEvent: {}
+[34.101719] (-) TimerEvent: {}
+[34.202556] (-) TimerEvent: {}
+[34.303405] (-) TimerEvent: {}
+[34.404232] (-) TimerEvent: {}
+[34.505046] (-) TimerEvent: {}
+[34.605844] (-) TimerEvent: {}
+[34.706636] (-) TimerEvent: {}
+[34.807497] (-) TimerEvent: {}
+[34.908380] (-) TimerEvent: {}
+[35.009252] (-) TimerEvent: {}
+[35.110088] (-) TimerEvent: {}
+[35.210889] (-) TimerEvent: {}
+[35.311718] (-) TimerEvent: {}
+[35.412592] (-) TimerEvent: {}
+[35.513418] (-) TimerEvent: {}
+[35.614247] (-) TimerEvent: {}
+[35.715052] (-) TimerEvent: {}
+[35.815824] (-) TimerEvent: {}
+[35.916593] (-) TimerEvent: {}
+[36.017387] (-) TimerEvent: {}
+[36.118229] (-) TimerEvent: {}
+[36.219076] (-) TimerEvent: {}
+[36.319896] (-) TimerEvent: {}
+[36.420701] (-) TimerEvent: {}
+[36.521545] (-) TimerEvent: {}
+[36.622416] (-) TimerEvent: {}
+[36.723236] (-) TimerEvent: {}
+[36.824019] (-) TimerEvent: {}
+[36.924806] (-) TimerEvent: {}
+[37.025648] (-) TimerEvent: {}
+[37.126478] (-) TimerEvent: {}
+[37.227349] (-) TimerEvent: {}
+[37.328206] (-) TimerEvent: {}
+[37.429077] (-) TimerEvent: {}
+[37.529873] (-) TimerEvent: {}
+[37.630694] (-) TimerEvent: {}
+[37.731521] (-) TimerEvent: {}
+[37.832339] (-) TimerEvent: {}
+[37.933133] (-) TimerEvent: {}
+[38.034013] (-) TimerEvent: {}
+[38.134898] (-) TimerEvent: {}
+[38.235735] (-) TimerEvent: {}
+[38.336538] (-) TimerEvent: {}
+[38.437354] (-) TimerEvent: {}
+[38.538189] (-) TimerEvent: {}
+[38.639069] (-) TimerEvent: {}
+[38.739901] (-) TimerEvent: {}
+[38.840718] (-) TimerEvent: {}
+[38.941575] (-) TimerEvent: {}
+[39.042444] (-) TimerEvent: {}
+[39.143314] (-) TimerEvent: {}
+[39.244172] (-) TimerEvent: {}
+[39.344999] (-) TimerEvent: {}
+[39.445809] (-) TimerEvent: {}
+[39.546622] (-) TimerEvent: {}
+[39.647438] (-) TimerEvent: {}
+[39.748260] (-) TimerEvent: {}
+[39.849117] (-) TimerEvent: {}
+[39.949926] (-) TimerEvent: {}
+[40.050813] (-) TimerEvent: {}
+[40.151738] (-) TimerEvent: {}
+[40.252619] (-) TimerEvent: {}
+[40.353507] (-) TimerEvent: {}
+[40.454381] (-) TimerEvent: {}
+[40.555201] (-) TimerEvent: {}
+[40.655990] (-) TimerEvent: {}
+[40.756739] (-) TimerEvent: {}
+[40.857468] (-) TimerEvent: {}
+[40.958250] (-) TimerEvent: {}
+[41.059059] (-) TimerEvent: {}
+[41.159869] (-) TimerEvent: {}
+[41.260660] (-) TimerEvent: {}
+[41.361458] (-) TimerEvent: {}
+[41.462306] (-) TimerEvent: {}
+[41.563158] (-) TimerEvent: {}
+[41.664008] (-) TimerEvent: {}
+[41.764834] (-) TimerEvent: {}
+[41.865664] (-) TimerEvent: {}
+[41.966505] (-) TimerEvent: {}
+[42.067306] (-) TimerEvent: {}
+[42.168142] (-) TimerEvent: {}
+[42.269013] (-) TimerEvent: {}
+[42.369857] (-) TimerEvent: {}
+[42.470702] (-) TimerEvent: {}
+[42.571508] (-) TimerEvent: {}
+[42.672309] (-) TimerEvent: {}
+[42.773117] (-) TimerEvent: {}
+[42.873936] (-) TimerEvent: {}
+[42.974729] (-) TimerEvent: {}
+[43.075515] (-) TimerEvent: {}
+[43.176363] (-) TimerEvent: {}
+[43.277207] (-) TimerEvent: {}
+[43.378030] (-) TimerEvent: {}
+[43.478898] (-) TimerEvent: {}
+[43.579688] (-) TimerEvent: {}
+[43.680468] (-) TimerEvent: {}
+[43.781263] (-) TimerEvent: {}
+[43.882083] (-) TimerEvent: {}
+[43.982889] (-) TimerEvent: {}
+[44.083698] (-) TimerEvent: {}
+[44.184539] (-) TimerEvent: {}
+[44.285396] (-) TimerEvent: {}
+[44.386234] (-) TimerEvent: {}
+[44.487052] (-) TimerEvent: {}
+[44.587891] (-) TimerEvent: {}
+[44.688787] (-) TimerEvent: {}
+[44.789628] (-) TimerEvent: {}
+[44.890440] (-) TimerEvent: {}
+[44.991234] (-) TimerEvent: {}
+[45.092049] (-) TimerEvent: {}
+[45.192888] (-) TimerEvent: {}
+[45.293766] (-) TimerEvent: {}
+[45.394635] (-) TimerEvent: {}
+[45.495483] (-) TimerEvent: {}
+[45.596301] (-) TimerEvent: {}
+[45.697091] (-) TimerEvent: {}
+[45.797935] (-) TimerEvent: {}
+[45.898782] (-) TimerEvent: {}
+[45.999579] (-) TimerEvent: {}
+[46.100307] (-) TimerEvent: {}
+[46.201116] (-) TimerEvent: {}
+[46.301944] (-) TimerEvent: {}
+[46.402780] (-) TimerEvent: {}
+[46.503666] (-) TimerEvent: {}
+[46.604548] (-) TimerEvent: {}
+[46.705413] (-) TimerEvent: {}
+[46.806257] (-) TimerEvent: {}
+[46.907078] (-) TimerEvent: {}
+[47.007905] (-) TimerEvent: {}
+[47.108717] (-) TimerEvent: {}
+[47.209540] (-) TimerEvent: {}
+[47.310375] (-) TimerEvent: {}
+[47.411214] (-) TimerEvent: {}
+[47.512038] (-) TimerEvent: {}
+[47.612848] (-) TimerEvent: {}
+[47.713641] (-) TimerEvent: {}
+[47.814463] (-) TimerEvent: {}
+[47.915290] (-) TimerEvent: {}
+[48.016098] (-) TimerEvent: {}
+[48.116912] (-) TimerEvent: {}
+[48.217763] (-) TimerEvent: {}
+[48.318619] (-) TimerEvent: {}
+[48.419464] (-) TimerEvent: {}
+[48.520272] (-) TimerEvent: {}
+[48.621087] (-) TimerEvent: {}
+[48.721861] (-) TimerEvent: {}
+[48.822683] (-) TimerEvent: {}
+[48.923534] (-) TimerEvent: {}
+[49.024352] (-) TimerEvent: {}
+[49.125193] (-) TimerEvent: {}
+[49.226061] (-) TimerEvent: {}
+[49.326906] (-) TimerEvent: {}
+[49.427734] (-) TimerEvent: {}
+[49.528589] (-) TimerEvent: {}
+[49.629378] (-) TimerEvent: {}
+[49.730168] (-) TimerEvent: {}
+[49.830956] (-) TimerEvent: {}
+[49.931754] (-) TimerEvent: {}
+[50.032598] (-) TimerEvent: {}
+[50.133428] (-) TimerEvent: {}
+[50.234263] (-) TimerEvent: {}
+[50.335168] (-) TimerEvent: {}
+[50.435991] (-) TimerEvent: {}
+[50.536827] (-) TimerEvent: {}
+[50.637620] (-) TimerEvent: {}
+[50.738407] (-) TimerEvent: {}
+[50.839245] (-) TimerEvent: {}
+[50.940060] (-) TimerEvent: {}
+[51.040920] (-) TimerEvent: {}
+[51.141761] (-) TimerEvent: {}
+[51.242598] (-) TimerEvent: {}
+[51.343430] (-) TimerEvent: {}
+[51.444212] (-) TimerEvent: {}
+[51.545080] (-) TimerEvent: {}
+[51.645958] (-) TimerEvent: {}
+[51.746788] (-) TimerEvent: {}
+[51.847610] (-) TimerEvent: {}
+[51.948396] (-) TimerEvent: {}
+[52.049247] (-) TimerEvent: {}
+[52.150077] (-) TimerEvent: {}
+[52.250903] (-) TimerEvent: {}
+[52.351760] (-) TimerEvent: {}
+[52.452606] (-) TimerEvent: {}
+[52.553451] (-) TimerEvent: {}
+[52.654249] (-) TimerEvent: {}
+[52.755040] (-) TimerEvent: {}
+[52.855836] (-) TimerEvent: {}
+[52.956626] (-) TimerEvent: {}
+[53.057446] (-) TimerEvent: {}
+[53.158292] (-) TimerEvent: {}
+[53.259153] (-) TimerEvent: {}
+[53.359995] (-) TimerEvent: {}
+[53.460840] (-) TimerEvent: {}
+[53.561660] (-) TimerEvent: {}
+[53.662487] (-) TimerEvent: {}
+[53.763268] (-) TimerEvent: {}
+[53.864055] (-) TimerEvent: {}
+[53.964838] (-) TimerEvent: {}
+[54.065681] (-) TimerEvent: {}
+[54.166562] (-) TimerEvent: {}
+[54.267437] (-) TimerEvent: {}
+[54.368311] (-) TimerEvent: {}
+[54.469186] (-) TimerEvent: {}
+[54.570015] (-) TimerEvent: {}
+[54.670807] (-) TimerEvent: {}
+[54.771565] (-) TimerEvent: {}
+[54.872340] (-) TimerEvent: {}
+[54.973106] (-) TimerEvent: {}
+[55.073885] (-) TimerEvent: {}
+[55.174736] (-) TimerEvent: {}
+[55.275573] (-) TimerEvent: {}
+[55.376393] (-) TimerEvent: {}
+[55.477232] (-) TimerEvent: {}
+[55.578022] (-) TimerEvent: {}
+[55.678888] (-) TimerEvent: {}
+[55.779686] (-) TimerEvent: {}
+[55.880480] (-) TimerEvent: {}
+[55.981306] (-) TimerEvent: {}
+[56.082163] (-) TimerEvent: {}
+[56.183021] (-) TimerEvent: {}
+[56.283875] (-) TimerEvent: {}
+[56.384734] (-) TimerEvent: {}
+[56.485555] (-) TimerEvent: {}
+[56.586428] (-) TimerEvent: {}
+[56.687283] (-) TimerEvent: {}
+[56.788110] (-) TimerEvent: {}
+[56.888957] (-) TimerEvent: {}
+[56.989754] (-) TimerEvent: {}
+[57.090549] (-) TimerEvent: {}
+[57.191386] (-) TimerEvent: {}
+[57.292256] (-) TimerEvent: {}
+[57.393121] (-) TimerEvent: {}
+[57.493945] (-) TimerEvent: {}
+[57.594771] (-) TimerEvent: {}
+[57.695582] (-) TimerEvent: {}
+[57.796407] (-) TimerEvent: {}
+[57.897203] (-) TimerEvent: {}
+[57.998006] (-) TimerEvent: {}
+[58.098832] (-) TimerEvent: {}
+[58.199662] (-) TimerEvent: {}
+[58.300533] (-) TimerEvent: {}
+[58.401406] (-) TimerEvent: {}
+[58.502246] (-) TimerEvent: {}
+[58.603066] (-) TimerEvent: {}
+[58.703889] (-) TimerEvent: {}
+[58.804723] (-) TimerEvent: {}
+[58.905533] (-) TimerEvent: {}
+[59.006405] (-) TimerEvent: {}
+[59.107294] (-) TimerEvent: {}
+[59.208192] (-) TimerEvent: {}
+[59.309118] (-) TimerEvent: {}
+[59.410032] (-) TimerEvent: {}
+[59.510922] (-) TimerEvent: {}
+[59.611754] (-) TimerEvent: {}
+[59.712595] (-) TimerEvent: {}
+[59.813432] (-) TimerEvent: {}
+[59.914240] (-) TimerEvent: {}
+[60.015038] (-) TimerEvent: {}
+[60.115855] (-) TimerEvent: {}
+[60.216680] (-) TimerEvent: {}
+[60.317564] (-) TimerEvent: {}
+[60.418407] (-) TimerEvent: {}
+[60.519323] (-) TimerEvent: {}
+[60.620154] (-) TimerEvent: {}
+[60.720983] (-) TimerEvent: {}
+[60.821822] (-) TimerEvent: {}
+[60.922622] (-) TimerEvent: {}
+[61.023457] (-) TimerEvent: {}
+[61.124349] (-) TimerEvent: {}
+[61.225189] (-) TimerEvent: {}
+[61.326050] (-) TimerEvent: {}
+[61.426904] (-) TimerEvent: {}
+[61.527821] (-) TimerEvent: {}
+[61.628658] (-) TimerEvent: {}
+[61.729507] (-) TimerEvent: {}
+[61.830348] (-) TimerEvent: {}
+[61.931156] (-) TimerEvent: {}
+[62.031994] (-) TimerEvent: {}
+[62.132836] (-) TimerEvent: {}
+[62.233698] (-) TimerEvent: {}
+[62.334577] (-) TimerEvent: {}
+[62.435464] (-) TimerEvent: {}
+[62.536324] (-) TimerEvent: {}
+[62.637184] (-) TimerEvent: {}
+[62.738047] (-) TimerEvent: {}
+[62.838954] (-) TimerEvent: {}
+[62.939793] (-) TimerEvent: {}
+[63.040628] (-) TimerEvent: {}
+[63.141481] (-) TimerEvent: {}
+[63.242338] (-) TimerEvent: {}
+[63.343204] (-) TimerEvent: {}
+[63.444048] (-) TimerEvent: {}
+[63.544865] (-) TimerEvent: {}
+[63.645772] (-) TimerEvent: {}
+[63.746608] (-) TimerEvent: {}
+[63.847447] (-) TimerEvent: {}
+[63.948270] (-) TimerEvent: {}
+[64.049095] (-) TimerEvent: {}
+[64.149925] (-) TimerEvent: {}
+[64.250836] (-) TimerEvent: {}
+[64.351667] (-) TimerEvent: {}
+[64.452543] (-) TimerEvent: {}
+[64.553394] (-) TimerEvent: {}
+[64.654235] (-) TimerEvent: {}
+[64.755055] (-) TimerEvent: {}
+[64.855858] (-) TimerEvent: {}
+[64.956659] (-) TimerEvent: {}
+[65.057478] (-) TimerEvent: {}
+[65.158322] (-) TimerEvent: {}
+[65.259217] (-) TimerEvent: {}
+[65.360094] (-) TimerEvent: {}
+[65.460952] (-) TimerEvent: {}
+[65.561826] (-) TimerEvent: {}
+[65.662704] (-) TimerEvent: {}
+[65.763543] (-) TimerEvent: {}
+[65.864360] (-) TimerEvent: {}
+[65.965215] (-) TimerEvent: {}
+[66.066037] (-) TimerEvent: {}
+[66.166868] (-) TimerEvent: {}
+[66.267725] (-) TimerEvent: {}
+[66.368604] (-) TimerEvent: {}
+[66.469453] (-) TimerEvent: {}
+[66.570350] (-) TimerEvent: {}
+[66.616813] (yq_dart_aim) StdoutLine: {'line': b'[100%] \x1b[32m\x1b[1mLinking CXX executable dart_aim_node\x1b[0m\n'}
+[66.670525] (-) TimerEvent: {}
+[66.771415] (-) TimerEvent: {}
+[66.872265] (-) TimerEvent: {}
+[66.973109] (-) TimerEvent: {}
+[67.073989] (-) TimerEvent: {}
+[67.174845] (-) TimerEvent: {}
+[67.275743] (-) TimerEvent: {}
+[67.376601] (-) TimerEvent: {}
+[67.477444] (-) TimerEvent: {}
+[67.578533] (-) TimerEvent: {}
+[67.679544] (-) TimerEvent: {}
+[67.780385] (-) TimerEvent: {}
+[67.881261] (-) TimerEvent: {}
+[67.982157] (-) TimerEvent: {}
+[68.083009] (-) TimerEvent: {}
+[68.183932] (-) TimerEvent: {}
+[68.284810] (-) TimerEvent: {}
+[68.385665] (-) TimerEvent: {}
+[68.486536] (-) TimerEvent: {}
+[68.587412] (-) TimerEvent: {}
+[68.688348] (-) TimerEvent: {}
+[68.789295] (-) TimerEvent: {}
+[68.890253] (-) TimerEvent: {}
+[68.991060] (-) TimerEvent: {}
+[69.091891] (-) TimerEvent: {}
+[69.192749] (-) TimerEvent: {}
+[69.293620] (-) TimerEvent: {}
+[69.394501] (-) TimerEvent: {}
+[69.495387] (-) TimerEvent: {}
+[69.596317] (-) TimerEvent: {}
+[69.697201] (-) TimerEvent: {}
+[69.798034] (-) TimerEvent: {}
+[69.898881] (-) TimerEvent: {}
+[69.999685] (-) TimerEvent: {}
+[70.100481] (-) TimerEvent: {}
+[70.201296] (-) TimerEvent: {}
+[70.302112] (-) TimerEvent: {}
+[70.402915] (-) TimerEvent: {}
+[70.503750] (-) TimerEvent: {}
+[70.604603] (-) TimerEvent: {}
+[70.705525] (-) TimerEvent: {}
+[70.806382] (-) TimerEvent: {}
+[70.907232] (-) TimerEvent: {}
+[71.008095] (-) TimerEvent: {}
+[71.108951] (-) TimerEvent: {}
+[71.209784] (-) TimerEvent: {}
+[71.310622] (-) TimerEvent: {}
+[71.411436] (-) TimerEvent: {}
+[71.512250] (-) TimerEvent: {}
+[71.613127] (-) TimerEvent: {}
+[71.714058] (-) TimerEvent: {}
+[71.814932] (-) TimerEvent: {}
+[71.915777] (-) TimerEvent: {}
+[72.016651] (-) TimerEvent: {}
+[72.117489] (-) TimerEvent: {}
+[72.218274] (-) TimerEvent: {}
+[72.319097] (-) TimerEvent: {}
+[72.419963] (-) TimerEvent: {}
+[72.520789] (-) TimerEvent: {}
+[72.601183] (yq_dart_aim) StderrLine: {'line': b'gmake[2]: warning:  Clock skew detected.  Your build may be incomplete.\n'}
+[72.620974] (-) TimerEvent: {}
+[72.638395] (yq_dart_aim) StdoutLine: {'line': b'[100%] Built target dart_aim_node\n'}
+[72.642886] (yq_dart_aim) StderrLine: {'line': b'gmake[1]: warning:  Clock skew detected.  Your build may be incomplete.\n'}
+[72.680168] (yq_dart_aim) StderrLine: {'line': b'gmake: warning:  Clock skew detected.  Your build may be incomplete.\n'}
+[72.692692] (yq_dart_aim) CommandEnded: {'returncode': 0}
+[72.696574] (yq_dart_aim) JobProgress: {'identifier': 'yq_dart_aim', 'progress': 'install'}
+[72.698104] (yq_dart_aim) Command: {'cmd': ['/usr/bin/cmake', '--install', '/root/dart_ws/build/yq_dart_aim'], 'cwd': '/root/dart_ws/build/yq_dart_aim', 'env': OrderedDict([('LANGUAGE', 'en_US.UTF-8'), ('USER', 'root'), ('SSH_CLIENT', '192.168.127.20 63767 22'), ('XDG_SESSION_TYPE', 'tty'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib:/usr/hobot/lib:/app/lib:/app/pub/lib:/middleware/lib:/middleware/pub/lib:/usr/hobot/lib/sensor:/system/lib:/system/usr/lib:/lib:'), ('MOTD_SHOWN', 'pam'), ('HOME', '/root'), ('OLDPWD', '/root'), ('SSH_TTY', '/dev/pts/0'), ('ROS_PYTHON_VERSION', '3'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/0/bus'), ('DEBUGINFOD_URLS', ''), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'root'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('TERM', 'xterm'), ('XDG_SESSION_ID', '6'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/opt/ros/humble/bin:/usr/hobot/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin'), ('XDG_RUNTIME_DIR', '/run/user/0'), ('DISPLAY', 'localhost:10.0'), ('LANG', 'en_US.UTF-8'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('AMENT_PREFIX_PATH', '/opt/ros/humble'), ('SHELL', '/bin/bash'), ('PWD', '/root/dart_ws/build/yq_dart_aim'), ('SSH_CONNECTION', '192.168.127.20 63767 192.168.127.10 22'), ('XDG_DATA_DIRS', '/usr/share/gnome:/usr/local/share/:/usr/share/'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/opt/ros/humble')]), 'shell': False}
+[72.721152] (-) TimerEvent: {}
+[72.735954] (yq_dart_aim) StdoutLine: {'line': b'-- Install configuration: ""\n'}
+[72.738314] (yq_dart_aim) StdoutLine: {'line': b'-- Execute custom install script\n'}
+[72.740861] (yq_dart_aim) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/lib/yq_dart_aim/dart_aim_node\n'}
+[72.743314] (yq_dart_aim) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/launch/start.launch.py\n'}
+[72.744819] (yq_dart_aim) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/config/params.yaml\n'}
+[72.746642] (yq_dart_aim) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/ament_index/resource_index/package_run_dependencies/yq_dart_aim\n'}
+[72.747900] (yq_dart_aim) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/ament_index/resource_index/parent_prefix_path/yq_dart_aim\n'}
+[72.749569] (yq_dart_aim) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/environment/ament_prefix_path.sh\n'}
+[72.750649] (yq_dart_aim) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/environment/ament_prefix_path.dsv\n'}
+[72.751668] (yq_dart_aim) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/environment/path.sh\n'}
+[72.752717] (yq_dart_aim) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/environment/path.dsv\n'}
+[72.753718] (yq_dart_aim) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/local_setup.bash\n'}
+[72.754705] (yq_dart_aim) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/local_setup.sh\n'}
+[72.755676] (yq_dart_aim) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/local_setup.zsh\n'}
+[72.756642] (yq_dart_aim) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/local_setup.dsv\n'}
+[72.757243] (yq_dart_aim) StdoutLine: {'line': b'-- Symlinking: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/package.dsv\n'}
+[72.795968] (yq_dart_aim) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/ament_index/resource_index/packages/yq_dart_aim\n'}
+[72.797338] (yq_dart_aim) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/cmake/yq_dart_aimConfig.cmake\n'}
+[72.798214] (yq_dart_aim) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/cmake/yq_dart_aimConfig-version.cmake\n'}
+[72.800204] (yq_dart_aim) StdoutLine: {'line': b'-- Up-to-date symlink: /root/dart_ws/install/yq_dart_aim/share/yq_dart_aim/package.xml\n'}
+[72.813182] (yq_dart_aim) CommandEnded: {'returncode': 0}
+[72.828926] (-) TimerEvent: {}
+[72.932336] (-) TimerEvent: {}
+[72.953560] (yq_dart_aim) JobEnded: {'identifier': 'yq_dart_aim', 'rc': 0}
+[72.957247] (-) EventReactorShutdown: {}

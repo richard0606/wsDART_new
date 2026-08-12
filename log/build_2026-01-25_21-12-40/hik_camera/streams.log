@@ -1,0 +1,85 @@
+[0.066s] Invoking command in '/root/dart_ws/build/hik_camera': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /root/dart_ws/src/ros2_hik_camera -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/root/dart_ws/install/hik_camera
+[0.677s] -- The C compiler identification is GNU 11.2.0
+[1.262s] -- The CXX compiler identification is GNU 11.2.0
+[1.309s] -- Detecting C compiler ABI info
+[1.784s] -- Detecting C compiler ABI info - done
+[1.831s] -- Check for working C compiler: /usr/bin/cc - skipped
+[1.837s] -- Detecting C compile features
+[1.840s] -- Detecting C compile features - done
+[1.871s] -- Detecting CXX compiler ABI info
+[2.297s] -- Detecting CXX compiler ABI info - done
+[2.357s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[2.358s] -- Detecting CXX compile features
+[2.361s] -- Detecting CXX compile features - done
+[2.374s] -- Found ament_cmake_auto: 1.3.12 (/opt/ros/humble/share/ament_cmake_auto/cmake)
+[3.386s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[3.848s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[4.617s] -- Found rosidl_generator_c: 3.1.7 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+[4.639s] -- Found rosidl_adapter: 3.1.7 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[4.679s] -- Found rosidl_generator_cpp: 3.1.7 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+[4.742s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[4.825s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[5.041s] -- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+[5.052s] -- Found rmw_fastrtps_cpp: 6.2.9 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)
+[5.434s] -- Found OpenSSL: /usr/lib/aarch64-linux-gnu/libcrypto.so (found version "3.0.2")  
+[5.553s] -- Found FastRTPS: /opt/ros/humble/include  
+[5.728s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[5.763s] -- Looking for pthread.h
+[6.180s] -- Looking for pthread.h - found
+[6.181s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+[6.571s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+[6.580s] -- Found Threads: TRUE  
+[7.601s] -- Found ament_lint_auto: 0.12.14 (/opt/ros/humble/share/ament_lint_auto/cmake)
+[7.741s] -- Added test 'cppcheck' to perform static code analysis on C / C++ code
+[7.742s] -- Configured cppcheck include dirs: /root/dart_ws/src/ros2_hik_camera/hikSDK/include
+[7.742s] -- Configured cppcheck exclude dirs and/or files: 
+[7.746s] -- Added test 'flake8' to check Python code syntax and style conventions
+[7.750s] -- Added test 'lint_cmake' to check CMake code style
+[7.754s] -- Added test 'pep257' to check Python code against some of the docstring style conventions in PEP 257
+[7.757s] -- Added test 'xmllint' to check XML markup files
+[7.787s] -- Configuring done
+[7.866s] -- Generating done
+[7.893s] -- Build files have been written to: /root/dart_ws/build/hik_camera
+[7.963s] Invoked command in '/root/dart_ws/build/hik_camera' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /root/dart_ws/src/ros2_hik_camera -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/root/dart_ws/install/hik_camera
+[7.972s] Invoking command in '/root/dart_ws/build/hik_camera': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /root/dart_ws/build/hik_camera --clean-first -- -j8 -l8
+[8.716s] [ 50%] [32mBuilding CXX object CMakeFiles/hik_camera.dir/src/hik_camera_node.cpp.o[0m
+[8.716s] [ 50%] [32mBuilding CXX object CMakeFiles/hik_camera_node.dir/rclcpp_components/node_main_hik_camera_node.cpp.o[0m
+[28.727s] [ 75%] [32m[1mLinking CXX executable hik_camera_node[0m
+[29.702s] [ 75%] Built target hik_camera_node
+[31.243s] [100%] [32m[1mLinking CXX shared library libhik_camera.so[0m
+[32.398s] [100%] Built target hik_camera
+[32.448s] Invoked command in '/root/dart_ws/build/hik_camera' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /root/dart_ws/build/hik_camera --clean-first -- -j8 -l8
+[32.492s] Invoking command in '/root/dart_ws/build/hik_camera': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /root/dart_ws/build/hik_camera
+[32.525s] -- Install configuration: ""
+[32.527s] -- Execute custom install script
+[32.529s] -- Symlinking: /root/dart_ws/install/hik_camera/lib/libFormatConversion.so
+[32.567s] -- Symlinking: /root/dart_ws/install/hik_camera/lib/libMVRender.so
+[32.605s] -- Symlinking: /root/dart_ws/install/hik_camera/lib/libMediaProcess.so
+[32.642s] -- Symlinking: /root/dart_ws/install/hik_camera/lib/libMvCameraControl.so
+[32.681s] -- Symlinking: /root/dart_ws/install/hik_camera/lib/libMvUsb3vTL.so
+[32.721s] -- Symlinking: /root/dart_ws/install/hik_camera/lib/hik_camera/hik_camera_node
+[32.759s] -- Symlinking: /root/dart_ws/install/hik_camera/share/hik_camera/environment/library_path.sh
+[32.797s] -- Symlinking: /root/dart_ws/install/hik_camera/share/hik_camera/environment/library_path.dsv
+[32.835s] -- Symlinking: /root/dart_ws/install/hik_camera/lib/libhik_camera.so
+[32.876s] -- Symlinking: /root/dart_ws/install/hik_camera/share/hik_camera/config/camera_info.yaml
+[32.913s] -- Symlinking: /root/dart_ws/install/hik_camera/share/hik_camera/config/camera_params.yaml
+[32.952s] -- Symlinking: /root/dart_ws/install/hik_camera/share/hik_camera/launch/hik_camera.launch.py
+[32.991s] -- Symlinking: /root/dart_ws/install/hik_camera/share/ament_index/resource_index/package_run_dependencies/hik_camera
+[33.029s] -- Symlinking: /root/dart_ws/install/hik_camera/share/ament_index/resource_index/parent_prefix_path/hik_camera
+[33.069s] -- Symlinking: /root/dart_ws/install/hik_camera/share/hik_camera/environment/ament_prefix_path.sh
+[33.107s] -- Symlinking: /root/dart_ws/install/hik_camera/share/hik_camera/environment/ament_prefix_path.dsv
+[33.146s] -- Symlinking: /root/dart_ws/install/hik_camera/share/hik_camera/environment/path.sh
+[33.184s] -- Symlinking: /root/dart_ws/install/hik_camera/share/hik_camera/environment/path.dsv
+[33.222s] -- Symlinking: /root/dart_ws/install/hik_camera/share/hik_camera/local_setup.bash
+[33.260s] -- Symlinking: /root/dart_ws/install/hik_camera/share/hik_camera/local_setup.sh
+[33.299s] -- Symlinking: /root/dart_ws/install/hik_camera/share/hik_camera/local_setup.zsh
+[33.337s] -- Symlinking: /root/dart_ws/install/hik_camera/share/hik_camera/local_setup.dsv
+[33.375s] -- Symlinking: /root/dart_ws/install/hik_camera/share/hik_camera/package.dsv
+[33.414s] -- Symlinking: /root/dart_ws/install/hik_camera/share/ament_index/resource_index/packages/hik_camera
+[33.453s] -- Symlinking: /root/dart_ws/install/hik_camera/share/ament_index/resource_index/rclcpp_components/hik_camera
+[33.492s] -- Symlinking: /root/dart_ws/install/hik_camera/share/hik_camera/cmake/ament_cmake_export_dependencies-extras.cmake
+[33.534s] -- Symlinking: /root/dart_ws/install/hik_camera/share/hik_camera/cmake/ament_cmake_export_libraries-extras.cmake
+[33.572s] -- Symlinking: /root/dart_ws/install/hik_camera/share/hik_camera/cmake/hik_cameraConfig.cmake
+[33.609s] -- Symlinking: /root/dart_ws/install/hik_camera/share/hik_camera/cmake/hik_cameraConfig-version.cmake
+[33.648s] -- Symlinking: /root/dart_ws/install/hik_camera/share/hik_camera/package.xml
+[33.694s] Invoked command in '/root/dart_ws/build/hik_camera' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /root/dart_ws/build/hik_camera

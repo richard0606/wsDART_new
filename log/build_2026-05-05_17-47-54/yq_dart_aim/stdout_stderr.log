@@ -1,0 +1,30 @@
+-- Found ament_cmake: 1.3.12 (/opt/ros/humble/share/ament_cmake/cmake)
+-- Override CMake install command with custom implementation using symlinks instead of copying resources
+-- Found rclcpp: 16.0.16 (/opt/ros/humble/share/rclcpp/cmake)
+-- Found rosidl_generator_c: 3.1.7 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+-- Found rosidl_adapter: 3.1.7 (/opt/ros/humble/share/rosidl_adapter/cmake)
+-- Found rosidl_generator_cpp: 3.1.7 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+-- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+-- Found rmw_fastrtps_cpp: 6.2.9 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)
+-- Using RMW implementation 'rmw_fastrtps_cpp' as default
+-- Found sensor_msgs: 4.9.0 (/opt/ros/humble/share/sensor_msgs/cmake)
+-- Found cv_bridge: 3.2.1 (/opt/ros/humble/share/cv_bridge/cmake)
+-- Found image_transport: 3.1.12 (/opt/ros/humble/share/image_transport/cmake)
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /root/dart_ws/build/yq_dart_aim
+Consolidate compiler generated dependencies of target dart_aim_node
+[ 50%] Building CXX object CMakeFiles/dart_aim_node.dir/src/dart_aim_node.cpp.o
+/root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp: In member function ‘void DartAimNode::openSerial(const string&)’:
+/root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp:254:27: error: ‘scanForACMDevice’ was not declared in this scope
+  254 |       std::string found = scanForACMDevice();
+      |                           ^~~~~~~~~~~~~~~~
+/root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp: In member function ‘void DartAimNode::imageCallback(sensor_msgs::msg::Image_<std::allocator<void> >::SharedPtr)’:
+/root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp:437:12: warning: unused variable ‘img_area’ [-Wunused-variable]
+  437 |     double img_area = width * height;
+      |            ^~~~~~~~
+gmake[2]: *** [CMakeFiles/dart_aim_node.dir/build.make:76: CMakeFiles/dart_aim_node.dir/src/dart_aim_node.cpp.o] Error 1
+gmake[1]: *** [CMakeFiles/Makefile2:137: CMakeFiles/dart_aim_node.dir/all] Error 2
+gmake: *** [Makefile:146: all] Error 2

@@ -1,0 +1,4 @@
+[35m[1mConsolidate compiler generated dependencies of target hik_camera_node[0m
+[35m[1mConsolidate compiler generated dependencies of target hik_camera[0m
+[ 25%] [32mBuilding CXX object CMakeFiles/hik_camera_node.dir/rclcpp_components/node_main_hik_camera_node.cpp.o[0m
+[ 50%] [32mBuilding CXX object CMakeFiles/hik_camera.dir/src/hik_camera_node.cpp.o[0m

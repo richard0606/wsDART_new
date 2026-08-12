@@ -1,0 +1,226 @@
+[0.000000] (-) TimerEvent: {}
+[0.000732] (-) JobUnselected: {'identifier': 'hik_camera'}
+[0.002413] (yq_dart_aim) JobQueued: {'identifier': 'yq_dart_aim', 'dependencies': OrderedDict()}
+[0.003462] (yq_dart_aim) JobStarted: {'identifier': 'yq_dart_aim'}
+[0.051385] (yq_dart_aim) JobProgress: {'identifier': 'yq_dart_aim', 'progress': 'cmake'}
+[0.057262] (yq_dart_aim) Command: {'cmd': ['/usr/bin/cmake', '/root/dart_ws/src/yq_dart_aim', '-DCMAKE_INSTALL_PREFIX=/root/dart_ws/install/yq_dart_aim'], 'cwd': '/root/dart_ws/build/yq_dart_aim', 'env': OrderedDict([('VSCODE_CWD', '/root'), ('VSCODE_ESM_ENTRYPOINT', 'vs/workbench/api/node/extensionHostProcess'), ('AI_AGENT', 'claude-code_2-1-128_agent'), ('LANGUAGE', 'en_US.UTF-8'), ('USER', 'root'), ('SSH_CLIENT', '10.74.8.222 53129 22'), ('CLAUDE_CODE_ENTRYPOINT', 'claude-vscode'), ('VSCODE_NLS_CONFIG', '{"userLocale":"zh-cn","osLocale":"zh-cn","resolvedLanguage":"zh-cn","defaultMessagesFile":"/root/.vscode-server/cli/servers/Stable-10c8e557c8b9f9ed0a87f61f1c9a44bde731c409/server/out/nls.messages.json","languagePack":{"translationsConfigFile":"/root/.vscode-server/data/clp/b912e1cc94c8380c6bb426bdce2c540f.zh-cn/tcf.json","messagesFile":"/root/.vscode-server/data/clp/b912e1cc94c8380c6bb426bdce2c540f.zh-cn/10c8e557c8b9f9ed0a87f61f1c9a44bde731c409/nls.messages.json","corruptMarkerFile":"/root/.vscode-server/data/clp/b912e1cc94c8380c6bb426bdce2c540f.zh-cn/corrupted.info"},"locale":"zh-cn","availableLanguages":{"*":"zh-cn"},"_languagePackId":"b912e1cc94c8380c6bb426bdce2c540f.zh-cn","_languagePackSupport":true,"_translationsConfigFile":"/root/.vscode-server/data/clp/b912e1cc94c8380c6bb426bdce2c540f.zh-cn/tcf.json","_cacheRoot":"/root/.vscode-server/data/clp/b912e1cc94c8380c6bb426bdce2c540f.zh-cn","_resolvedLanguagePackCoreLocation":"/root/.vscode-server/data/clp/b912e1cc94c8380c6bb426bdce2c540f.zh-cn/10c8e557c8b9f9ed0a87f61f1c9a44bde731c409","_corruptedFile":"/root/.vscode-server/data/clp/b912e1cc94c8380c6bb426bdce2c540f.zh-cn/corrupted.info"}'), ('GIT_EDITOR', 'true'), ('VSCODE_HANDLES_UNCAUGHT_ERRORS', 'true'), ('XDG_SESSION_TYPE', 'tty'), ('CLAUDE_AGENT_SDK_VERSION', '0.2.128'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/root/dart_ws/install/hik_camera/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib:/usr/hobot/lib:/app/lib:/app/pub/lib:/middleware/lib:/middleware/pub/lib:/usr/hobot/lib/sensor:/system/lib:/system/usr/lib:/lib:'), ('BROWSER', '/root/.vscode-server/cli/servers/Stable-10c8e557c8b9f9ed0a87f61f1c9a44bde731c409/server/bin/helpers/browser.sh'), ('MOTD_SHOWN', 'pam'), ('HOME', '/root'), ('OLDPWD', '/root'), ('VSCODE_RECONNECTION_GRACE_TIME', '10800000'), ('NVM_BIN', '/root/.nvm/versions/node/v20.20.2/bin'), ('VSCODE_IPC_HOOK_CLI', '/run/user/0/vscode-ipc-5d80fb71-ff4a-4ace-8168-99a0948f9752.sock'), ('NVM_INC', '/root/.nvm/versions/node/v20.20.2/include/node'), ('ANTHROPIC_DEFAULT_SONNET_MODEL', 'MiniMax-M2.7'), ('ROS_PYTHON_VERSION', '3'), ('skipWebFetchPreflight', 'true'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/0/bus'), ('NVM_DIR', '/root/.nvm'), ('DEBUGINFOD_URLS', ''), ('COLCON_PREFIX_PATH', '/root/dart_ws/install'), ('API_TIMEOUT_MS', '3000000'), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'root'), ('VSCODE_HANDLES_SIGPIPE', 'true'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('ANTHROPIC_BASE_URL', 'https://api.minimaxi.com/anthropic'), ('XDG_SESSION_ID', '2'), ('VSCODE_CLI_REQUIRE_TOKEN', 'fd08aadb-42a0-4637-becc-b4c9d4db462c'), ('ROS_LOCALHOST_ONLY', '0'), ('ANTHROPIC_DEFAULT_OPUS_MODEL', 'MiniMax-M2.7'), ('MCP_CONNECTION_NONBLOCKING', 'true'), ('PATH', '/usr/hobot/bin/:/root/.vscode-server/cli/servers/Stable-10c8e557c8b9f9ed0a87f61f1c9a44bde731c409/server/bin/remote-cli:/root/.nvm/versions/node/v20.20.2/bin:/opt/ros/humble/bin:/usr/hobot/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin'), ('VSCODE_AGENT_FOLDER', '/root/.vscode-server'), ('COREPACK_ENABLE_AUTO_PIN', '0'), ('XDG_RUNTIME_DIR', '/run/user/0'), ('NoDefaultCurrentDirectoryInExePath', '1'), ('LANG', 'en_US.UTF-8'), ('ANTHROPIC_DEFAULT_HAIKU_MODEL', 'MiniMax-M2.7'), ('LS_COLORS', ''), ('AMENT_PREFIX_PATH', '/root/dart_ws/install/yq_dart_aim:/root/dart_ws/install/hik_camera:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('ANTHROPIC_AUTH_TOKEN', 'sk-cp-kp2t5OhyGMB49SMyS-k15cvVKvYbaHLLcfOmapqGS16YCvjEPa3ZiWZnACc5nPBOWik1kXzOcCXBehA-q8ImKacndx4ZthWCn20_Jf8oZbfJvNc0tbE_gU4'), ('ELECTRON_RUN_AS_NODE', '1'), ('CLAUDE_CODE_ENABLE_SDK_FILE_CHECKPOINTING', 'true'), ('CLAUDECODE', '1'), ('PWD', '/root/dart_ws/build/yq_dart_aim'), ('SSH_CONNECTION', '10.74.8.222 53129 10.74.8.158 22'), ('NVM_CD_FLAGS', ''), ('XDG_DATA_DIRS', '/usr/share/gnome:/usr/local/share/:/usr/share/'), ('CLAUDE_CODE_EXECPATH', '/root/.vscode-server/extensions/anthropic.claude-code-2.1.128-linux-arm64/resources/native-binary/claude'), ('CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC', '1'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/root/dart_ws/install/yq_dart_aim:/root/dart_ws/install/hik_camera:/opt/ros/humble')]), 'shell': False}
+[0.098686] (-) TimerEvent: {}
+[0.199232] (-) TimerEvent: {}
+[0.236392] (yq_dart_aim) StdoutLine: {'line': b'-- Found ament_cmake: 1.3.12 (/opt/ros/humble/share/ament_cmake/cmake)\n'}
+[0.299410] (-) TimerEvent: {}
+[0.399931] (-) TimerEvent: {}
+[0.500406] (-) TimerEvent: {}
+[0.600945] (-) TimerEvent: {}
+[0.701462] (-) TimerEvent: {}
+[0.801975] (-) TimerEvent: {}
+[0.902493] (-) TimerEvent: {}
+[1.002999] (-) TimerEvent: {}
+[1.096744] (yq_dart_aim) StdoutLine: {'line': b'-- Override CMake install command with custom implementation using symlinks instead of copying resources\n'}
+[1.103233] (-) TimerEvent: {}
+[1.167740] (yq_dart_aim) StdoutLine: {'line': b'-- Found rclcpp: 16.0.16 (/opt/ros/humble/share/rclcpp/cmake)\n'}
+[1.203433] (-) TimerEvent: {}
+[1.304030] (-) TimerEvent: {}
+[1.360783] (yq_dart_aim) StdoutLine: {'line': b'-- Found rosidl_generator_c: 3.1.7 (/opt/ros/humble/share/rosidl_generator_c/cmake)\n'}
+[1.381104] (yq_dart_aim) StdoutLine: {'line': b'-- Found rosidl_adapter: 3.1.7 (/opt/ros/humble/share/rosidl_adapter/cmake)\n'}
+[1.404260] (-) TimerEvent: {}
+[1.425504] (yq_dart_aim) StdoutLine: {'line': b'-- Found rosidl_generator_cpp: 3.1.7 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)\n'}
+[1.498172] (yq_dart_aim) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c\n'}
+[1.504457] (-) TimerEvent: {}
+[1.585797] (yq_dart_aim) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp\n'}
+[1.604711] (-) TimerEvent: {}
+[1.705328] (-) TimerEvent: {}
+[1.805902] (-) TimerEvent: {}
+[1.830312] (yq_dart_aim) StdoutLine: {'line': b'-- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)\n'}
+[1.841212] (yq_dart_aim) StdoutLine: {'line': b'-- Found rmw_fastrtps_cpp: 6.2.9 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)\n'}
+[1.906118] (-) TimerEvent: {}
+[2.006738] (-) TimerEvent: {}
+[2.107304] (-) TimerEvent: {}
+[2.207875] (-) TimerEvent: {}
+[2.308495] (-) TimerEvent: {}
+[2.356281] (yq_dart_aim) StdoutLine: {'line': b"-- Using RMW implementation 'rmw_fastrtps_cpp' as default\n"}
+[2.408718] (-) TimerEvent: {}
+[2.509309] (-) TimerEvent: {}
+[2.609857] (-) TimerEvent: {}
+[2.710403] (-) TimerEvent: {}
+[2.727083] (yq_dart_aim) StdoutLine: {'line': b'-- Found sensor_msgs: 4.9.0 (/opt/ros/humble/share/sensor_msgs/cmake)\n'}
+[2.810613] (-) TimerEvent: {}
+[2.911127] (-) TimerEvent: {}
+[2.938978] (yq_dart_aim) StdoutLine: {'line': b'-- Found cv_bridge: 3.2.1 (/opt/ros/humble/share/cv_bridge/cmake)\n'}
+[3.004661] (yq_dart_aim) StdoutLine: {'line': b'-- Found image_transport: 3.1.12 (/opt/ros/humble/share/image_transport/cmake)\n'}
+[3.011344] (-) TimerEvent: {}
+[3.111964] (-) TimerEvent: {}
+[3.212445] (-) TimerEvent: {}
+[3.312968] (-) TimerEvent: {}
+[3.413566] (-) TimerEvent: {}
+[3.514054] (-) TimerEvent: {}
+[3.614694] (-) TimerEvent: {}
+[3.625989] (yq_dart_aim) StdoutLine: {'line': b'-- Configuring done\n'}
+[3.714843] (-) TimerEvent: {}
+[3.739153] (yq_dart_aim) StdoutLine: {'line': b'-- Generating done\n'}
+[3.770203] (yq_dart_aim) StdoutLine: {'line': b'-- Build files have been written to: /root/dart_ws/build/yq_dart_aim\n'}
+[3.815055] (-) TimerEvent: {}
+[3.834859] (yq_dart_aim) CommandEnded: {'returncode': 0}
+[3.842239] (yq_dart_aim) JobProgress: {'identifier': 'yq_dart_aim', 'progress': 'build'}
+[3.842777] (yq_dart_aim) Command: {'cmd': ['/usr/bin/cmake', '--build', '/root/dart_ws/build/yq_dart_aim', '--', '-j8', '-l8'], 'cwd': '/root/dart_ws/build/yq_dart_aim', 'env': OrderedDict([('VSCODE_CWD', '/root'), ('VSCODE_ESM_ENTRYPOINT', 'vs/workbench/api/node/extensionHostProcess'), ('AI_AGENT', 'claude-code_2-1-128_agent'), ('LANGUAGE', 'en_US.UTF-8'), ('USER', 'root'), ('SSH_CLIENT', '10.74.8.222 53129 22'), ('CLAUDE_CODE_ENTRYPOINT', 'claude-vscode'), ('VSCODE_NLS_CONFIG', '{"userLocale":"zh-cn","osLocale":"zh-cn","resolvedLanguage":"zh-cn","defaultMessagesFile":"/root/.vscode-server/cli/servers/Stable-10c8e557c8b9f9ed0a87f61f1c9a44bde731c409/server/out/nls.messages.json","languagePack":{"translationsConfigFile":"/root/.vscode-server/data/clp/b912e1cc94c8380c6bb426bdce2c540f.zh-cn/tcf.json","messagesFile":"/root/.vscode-server/data/clp/b912e1cc94c8380c6bb426bdce2c540f.zh-cn/10c8e557c8b9f9ed0a87f61f1c9a44bde731c409/nls.messages.json","corruptMarkerFile":"/root/.vscode-server/data/clp/b912e1cc94c8380c6bb426bdce2c540f.zh-cn/corrupted.info"},"locale":"zh-cn","availableLanguages":{"*":"zh-cn"},"_languagePackId":"b912e1cc94c8380c6bb426bdce2c540f.zh-cn","_languagePackSupport":true,"_translationsConfigFile":"/root/.vscode-server/data/clp/b912e1cc94c8380c6bb426bdce2c540f.zh-cn/tcf.json","_cacheRoot":"/root/.vscode-server/data/clp/b912e1cc94c8380c6bb426bdce2c540f.zh-cn","_resolvedLanguagePackCoreLocation":"/root/.vscode-server/data/clp/b912e1cc94c8380c6bb426bdce2c540f.zh-cn/10c8e557c8b9f9ed0a87f61f1c9a44bde731c409","_corruptedFile":"/root/.vscode-server/data/clp/b912e1cc94c8380c6bb426bdce2c540f.zh-cn/corrupted.info"}'), ('GIT_EDITOR', 'true'), ('VSCODE_HANDLES_UNCAUGHT_ERRORS', 'true'), ('XDG_SESSION_TYPE', 'tty'), ('CLAUDE_AGENT_SDK_VERSION', '0.2.128'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/root/dart_ws/install/hik_camera/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib:/usr/hobot/lib:/app/lib:/app/pub/lib:/middleware/lib:/middleware/pub/lib:/usr/hobot/lib/sensor:/system/lib:/system/usr/lib:/lib:'), ('BROWSER', '/root/.vscode-server/cli/servers/Stable-10c8e557c8b9f9ed0a87f61f1c9a44bde731c409/server/bin/helpers/browser.sh'), ('MOTD_SHOWN', 'pam'), ('HOME', '/root'), ('OLDPWD', '/root'), ('VSCODE_RECONNECTION_GRACE_TIME', '10800000'), ('NVM_BIN', '/root/.nvm/versions/node/v20.20.2/bin'), ('VSCODE_IPC_HOOK_CLI', '/run/user/0/vscode-ipc-5d80fb71-ff4a-4ace-8168-99a0948f9752.sock'), ('NVM_INC', '/root/.nvm/versions/node/v20.20.2/include/node'), ('ANTHROPIC_DEFAULT_SONNET_MODEL', 'MiniMax-M2.7'), ('ROS_PYTHON_VERSION', '3'), ('skipWebFetchPreflight', 'true'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/0/bus'), ('NVM_DIR', '/root/.nvm'), ('DEBUGINFOD_URLS', ''), ('COLCON_PREFIX_PATH', '/root/dart_ws/install'), ('API_TIMEOUT_MS', '3000000'), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'root'), ('VSCODE_HANDLES_SIGPIPE', 'true'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('ANTHROPIC_BASE_URL', 'https://api.minimaxi.com/anthropic'), ('XDG_SESSION_ID', '2'), ('VSCODE_CLI_REQUIRE_TOKEN', 'fd08aadb-42a0-4637-becc-b4c9d4db462c'), ('ROS_LOCALHOST_ONLY', '0'), ('ANTHROPIC_DEFAULT_OPUS_MODEL', 'MiniMax-M2.7'), ('MCP_CONNECTION_NONBLOCKING', 'true'), ('PATH', '/usr/hobot/bin/:/root/.vscode-server/cli/servers/Stable-10c8e557c8b9f9ed0a87f61f1c9a44bde731c409/server/bin/remote-cli:/root/.nvm/versions/node/v20.20.2/bin:/opt/ros/humble/bin:/usr/hobot/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin'), ('VSCODE_AGENT_FOLDER', '/root/.vscode-server'), ('COREPACK_ENABLE_AUTO_PIN', '0'), ('XDG_RUNTIME_DIR', '/run/user/0'), ('NoDefaultCurrentDirectoryInExePath', '1'), ('LANG', 'en_US.UTF-8'), ('ANTHROPIC_DEFAULT_HAIKU_MODEL', 'MiniMax-M2.7'), ('LS_COLORS', ''), ('AMENT_PREFIX_PATH', '/root/dart_ws/install/yq_dart_aim:/root/dart_ws/install/hik_camera:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('ANTHROPIC_AUTH_TOKEN', 'sk-cp-kp2t5OhyGMB49SMyS-k15cvVKvYbaHLLcfOmapqGS16YCvjEPa3ZiWZnACc5nPBOWik1kXzOcCXBehA-q8ImKacndx4ZthWCn20_Jf8oZbfJvNc0tbE_gU4'), ('ELECTRON_RUN_AS_NODE', '1'), ('CLAUDE_CODE_ENABLE_SDK_FILE_CHECKPOINTING', 'true'), ('CLAUDECODE', '1'), ('PWD', '/root/dart_ws/build/yq_dart_aim'), ('SSH_CONNECTION', '10.74.8.222 53129 10.74.8.158 22'), ('NVM_CD_FLAGS', ''), ('XDG_DATA_DIRS', '/usr/share/gnome:/usr/local/share/:/usr/share/'), ('CLAUDE_CODE_EXECPATH', '/root/.vscode-server/extensions/anthropic.claude-code-2.1.128-linux-arm64/resources/native-binary/claude'), ('CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC', '1'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/root/dart_ws/install/yq_dart_aim:/root/dart_ws/install/hik_camera:/opt/ros/humble')]), 'shell': False}
+[3.915303] (-) TimerEvent: {}
+[4.015910] (-) TimerEvent: {}
+[4.075035] (yq_dart_aim) StdoutLine: {'line': b'Consolidate compiler generated dependencies of target dart_aim_node\n'}
+[4.116108] (-) TimerEvent: {}
+[4.216601] (-) TimerEvent: {}
+[4.221975] (yq_dart_aim) StdoutLine: {'line': b'[ 50%] Building CXX object CMakeFiles/dart_aim_node.dir/src/dart_aim_node.cpp.o\n'}
+[4.316850] (-) TimerEvent: {}
+[4.417374] (-) TimerEvent: {}
+[4.517883] (-) TimerEvent: {}
+[4.618374] (-) TimerEvent: {}
+[4.719042] (-) TimerEvent: {}
+[4.819653] (-) TimerEvent: {}
+[4.920256] (-) TimerEvent: {}
+[5.020899] (-) TimerEvent: {}
+[5.121507] (-) TimerEvent: {}
+[5.222076] (-) TimerEvent: {}
+[5.322610] (-) TimerEvent: {}
+[5.423164] (-) TimerEvent: {}
+[5.523740] (-) TimerEvent: {}
+[5.624273] (-) TimerEvent: {}
+[5.724799] (-) TimerEvent: {}
+[5.825273] (-) TimerEvent: {}
+[5.925890] (-) TimerEvent: {}
+[6.026413] (-) TimerEvent: {}
+[6.126897] (-) TimerEvent: {}
+[6.227540] (-) TimerEvent: {}
+[6.328089] (-) TimerEvent: {}
+[6.428820] (-) TimerEvent: {}
+[6.529368] (-) TimerEvent: {}
+[6.629912] (-) TimerEvent: {}
+[6.730474] (-) TimerEvent: {}
+[6.831062] (-) TimerEvent: {}
+[6.931623] (-) TimerEvent: {}
+[7.032184] (-) TimerEvent: {}
+[7.132805] (-) TimerEvent: {}
+[7.233429] (-) TimerEvent: {}
+[7.333982] (-) TimerEvent: {}
+[7.434603] (-) TimerEvent: {}
+[7.535145] (-) TimerEvent: {}
+[7.635671] (-) TimerEvent: {}
+[7.736272] (-) TimerEvent: {}
+[7.836886] (-) TimerEvent: {}
+[7.937425] (-) TimerEvent: {}
+[8.038014] (-) TimerEvent: {}
+[8.138590] (-) TimerEvent: {}
+[8.239120] (-) TimerEvent: {}
+[8.339730] (-) TimerEvent: {}
+[8.440289] (-) TimerEvent: {}
+[8.540836] (-) TimerEvent: {}
+[8.641405] (-) TimerEvent: {}
+[8.741958] (-) TimerEvent: {}
+[8.842498] (-) TimerEvent: {}
+[8.943110] (-) TimerEvent: {}
+[9.043662] (-) TimerEvent: {}
+[9.144246] (-) TimerEvent: {}
+[9.244831] (-) TimerEvent: {}
+[9.345402] (-) TimerEvent: {}
+[9.445935] (-) TimerEvent: {}
+[9.546525] (-) TimerEvent: {}
+[9.647129] (-) TimerEvent: {}
+[9.747687] (-) TimerEvent: {}
+[9.848391] (-) TimerEvent: {}
+[9.948995] (-) TimerEvent: {}
+[10.049555] (-) TimerEvent: {}
+[10.150235] (-) TimerEvent: {}
+[10.250845] (-) TimerEvent: {}
+[10.351461] (-) TimerEvent: {}
+[10.452059] (-) TimerEvent: {}
+[10.552660] (-) TimerEvent: {}
+[10.653263] (-) TimerEvent: {}
+[10.753867] (-) TimerEvent: {}
+[10.854499] (-) TimerEvent: {}
+[10.955074] (-) TimerEvent: {}
+[11.055660] (-) TimerEvent: {}
+[11.156255] (-) TimerEvent: {}
+[11.256810] (-) TimerEvent: {}
+[11.357379] (-) TimerEvent: {}
+[11.457990] (-) TimerEvent: {}
+[11.558554] (-) TimerEvent: {}
+[11.659130] (-) TimerEvent: {}
+[11.759723] (-) TimerEvent: {}
+[11.860282] (-) TimerEvent: {}
+[11.960863] (-) TimerEvent: {}
+[12.061443] (-) TimerEvent: {}
+[12.162018] (-) TimerEvent: {}
+[12.262618] (-) TimerEvent: {}
+[12.363191] (-) TimerEvent: {}
+[12.463811] (-) TimerEvent: {}
+[12.564443] (-) TimerEvent: {}
+[12.665008] (-) TimerEvent: {}
+[12.765565] (-) TimerEvent: {}
+[12.866131] (-) TimerEvent: {}
+[12.966723] (-) TimerEvent: {}
+[13.067290] (-) TimerEvent: {}
+[13.167861] (-) TimerEvent: {}
+[13.268459] (-) TimerEvent: {}
+[13.369021] (-) TimerEvent: {}
+[13.469588] (-) TimerEvent: {}
+[13.570174] (-) TimerEvent: {}
+[13.670734] (-) TimerEvent: {}
+[13.771301] (-) TimerEvent: {}
+[13.871921] (-) TimerEvent: {}
+[13.972491] (-) TimerEvent: {}
+[14.073050] (-) TimerEvent: {}
+[14.173640] (-) TimerEvent: {}
+[14.274199] (-) TimerEvent: {}
+[14.374723] (-) TimerEvent: {}
+[14.475274] (-) TimerEvent: {}
+[14.575876] (-) TimerEvent: {}
+[14.676453] (-) TimerEvent: {}
+[14.777029] (-) TimerEvent: {}
+[14.877585] (-) TimerEvent: {}
+[14.978170] (-) TimerEvent: {}
+[15.078714] (-) TimerEvent: {}
+[15.179250] (-) TimerEvent: {}
+[15.279786] (-) TimerEvent: {}
+[15.380324] (-) TimerEvent: {}
+[15.480854] (-) TimerEvent: {}
+[15.581419] (-) TimerEvent: {}
+[15.681974] (-) TimerEvent: {}
+[15.782502] (-) TimerEvent: {}
+[15.883068] (-) TimerEvent: {}
+[15.983623] (-) TimerEvent: {}
+[16.084198] (-) TimerEvent: {}
+[16.184785] (-) TimerEvent: {}
+[16.285341] (-) TimerEvent: {}
+[16.385870] (-) TimerEvent: {}
+[16.486476] (-) TimerEvent: {}
+[16.587028] (-) TimerEvent: {}
+[16.687554] (-) TimerEvent: {}
+[16.788193] (-) TimerEvent: {}
+[16.888812] (-) TimerEvent: {}
+[16.989373] (-) TimerEvent: {}
+[17.089989] (-) TimerEvent: {}
+[17.190526] (-) TimerEvent: {}
+[17.291028] (-) TimerEvent: {}
+[17.391648] (-) TimerEvent: {}
+[17.492174] (-) TimerEvent: {}
+[17.592664] (-) TimerEvent: {}
+[17.693188] (-) TimerEvent: {}
+[17.793766] (-) TimerEvent: {}
+[17.894260] (-) TimerEvent: {}
+[17.994752] (-) TimerEvent: {}
+[18.095317] (-) TimerEvent: {}
+[18.195802] (-) TimerEvent: {}
+[18.296374] (-) TimerEvent: {}
+[18.396978] (-) TimerEvent: {}
+[18.497470] (-) TimerEvent: {}
+[18.598073] (-) TimerEvent: {}
+[18.698733] (-) TimerEvent: {}
+[18.799242] (-) TimerEvent: {}
+[18.899835] (-) TimerEvent: {}
+[19.000515] (-) TimerEvent: {}
+[19.101066] (-) TimerEvent: {}
+[19.191590] (yq_dart_aim) StderrLine: {'line': b'gmake[2]: *** [CMakeFiles/dart_aim_node.dir/build.make:76: CMakeFiles/dart_aim_node.dir/src/dart_aim_node.cpp.o] Terminated\n'}
+[19.194265] (yq_dart_aim) StderrLine: {'line': b'gmake[1]: *** [CMakeFiles/Makefile2:137: CMakeFiles/dart_aim_node.dir/all] Terminated\n'}
+[19.195176] (yq_dart_aim) StderrLine: {'line': b'gmake: *** [Makefile:146: all] Error 2\n'}
+[19.201312] (-) TimerEvent: {}
+[19.272135] (yq_dart_aim) CommandEnded: {'returncode': 2}
+[19.301747] (-) TimerEvent: {}
+[19.361973] (yq_dart_aim) JobEnded: {'identifier': 'yq_dart_aim', 'rc': 2}
+[19.373686] (-) EventReactorShutdown: {}

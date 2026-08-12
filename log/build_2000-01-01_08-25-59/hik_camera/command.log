@@ -1,0 +1,4 @@
+Invoking command in '/root/dart_ws/build/hik_camera': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /root/dart_ws/build/hik_camera --clean-first -- -j8 -l8
+Invoked command in '/root/dart_ws/build/hik_camera' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /root/dart_ws/build/hik_camera --clean-first -- -j8 -l8
+Invoking command in '/root/dart_ws/build/hik_camera': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /root/dart_ws/build/hik_camera
+Invoked command in '/root/dart_ws/build/hik_camera' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /root/dart_ws/build/hik_camera

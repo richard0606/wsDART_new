@@ -1,0 +1,185 @@
+[0.000000] (-) TimerEvent: {}
+[0.002610] (hik_camera) JobQueued: {'identifier': 'hik_camera', 'dependencies': OrderedDict()}
+[0.003522] (yq_dart_aim) JobQueued: {'identifier': 'yq_dart_aim', 'dependencies': OrderedDict()}
+[0.004347] (hik_camera) JobStarted: {'identifier': 'hik_camera'}
+[0.048355] (yq_dart_aim) JobStarted: {'identifier': 'yq_dart_aim'}
+[0.074608] (hik_camera) JobProgress: {'identifier': 'hik_camera', 'progress': 'cmake'}
+[0.081590] (hik_camera) JobProgress: {'identifier': 'hik_camera', 'progress': 'build'}
+[0.085643] (hik_camera) Command: {'cmd': ['/usr/bin/cmake', '--build', '/root/dart_ws/build/hik_camera', '--', '-j8', '-l8'], 'cwd': '/root/dart_ws/build/hik_camera', 'env': OrderedDict([('LANGUAGE', 'en_US.UTF-8'), ('USER', 'root'), ('SSH_CLIENT', '192.168.127.11 50767 22'), ('XDG_SESSION_TYPE', 'tty'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/root/dart_ws/install/hik_camera/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib:/usr/hobot/lib:/app/lib:/app/pub/lib:/middleware/lib:/middleware/pub/lib:/usr/hobot/lib/sensor:/system/lib:/system/usr/lib:/lib:'), ('MOTD_SHOWN', 'pam'), ('HOME', '/root'), ('OLDPWD', '/root'), ('SSH_TTY', '/dev/pts/2'), ('ROS_PYTHON_VERSION', '3'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/0/bus'), ('DEBUGINFOD_URLS', ''), ('COLCON_PREFIX_PATH', '/root/dart_ws/install'), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'root'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('TERM', 'xterm'), ('XDG_SESSION_ID', '6'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/opt/ros/humble/bin:/usr/hobot/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin'), ('XDG_RUNTIME_DIR', '/run/user/0'), ('DISPLAY', 'localhost:12.0'), ('LANG', 'en_US.UTF-8'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('AMENT_PREFIX_PATH', '/root/dart_ws/install/yq_dart_aim:/root/dart_ws/install/hik_camera:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('PWD', '/root/dart_ws/build/hik_camera'), ('SSH_CONNECTION', '192.168.127.11 50767 192.168.127.10 22'), ('XDG_DATA_DIRS', '/usr/share/gnome:/usr/local/share/:/usr/share/'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/root/dart_ws/install/yq_dart_aim:/root/dart_ws/install/hik_camera:/opt/ros/humble')]), 'shell': False}
+[0.099172] (-) TimerEvent: {}
+[0.103427] (yq_dart_aim) JobProgress: {'identifier': 'yq_dart_aim', 'progress': 'cmake'}
+[0.110153] (yq_dart_aim) JobProgress: {'identifier': 'yq_dart_aim', 'progress': 'build'}
+[0.111798] (yq_dart_aim) Command: {'cmd': ['/usr/bin/cmake', '--build', '/root/dart_ws/build/yq_dart_aim', '--', '-j8', '-l8'], 'cwd': '/root/dart_ws/build/yq_dart_aim', 'env': OrderedDict([('LANGUAGE', 'en_US.UTF-8'), ('USER', 'root'), ('SSH_CLIENT', '192.168.127.11 50767 22'), ('XDG_SESSION_TYPE', 'tty'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/root/dart_ws/install/hik_camera/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib:/usr/hobot/lib:/app/lib:/app/pub/lib:/middleware/lib:/middleware/pub/lib:/usr/hobot/lib/sensor:/system/lib:/system/usr/lib:/lib:'), ('MOTD_SHOWN', 'pam'), ('HOME', '/root'), ('OLDPWD', '/root'), ('SSH_TTY', '/dev/pts/2'), ('ROS_PYTHON_VERSION', '3'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/0/bus'), ('DEBUGINFOD_URLS', ''), ('COLCON_PREFIX_PATH', '/root/dart_ws/install'), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'root'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('TERM', 'xterm'), ('XDG_SESSION_ID', '6'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/opt/ros/humble/bin:/usr/hobot/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin'), ('XDG_RUNTIME_DIR', '/run/user/0'), ('DISPLAY', 'localhost:12.0'), ('LANG', 'en_US.UTF-8'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('AMENT_PREFIX_PATH', '/root/dart_ws/install/yq_dart_aim:/root/dart_ws/install/hik_camera:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('PWD', '/root/dart_ws/build/yq_dart_aim'), ('SSH_CONNECTION', '192.168.127.11 50767 192.168.127.10 22'), ('XDG_DATA_DIRS', '/usr/share/gnome:/usr/local/share/:/usr/share/'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/root/dart_ws/install/yq_dart_aim:/root/dart_ws/install/hik_camera:/opt/ros/humble')]), 'shell': False}
+[0.199411] (-) TimerEvent: {}
+[0.300358] (-) TimerEvent: {}
+[0.401407] (-) TimerEvent: {}
+[0.447472] (hik_camera) StdoutLine: {'line': b'\x1b[35m\x1b[1mConsolidate compiler generated dependencies of target hik_camera_node\x1b[0m\n'}
+[0.448736] (yq_dart_aim) StdoutLine: {'line': b'\x1b[35m\x1b[1mConsolidate compiler generated dependencies of target dart_aim_node\x1b[0m\n'}
+[0.449635] (hik_camera) StdoutLine: {'line': b'\x1b[35m\x1b[1mConsolidate compiler generated dependencies of target hik_camera\x1b[0m\n'}
+[0.501586] (-) TimerEvent: {}
+[0.579017] (hik_camera) StdoutLine: {'line': b'[ 25%] \x1b[32mBuilding CXX object CMakeFiles/hik_camera_node.dir/rclcpp_components/node_main_hik_camera_node.cpp.o\x1b[0m\n'}
+[0.585681] (hik_camera) StdoutLine: {'line': b'[ 50%] \x1b[32mBuilding CXX object CMakeFiles/hik_camera.dir/src/hik_camera_node.cpp.o\x1b[0m\n'}
+[0.601456] (yq_dart_aim) StdoutLine: {'line': b'[ 50%] \x1b[32mBuilding CXX object CMakeFiles/dart_aim_node.dir/src/dart_aim_node.cpp.o\x1b[0m\n'}
+[0.602788] (-) TimerEvent: {}
+[0.703603] (-) TimerEvent: {}
+[0.804622] (-) TimerEvent: {}
+[0.905635] (-) TimerEvent: {}
+[1.006784] (-) TimerEvent: {}
+[1.107740] (-) TimerEvent: {}
+[1.208705] (-) TimerEvent: {}
+[1.309648] (-) TimerEvent: {}
+[1.410604] (-) TimerEvent: {}
+[1.511727] (-) TimerEvent: {}
+[1.612664] (-) TimerEvent: {}
+[1.713584] (-) TimerEvent: {}
+[1.814526] (-) TimerEvent: {}
+[1.915504] (-) TimerEvent: {}
+[2.016757] (-) TimerEvent: {}
+[2.117710] (-) TimerEvent: {}
+[2.218684] (-) TimerEvent: {}
+[2.319703] (-) TimerEvent: {}
+[2.420759] (-) TimerEvent: {}
+[2.522297] (-) TimerEvent: {}
+[2.623283] (-) TimerEvent: {}
+[2.724380] (-) TimerEvent: {}
+[2.825587] (-) TimerEvent: {}
+[2.926788] (-) TimerEvent: {}
+[3.029118] (-) TimerEvent: {}
+[3.130114] (-) TimerEvent: {}
+[3.231311] (-) TimerEvent: {}
+[3.332337] (-) TimerEvent: {}
+[3.433729] (-) TimerEvent: {}
+[3.534988] (-) TimerEvent: {}
+[3.636007] (-) TimerEvent: {}
+[3.736999] (-) TimerEvent: {}
+[3.837994] (-) TimerEvent: {}
+[3.939176] (-) TimerEvent: {}
+[4.040400] (-) TimerEvent: {}
+[4.141391] (-) TimerEvent: {}
+[4.242357] (-) TimerEvent: {}
+[4.343409] (-) TimerEvent: {}
+[4.444489] (-) TimerEvent: {}
+[4.545518] (-) TimerEvent: {}
+[4.646491] (-) TimerEvent: {}
+[4.747905] (-) TimerEvent: {}
+[4.849026] (-) TimerEvent: {}
+[4.950151] (-) TimerEvent: {}
+[5.051164] (-) TimerEvent: {}
+[5.152176] (-) TimerEvent: {}
+[5.253176] (-) TimerEvent: {}
+[5.354279] (-) TimerEvent: {}
+[5.455338] (-) TimerEvent: {}
+[5.556543] (-) TimerEvent: {}
+[5.657786] (-) TimerEvent: {}
+[5.759129] (-) TimerEvent: {}
+[5.860310] (-) TimerEvent: {}
+[5.961608] (-) TimerEvent: {}
+[6.063216] (-) TimerEvent: {}
+[6.164400] (-) TimerEvent: {}
+[6.265480] (-) TimerEvent: {}
+[6.366609] (-) TimerEvent: {}
+[6.467717] (-) TimerEvent: {}
+[6.569174] (-) TimerEvent: {}
+[6.670194] (-) TimerEvent: {}
+[6.771278] (-) TimerEvent: {}
+[6.872433] (-) TimerEvent: {}
+[6.973557] (-) TimerEvent: {}
+[7.075497] (-) TimerEvent: {}
+[7.176553] (-) TimerEvent: {}
+[7.277669] (-) TimerEvent: {}
+[7.378716] (-) TimerEvent: {}
+[7.480415] (-) TimerEvent: {}
+[7.581775] (-) TimerEvent: {}
+[7.682772] (-) TimerEvent: {}
+[7.783932] (-) TimerEvent: {}
+[7.885001] (-) TimerEvent: {}
+[7.986154] (-) TimerEvent: {}
+[8.087185] (-) TimerEvent: {}
+[8.188218] (-) TimerEvent: {}
+[8.289279] (-) TimerEvent: {}
+[8.390292] (-) TimerEvent: {}
+[8.491280] (-) TimerEvent: {}
+[8.592290] (-) TimerEvent: {}
+[8.693365] (-) TimerEvent: {}
+[8.794460] (-) TimerEvent: {}
+[8.895453] (-) TimerEvent: {}
+[8.996527] (-) TimerEvent: {}
+[9.097563] (-) TimerEvent: {}
+[9.198600] (-) TimerEvent: {}
+[9.299713] (-) TimerEvent: {}
+[9.400715] (-) TimerEvent: {}
+[9.501730] (-) TimerEvent: {}
+[9.602742] (-) TimerEvent: {}
+[9.703757] (-) TimerEvent: {}
+[9.804799] (-) TimerEvent: {}
+[9.905812] (-) TimerEvent: {}
+[10.006808] (-) TimerEvent: {}
+[10.107817] (-) TimerEvent: {}
+[10.208922] (-) TimerEvent: {}
+[10.309982] (-) TimerEvent: {}
+[10.410949] (-) TimerEvent: {}
+[10.511988] (-) TimerEvent: {}
+[10.612995] (-) TimerEvent: {}
+[10.714060] (-) TimerEvent: {}
+[10.815468] (-) TimerEvent: {}
+[10.916465] (-) TimerEvent: {}
+[11.017502] (-) TimerEvent: {}
+[11.118563] (-) TimerEvent: {}
+[11.219682] (-) TimerEvent: {}
+[11.320704] (-) TimerEvent: {}
+[11.421732] (-) TimerEvent: {}
+[11.522768] (-) TimerEvent: {}
+[11.623807] (-) TimerEvent: {}
+[11.724871] (-) TimerEvent: {}
+[11.825914] (-) TimerEvent: {}
+[11.926944] (-) TimerEvent: {}
+[12.027926] (-) TimerEvent: {}
+[12.128955] (-) TimerEvent: {}
+[12.229997] (-) TimerEvent: {}
+[12.331053] (-) TimerEvent: {}
+[12.432031] (-) TimerEvent: {}
+[12.533020] (-) TimerEvent: {}
+[12.634206] (-) TimerEvent: {}
+[12.735455] (-) TimerEvent: {}
+[12.836625] (-) TimerEvent: {}
+[12.937639] (-) TimerEvent: {}
+[13.038718] (-) TimerEvent: {}
+[13.139979] (-) TimerEvent: {}
+[13.241197] (-) TimerEvent: {}
+[13.342727] (-) TimerEvent: {}
+[13.444087] (-) TimerEvent: {}
+[13.545459] (-) TimerEvent: {}
+[13.646716] (-) TimerEvent: {}
+[13.747838] (-) TimerEvent: {}
+[13.849276] (-) TimerEvent: {}
+[13.950271] (-) TimerEvent: {}
+[14.051316] (-) TimerEvent: {}
+[14.152491] (-) TimerEvent: {}
+[14.253515] (-) TimerEvent: {}
+[14.355037] (-) TimerEvent: {}
+[14.456010] (-) TimerEvent: {}
+[14.557073] (-) TimerEvent: {}
+[14.658076] (-) TimerEvent: {}
+[14.759179] (-) TimerEvent: {}
+[14.861355] (-) TimerEvent: {}
+[14.962402] (-) TimerEvent: {}
+[15.063533] (-) TimerEvent: {}
+[15.164527] (-) TimerEvent: {}
+[15.266056] (-) TimerEvent: {}
+[15.367133] (-) TimerEvent: {}
+[15.468156] (-) TimerEvent: {}
+[15.569259] (-) TimerEvent: {}
+[15.656372] (hik_camera) StderrLine: {'line': b'gmake[2]: *** [CMakeFiles/hik_camera.dir/build.make:76: CMakeFiles/hik_camera.dir/src/hik_camera_node.cpp.o] Interrupt\n'}
+[15.657630] (hik_camera) StderrLine: {'line': b'gmake[2]: *** [CMakeFiles/hik_camera_node.dir/build.make:76: CMakeFiles/hik_camera_node.dir/rclcpp_components/node_main_hik_camera_node.cpp.o] Interrupt\n'}
+[15.658481] (hik_camera) StderrLine: {'line': b'gmake[1]: *** [CMakeFiles/Makefile2:139: CMakeFiles/hik_camera.dir/all] Interrupt\n'}
+[15.659397] (yq_dart_aim) StderrLine: {'line': b'gmake[2]: *** [CMakeFiles/dart_aim_node.dir/build.make:76: CMakeFiles/dart_aim_node.dir/src/dart_aim_node.cpp.o] Interrupt\n'}
+[15.660154] (yq_dart_aim) StderrLine: {'line': b'gmake[1]: *** [CMakeFiles/Makefile2:137: CMakeFiles/dart_aim_node.dir/all] Interrupt\n'}
+[15.660963] (yq_dart_aim) StderrLine: {'line': b'gmake: *** [Makefile:146: all] Interrupt\n'}
+[15.663270] (hik_camera) StderrLine: {'line': b'gmake[1]: *** [CMakeFiles/Makefile2:165: CMakeFiles/hik_camera_node.dir/all] Interrupt\n'}
+[15.664927] (hik_camera) StderrLine: {'line': b'gmake: *** [Makefile:146: all] Interrupt\n'}
+[15.669502] (-) TimerEvent: {}
+[15.736893] (yq_dart_aim) CommandEnded: {'returncode': -2}
+[15.771307] (-) TimerEvent: {}
+[15.835984] (yq_dart_aim) JobEnded: {'identifier': 'yq_dart_aim', 'rc': 'SIGINT'}
+[15.839357] (hik_camera) JobEnded: {'identifier': 'hik_camera', 'rc': 'SIGINT'}
+[15.849737] (-) EventReactorShutdown: {}
