@@ -1,0 +1,97 @@
+# ===================== 编译产物、构建目录 =====================
+build/
+build-*/
+cmake-build-*/
+out/
+bin/
+obj/
+Debug/
+Release/
+x64/
+arm64_build/
+*.o
+*.obj
+*.a
+*.so
+*.elf
+*.bin
+*.hex
+*.map
+*.lst
+*.dis
+*.img
+
+# ===================== 日志、运行缓存 =====================
+*.log
+*.txt.tmp
+runtime_log/
+tmp/
+temp/
+cache/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# ===================== 系统隐藏垃圾文件 =====================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+desktop.ini
+
+# ===================== VSCode 编辑器配置（可选推荐） =====================
+# 一般不提交个人配置，注释掉则提交团队统一配置
+.vscode/
+# !.vscode/settings.json
+# !.vscode/tasks.json
+# !.vscode/c_cpp_properties.json
+# !.vscode/launch.json
+*.code-workspace
+
+# ===================== Python 相关（视觉算法YOLO、推理脚本） =====================
+*.venv
+venv/
+env/
+*.whl
+.pytest_cache/
+*.egg-info/
+dist/
+*.tar.gz
+
+# ===================== 模型权重、大文件（重中之重） =====================
+# BPU量化模型、onnx、大权重严禁提交git
+*.onnx
+*.bin
+*.param
+*.bin.model
+weights/
+models/
+checkpoints/
+
+# ===================== Linux 临时挂载、串口设备 =====================
+/dev/
+*.swp
+*.swo
+*~
+
+# ===================== SSH、代理、环境密钥（隐私） =====================
+.env
+.env.local
+*.pem
+id_rsa*
+proxy_config.json
+
+# ===================== CMake 生成文件 =====================
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+
+# ===================== ROS / TogetheROS 日志缓存（RDK X5专用） =====================
+ros_logs/
+rosbag/
+*.bag
+/.ros
