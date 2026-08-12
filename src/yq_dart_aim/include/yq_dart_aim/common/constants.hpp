@@ -50,7 +50,8 @@ namespace defaults {
 
     // 坐标计算
     constexpr double P_ERR = 8.0;
-    constexpr float AIM_THRESHOLD = 3.0f;
+    constexpr float AIM_THRESHOLD = 1.5f;   // 连续帧瞄准判定阈值（像素）
+    constexpr float AIM_DEAD_ZONE = 0.5f;   // 已瞄准后的死区（像素）
 
     // 调试输出
     constexpr bool PUBLISH_DEBUG_IMAGE = true;

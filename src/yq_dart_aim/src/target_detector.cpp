@@ -1,11 +1,12 @@
 #include "yq_dart_aim/target_detector.hpp"
 #include <opencv2/imgproc.hpp>
 #include <algorithm>
+#include <cmath>
 #include <limits>
 
 namespace yq_dart_aim {
 
-std::vector<TargetInfo> TargetDetector::detect(const cv::Mat& mask, const DetectParams& params) {
+std::vector<TargetInfo> TargetDetector::detect(const cv::Mat& mask, const cv::Mat& gray, const DetectParams& params) {
     std::vector<TargetInfo> valid_contours;
 
     // 查找外轮廓
@@ -18,11 +19,28 @@ std::vector<TargetInfo> TargetDetector::detect(const cv::Mat& mask, const Detect
         if (area < params.min_area) continue;
         if (area > params.max_area) continue;
 
-        // 计算质心
-        cv::Moments m = cv::moments(c);
-        if (m.m00 == 0) continue;
-        cv::Point2f center(static_cast<float>(m.m10 / m.m00),
-                           static_cast<float>(m.m01 / m.m00));
+        // 灰度加权质心法（亚像素精度）
+        cv::Rect rect = cv::boundingRect(c);
+        double sum_w = 0.0;
+        double sum_x = 0.0;
+        double sum_y = 0.0;
+
+        for (int y = rect.y; y < rect.y + rect.height; y++) {
+            const uint8_t* mask_row = mask.ptr<uint8_t>(y);
+            const uint8_t* gray_row = gray.ptr<uint8_t>(y);
+            for (int x = rect.x; x < rect.x + rect.width; x++) {
+                if (mask_row[x] == 0) continue;
+                double w = static_cast<double>(gray_row[x]);
+                sum_w += w;
+                sum_x += w * x;
+                sum_y += w * y;
+            }
+        }
+
+        if (sum_w == 0) continue;
+        float cx = static_cast<float>(std::round(sum_x / sum_w * 100.0) / 100.0);
+        float cy = static_cast<float>(std::round(sum_y / sum_w * 100.0) / 100.0);
+        cv::Point2f center(cx, cy);
 
         // 圆形匹配评分（可选）
         double score = std::numeric_limits<double>::max();
@@ -30,7 +48,6 @@ std::vector<TargetInfo> TargetDetector::detect(const cv::Mat& mask, const Detect
             cv::Point2f enclosing_center;
             float enclosing_radius = 0.0f;
             cv::minEnclosingCircle(c, enclosing_center, enclosing_radius);
-            cv::Rect rect = cv::boundingRect(c);
             double radius_diff = std::fabs(static_cast<double>(enclosing_radius - params.target_radius_px));
             double height_diff = std::fabs(static_cast<double>(rect.height - params.target_height_px));
             score = radius_diff + height_diff;

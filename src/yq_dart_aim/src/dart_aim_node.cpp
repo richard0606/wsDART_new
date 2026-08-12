@@ -275,6 +275,12 @@ private:
 
     // 使用 ImageProcessor::process() 进行图像处理
     cv::Mat mask = image_processor_.process(img, image_params_);
+
+    // 灰度图（与 mask 同尺寸裁剪）用于亚像素加权质心
+    cv::Mat gray_full;
+    cv::cvtColor(img, gray_full, cv::COLOR_BGR2GRAY);
+    cv::Mat gray = image_processor_.cropCenter(gray_full, image_params_.crop_width, image_params_.crop_height);
+
     int width = mask.cols;
     int height = mask.rows;
     int cx = width / 2;
@@ -283,8 +289,8 @@ private:
     // 更新偏移
     coord_calculator_.updateOffset(offset_lookup_, current_target_, current_dart_id_);
 
-    // 目标检测
-    auto targets = target_detector_.detect(mask, detect_params_);
+    // 目标检测（传入灰度图用于亚像素质心）
+    auto targets = target_detector_.detect(mask, gray, detect_params_);
     cv::Point2f target = target_detector_.selectTarget(targets, current_target_, !startup_done_);
     if (targets.size() >= 1) startup_done_ = true;
 
@@ -295,6 +301,23 @@ private:
     if (target.x >= 0) {
       auto aim_result = coord_calculator_.calculate(target, center_img, calc_params_);
 
+      // 连续 5 帧误差 < 1.5px 判定为已瞄准
+      if (std::abs(aim_result.err_x) < yq_dart_aim::defaults::AIM_THRESHOLD) {
+        if (aim_counter_ < 5) aim_counter_++;
+      } else {
+        aim_counter_ = 0;
+      }
+      bool aimed = (aim_counter_ >= 5);
+      float aim_info = aimed ? 1.0f : 0.0f;
+
+      // 死区：已瞄准且差值 < 0.5px 时不修正，发 0
+      float send_err;
+      if (aimed && std::abs(aim_result.err_x) < yq_dart_aim::defaults::AIM_DEAD_ZONE) {
+        send_err = 0.0f;
+      } else {
+        send_err = static_cast<float>(aim_result.scaled_err_x);
+      }
+
       // 调试图标注
       cv::circle(img, center_img, 6, cv::Scalar(255, 0, 0), 2);
       cv::circle(img, target, 4, cv::Scalar(0, 255, 0), -1);
@@ -303,8 +326,9 @@ private:
       pt.x = aim_result.scaled_err_x; pt.y = aim_result.scaled_err_y; pt.z = 0;
       debug_pub_->publish(pt);
 
-      serial_manager_.send(static_cast<float>(aim_result.scaled_err_x), aim_result.aim_information);
+      serial_manager_.send(send_err, aim_info);
     } else {
+      aim_counter_ = 0;
       serial_manager_.send(0.0f, 0.0f);
     }
 
@@ -418,6 +442,7 @@ private:
   // 状态
   int current_target_ = 0;
   int current_dart_id_ = 0;
+  int aim_counter_ = 0;  // 连续瞄准帧计数
   bool startup_done_ = false;
   bool use_serial_ = true;
   bool publish_debug_image_ = true;
