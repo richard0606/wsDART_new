@@ -22,6 +22,7 @@ add_executable(dart_aim_node
   src/dart_aim_node.cpp
   src/image_processor.cpp
   src/target_detector.cpp
+  src/model_detector.cpp
   src/coordinate_calculator.cpp
   src/serial_manager.cpp
 )
@@ -43,7 +44,7 @@ ament_target_dependencies(dart_aim_node
 )
 
 # link OpenCV libs (use plain signature to match ament_target_dependencies usage)
-target_link_libraries(dart_aim_node ${OpenCV_LIBS})
+target_link_libraries(dart_aim_node ${OpenCV_LIBS} opencv_dnn)
 
 install(TARGETS
   dart_aim_node

@@ -53,7 +53,14 @@ std::vector<TargetInfo> TargetDetector::detect(const cv::Mat& mask, const cv::Ma
             score = radius_diff + height_diff;
         }
 
-        valid_contours.push_back({center, area, score});
+        TargetInfo info;
+        info.center = center;
+        info.area = area;
+        info.score = score;
+        info.class_id = -1;       // HSV 模式无类别
+        info.confidence = 0.0f;   // HSV 模式无置信度
+        info.bbox = rect;
+        valid_contours.push_back(info);
     }
 
     return valid_contours;
