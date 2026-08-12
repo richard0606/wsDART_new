@@ -15,6 +15,7 @@
 #include "yq_dart_aim/image_processor.hpp"
 #include "yq_dart_aim/target_detector.hpp"
 #include "yq_dart_aim/model_detector.hpp"
+#include "yq_dart_aim/sg_filter.hpp"
 #include "yq_dart_aim/coordinate_calculator.hpp"
 #include "yq_dart_aim/serial_manager.hpp"
 
@@ -271,6 +272,7 @@ private:
         detect_params_.max_area = p.as_double();
       } else if (p.get_name() == "use_model") {
         use_model_ = p.as_bool();
+        sg_filter_x_.reset();  // 切换模式时重置滤波器
         RCLCPP_INFO(this->get_logger(), "use_model updated: %s", use_model_ ? "true" : "false");
       } else if (p.get_name() == "conf_threshold") {
         // 模型置信度阈值（需要重新加载模型生效）
@@ -357,7 +359,25 @@ private:
       targets = target_detector_.detect(mask, gray, detect_params_);
     }
 
-    cv::Point2f target = target_detector_.selectTarget(targets, current_target_, !startup_done_);
+    // ==================== 目标选择 ====================
+    cv::Point2f target(-1, -1);
+    if (use_model_ && model_detector_.isReady()) {
+      // 模型模式：按 class_id 匹配下位机指定的目标
+      for (const auto& t : targets) {
+        if (t.class_id == current_target_) {
+          // SG 滤波：对 X 坐标做时序平滑
+          float smoothed_x = sg_filter_x_.push(t.center.x);
+          target = cv::Point2f(smoothed_x, t.center.y);
+          break;
+        }
+      }
+      if (target.x < 0) {
+        sg_filter_x_.reset();  // 目标丢失，重置滤波器
+      }
+    } else {
+      // HSV 模式：原有位置推断逻辑
+      target = target_detector_.selectTarget(targets, current_target_, !startup_done_);
+    }
     if (targets.size() >= 1) startup_done_ = true;
 
     // 使用 CoordinateCalculator::calculate() 进行坐标计算
@@ -505,6 +525,7 @@ private:
   yq_dart_aim::ImageProcessor image_processor_;
   yq_dart_aim::TargetDetector target_detector_;
   yq_dart_aim::ModelDetector model_detector_;
+  yq_dart_aim::SGFilter7 sg_filter_x_;  // 模型模式下 X 坐标时序平滑
   yq_dart_aim::CoordinateCalculator coord_calculator_;
   yq_dart_aim::SerialManager serial_manager_;
 
