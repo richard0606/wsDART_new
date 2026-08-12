@@ -25,8 +25,8 @@ AimResult CoordinateCalculator::calculate(const cv::Point2f& target,
     result.scaled_err_x = result.err_x * params.p_err;
     result.scaled_err_y = result.err_y * params.p_err;
 
-    // 瞄准判断：X方向误差小于阈值视为已瞄准
-    result.aim_information = (std::abs(result.err_x) < params.aim_threshold) ? 1.0f : 0.0f;
+    // aim_information 由调用方根据连续帧逻辑判断
+    result.aim_information = 0.0f;
     result.valid = true;
 
     return result;

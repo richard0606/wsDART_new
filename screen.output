@@ -1,28 +1,41 @@
-[INFO] [launch]: All log files can be found below /tmp/2026-08-13-02-37-59-232502-ubuntu-6267
+[INFO] [launch]: All log files can be found below /tmp/2026-08-13-06-00-13-496488-ubuntu-495488
 [INFO] [launch]: Default logging verbosity is set to INFO
-[INFO] [hik_camera_node-1]: process started with pid [6384]
-[INFO] [dart_aim_node-2]: process started with pid [6386]
-[INFO] [foxglove_bridge-3]: process started with pid [6388]
-[hik_camera_node-1] [0m[INFO] [1786559879.541421069] [hik_camera]: Starting HikCameraNode![0m
-[hik_camera_node-1] [0m[INFO] [1786559879.551175787] [hik_camera]: Found camera count = 1[0m
-[foxglove_bridge-3] [INFO] [1786559879.616220267] [foxglove_bridge]: Starting foxglove_bridge (humble, 3.2.2@)
-[foxglove_bridge-3] [INFO] [1786559879.621507397] [foxglove_bridge]: Server listening on port 8765
-[foxglove_bridge-3] [INFO] [1786559879.623655525] [foxglove_bridge]: Advertising new channel 1 for topic "/rosout"
-[foxglove_bridge-3] [INFO] [1786559879.625100026] [foxglove_bridge]: Advertising new channel 2 for topic "/parameter_events"
-[dart_aim_node-2] [INFO] [1786559879.951656678] [dart_aim_node]: DartAimNode started (p_err=8.000000)
-[foxglove_bridge-3] [INFO] [1786559880.166694138] [foxglove_bridge]: Advertising new channel 3 for topic "/debug_record/image_compressed"
-[foxglove_bridge-3] [INFO] [1786559880.166894888] [foxglove_bridge]: Advertising new channel 4 for topic "/debug_record/mask_compressed"
-[foxglove_bridge-3] [INFO] [1786559880.166961179] [foxglove_bridge]: Advertising new channel 5 for topic "/dart_debug/mask_compressed"
-[foxglove_bridge-3] [INFO] [1786559880.167648263] [foxglove_bridge]: Advertising new channel 6 for topic "/dart_debug/mask"
-[foxglove_bridge-3] [INFO] [1786559880.168961515] [foxglove_bridge]: Advertising new channel 7 for topic "/serial"
-[foxglove_bridge-3] [INFO] [1786559880.169059432] [foxglove_bridge]: Advertising new channel 8 for topic "/dart_debug/image_compressed"
-[foxglove_bridge-3] [INFO] [1786559880.169473057] [foxglove_bridge]: Advertising new channel 9 for topic "/serial_debug"
-[foxglove_bridge-3] [INFO] [1786559880.169540015] [foxglove_bridge]: Advertising new channel 10 for topic "/dart_debug/image"
-[foxglove_bridge-3] [INFO] [1786559880.169594974] [foxglove_bridge]: Advertising new channel 11 for topic "/image_raw"
-[foxglove_bridge-3] [INFO] [1786559880.169981557] [foxglove_bridge]: Advertising new channel 12 for topic "/dart_debug"
-[foxglove_bridge-3] [INFO] [1786559881.189088635] [foxglove_bridge]: Advertising new channel 13 for topic "/image_raw/compressed"
-[hik_camera_node-1] [0m[INFO] [1786559881.190572678] [hik_camera]: Exposure time: 300.000000[0m
-[foxglove_bridge-3] [INFO] [1786559881.191670346] [foxglove_bridge]: Advertising new channel 14 for topic "/camera_info"
-[hik_camera_node-1] [0m[INFO] [1786559881.192649638] [hik_camera]: Gain: 0.000000[0m
-[hik_camera_node-1] [0m[INFO] [1786559881.214609993] [hik_camera]: camera calibration URL: package://hik_camera/config/camera_info.yaml[0m
-[hik_camera_node-1] [0m[INFO] [1786559881.217609538] [hik_camera]: Publishing image![0m
+[INFO] [hik_camera_node-1]: process started with pid [495613]
+[INFO] [dart_aim_node-2]: process started with pid [495615]
+[INFO] [foxglove_bridge-3]: process started with pid [495617]
+[hik_camera_node-1] [0m[INFO] [1786572013.795024108] [hik_camera]: Starting HikCameraNode![0m
+[hik_camera_node-1] [0m[INFO] [1786572013.805507393] [hik_camera]: Found camera count = 1[0m
+[foxglove_bridge-3] [INFO] [1786572013.872242850] [foxglove_bridge]: Starting foxglove_bridge (humble, 3.2.2@)
+[foxglove_bridge-3] [INFO] [1786572013.878220013] [foxglove_bridge]: Server listening on port 8765
+[foxglove_bridge-3] [INFO] [1786572013.880438220] [foxglove_bridge]: Advertising new channel 1 for topic "/rosout"
+[foxglove_bridge-3] [INFO] [1786572013.882002427] [foxglove_bridge]: Advertising new channel 2 for topic "/parameter_events"
+[dart_aim_node-2] [INFO] [1786572014.185773190] [dart_aim_node]: DartAimNode started (p_err=8.000000)
+[foxglove_bridge-3] [INFO] [1786572014.419499373] [foxglove_bridge]: Advertising new channel 3 for topic "/debug_record/image_compressed"
+[foxglove_bridge-3] [INFO] [1786572014.419696664] [foxglove_bridge]: Advertising new channel 4 for topic "/debug_record/mask_compressed"
+[foxglove_bridge-3] [INFO] [1786572014.419761539] [foxglove_bridge]: Advertising new channel 5 for topic "/dart_debug/mask_compressed"
+[foxglove_bridge-3] [INFO] [1786572014.420447580] [foxglove_bridge]: Advertising new channel 6 for topic "/dart_debug/mask"
+[foxglove_bridge-3] [INFO] [1786572014.421787163] [foxglove_bridge]: Advertising new channel 7 for topic "/serial"
+[foxglove_bridge-3] [INFO] [1786572014.421900330] [foxglove_bridge]: Advertising new channel 8 for topic "/dart_debug/image_compressed"
+[foxglove_bridge-3] [INFO] [1786572014.422291913] [foxglove_bridge]: Advertising new channel 9 for topic "/serial_debug"
+[foxglove_bridge-3] [INFO] [1786572014.422358871] [foxglove_bridge]: Advertising new channel 10 for topic "/dart_debug/image"
+[foxglove_bridge-3] [INFO] [1786572014.422412954] [foxglove_bridge]: Advertising new channel 11 for topic "/image_raw"
+[foxglove_bridge-3] [INFO] [1786572014.422816829] [foxglove_bridge]: Advertising new channel 12 for topic "/dart_debug"
+[hik_camera_node-1] [0m[INFO] [1786572015.427053307] [hik_camera]: Exposure time: 300.000000[0m
+[hik_camera_node-1] [0m[INFO] [1786572015.429178347] [hik_camera]: Gain: 0.000000[0m
+[foxglove_bridge-3] [INFO] [1786572015.440639007] [foxglove_bridge]: Advertising new channel 13 for topic "/image_raw/compressed"
+[foxglove_bridge-3] [INFO] [1786572015.443270130] [foxglove_bridge]: Advertising new channel 14 for topic "/camera_info"
+[hik_camera_node-1] [0m[INFO] [1786572015.451348000] [hik_camera]: camera calibration URL: package://hik_camera/config/camera_info.yaml[0m
+[hik_camera_node-1] [0m[INFO] [1786572015.454500664] [hik_camera]: Publishing image![0m
+[foxglove_bridge-3] [INFO] [1786572020.343094832] [foxglove_bridge]: received connection graph subscribe request
+[foxglove_bridge-3] [INFO] [1786572020.343811332] [foxglove_bridge]: received subscribe request for channel 5 from client 1 (sink 1)
+[foxglove_bridge-3] [INFO] [1786572020.350453078] [foxglove_bridge]: created ROS subscription on /dart_debug/mask_compressed (sensor_msgs/msg/CompressedImage) successfully for channel 5 (client 1, sink 1)
+[foxglove_bridge-3] [INFO] [1786572020.350771828] [foxglove_bridge]: received subscribe request for channel 8 from client 1 (sink 1)
+[foxglove_bridge-3] [INFO] [1786572020.356765907] [foxglove_bridge]: created ROS subscription on /dart_debug/image_compressed (sensor_msgs/msg/CompressedImage) successfully for channel 8 (client 1, sink 1)
+[foxglove_bridge-3] [INFO] [1786572020.357192323] [foxglove_bridge]: received subscribe request for channel 12 from client 1 (sink 1)
+[foxglove_bridge-3] [INFO] [1786572020.362450153] [foxglove_bridge]: created ROS subscription on /dart_debug (geometry_msgs/msg/Point) successfully for channel 12 (client 1, sink 1)
+[foxglove_bridge-3] [INFO] [1786572020.598331333] [foxglove_bridge]: publishing connection graph
+[foxglove_bridge-3] [INFO] [1786572022.577728377] [foxglove_bridge]: publishing connection graph
+[foxglove_bridge-3] [INFO] [1786572023.082978630] [foxglove_bridge]: publishing connection graph
+[foxglove_bridge-3] [INFO] [1786572023.588204175] [foxglove_bridge]: publishing connection graph
+[foxglove_bridge-3] [INFO] [1786572024.092292887] [foxglove_bridge]: publishing connection graph
+[foxglove_bridge-3] [INFO] [1786572024.596490432] [foxglove_bridge]: publishing connection graph

@@ -21,8 +21,8 @@ class TargetDetector {
 public:
     TargetDetector() = default;
 
-    // 从二值图中检测目标
-    std::vector<TargetInfo> detect(const cv::Mat& mask, const DetectParams& params);
+    // 从二值图中检测目标，gray 为灰度图用于亚像素加权质心
+    std::vector<TargetInfo> detect(const cv::Mat& mask, const cv::Mat& gray, const DetectParams& params);
 
     // 根据当前目标类型选择最终目标
     cv::Point2f selectTarget(const std::vector<TargetInfo>& targets,
