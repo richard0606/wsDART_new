@@ -43,7 +43,7 @@ std::vector<TargetInfo> TargetDetector::detect(const cv::Mat& mask, const Detect
 }
 
 cv::Point2f TargetDetector::selectTarget(const std::vector<TargetInfo>& targets,
-                                          int current_target, bool is_startup) {
+                                          int current_target, bool /*is_startup*/) {
     cv::Point2f target(-1, -1);
 
     if (targets.size() >= 2) {

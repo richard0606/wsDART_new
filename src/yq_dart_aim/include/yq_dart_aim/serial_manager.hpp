@@ -7,6 +7,7 @@
 #include <mutex>
 #include <atomic>
 #include <cstdint>
+#include <functional>
 #include "common/types.hpp"
 
 namespace yq_dart_aim {
@@ -19,13 +20,27 @@ struct SerialPortState {
     bool active = false;
 };
 
+// 日志级别
+enum class LogLevel {
+    DEBUG,
+    INFO,
+    WARN,
+    ERROR
+};
+
 class SerialManager {
 public:
+    // 日志回调函数类型
+    using LogCallback = std::function<void(LogLevel level, const std::string& message)>;
+
     SerialManager();
     ~SerialManager();
 
     // 初始化串口
     void initialize(const std::string& port, int baud_rate);
+
+    // 设置日志回调
+    void setLogCallback(LogCallback callback);
 
     // 发送瞄准数据
     void send(float err_pix, float aim_information);
@@ -45,6 +60,7 @@ public:
     std::string getLastRxHex() const;
 
 private:
+    void log(LogLevel level, const std::string& message);
     void monitorThread();
     void readThread();
     bool openPort(const std::string& path);
@@ -67,6 +83,9 @@ private:
 
     std::string configured_port_;
     int baud_rate_ = 115200;
+
+    // 日志回调
+    LogCallback log_callback_;
 };
 
 }  // namespace yq_dart_aim

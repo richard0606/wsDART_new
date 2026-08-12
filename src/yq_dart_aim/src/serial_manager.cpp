@@ -37,6 +37,16 @@ static speed_t baudToSpeed(int baud) {
 
 SerialManager::SerialManager() = default;
 
+void SerialManager::setLogCallback(LogCallback callback) {
+    log_callback_ = std::move(callback);
+}
+
+void SerialManager::log(LogLevel level, const std::string& message) {
+    if (log_callback_) {
+        log_callback_(level, message);
+    }
+}
+
 SerialManager::~SerialManager() {
     stopMonitoring();
     std::lock_guard<std::mutex> lock(mutex_);
@@ -195,15 +205,33 @@ void SerialManager::send(float err_pix, float aim_information) {
 
     for (auto& kv : serial_ports_) {
         if (kv.second.fd < 0) continue;
-        write(kv.second.fd, &head, 1);
+
+        ssize_t w = write(kv.second.fd, &head, 1);
+        if (w != 1) {
+            log(LogLevel::DEBUG, "uart write head failed on " + kv.first);
+            continue;
+        }
+
         ssize_t written = 0;
         while (written < static_cast<ssize_t>(payload_size)) {
-            ssize_t w = write(kv.second.fd, payload + written, payload_size - written);
-            if (w <= 0) break;
+            w = write(kv.second.fd, payload + written, payload_size - written);
+            if (w <= 0) {
+                log(LogLevel::DEBUG, "uart write payload failed on " + kv.first);
+                break;
+            }
             written += w;
         }
-        write(kv.second.fd, &checksum, 1);
-        write(kv.second.fd, &tail, 1);
+
+        w = write(kv.second.fd, &checksum, 1);
+        if (w != 1) {
+            log(LogLevel::DEBUG, "uart write checksum failed on " + kv.first);
+            continue;
+        }
+
+        w = write(kv.second.fd, &tail, 1);
+        if (w != 1) {
+            log(LogLevel::DEBUG, "uart write tail failed on " + kv.first);
+        }
     }
 }
 
@@ -279,7 +307,7 @@ std::vector<std::string> SerialManager::scanAvailableACMPorts() {
     return result;
 }
 
-void SerialManager::parseData(SerialPortState& port, const std::string& /*port_name*/) {
+void SerialManager::parseData(SerialPortState& port, const std::string& port_name) {
     // 接收包格式: 0xAA + VisionSend_s(12字节) + checksum(1字节) + 0x55
     constexpr size_t packet_len = 1 + sizeof(VisionSendPacket) + 1 + 1;
     size_t ri = 0;
@@ -313,11 +341,19 @@ void SerialManager::parseData(SerialPortState& port, const std::string& /*port_n
         }
         size_t checksum_idx = ri + 1 + sizeof(VisionSendPacket);
         if (port.rx_buffer[checksum_idx] != checksum) {
+            char msg[128];
+            snprintf(msg, sizeof(msg), "serial checksum mismatch on %s: expected %02X got %02X",
+                     port_name.c_str(), checksum, port.rx_buffer[checksum_idx]);
+            log(LogLevel::WARN, msg);
             ++ri;
             continue;
         }
         size_t tail_idx = checksum_idx + 1;
         if (port.rx_buffer[tail_idx] != SERIAL_TAIL) {
+            char msg[128];
+            snprintf(msg, sizeof(msg), "serial tail mismatch on %s: expected %02X got %02X",
+                     port_name.c_str(), SERIAL_TAIL, port.rx_buffer[tail_idx]);
+            log(LogLevel::WARN, msg);
             ++ri;
             continue;
         }
