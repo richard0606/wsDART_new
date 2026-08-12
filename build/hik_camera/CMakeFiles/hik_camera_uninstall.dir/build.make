@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /root/dart_ws/src/ros2_hik_camera
+CMAKE_SOURCE_DIR = /root/dart_ws_on/src/ros2_hik_camera
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /root/dart_ws/build/hik_camera
+CMAKE_BINARY_DIR = /root/dart_ws_on/build/hik_camera
 
 # Utility rule file for hik_camera_uninstall.
 
@@ -67,7 +67,7 @@ include CMakeFiles/hik_camera_uninstall.dir/compiler_depend.make
 include CMakeFiles/hik_camera_uninstall.dir/progress.make
 
 CMakeFiles/hik_camera_uninstall:
-	/usr/bin/cmake -P /root/dart_ws/build/hik_camera/ament_cmake_uninstall_target/ament_cmake_uninstall_target.cmake
+	/usr/bin/cmake -P /root/dart_ws_on/build/hik_camera/ament_cmake_uninstall_target/ament_cmake_uninstall_target.cmake
 
 hik_camera_uninstall: CMakeFiles/hik_camera_uninstall
 hik_camera_uninstall: CMakeFiles/hik_camera_uninstall.dir/build.make
@@ -82,6 +82,6 @@ CMakeFiles/hik_camera_uninstall.dir/clean:
 .PHONY : CMakeFiles/hik_camera_uninstall.dir/clean
 
 CMakeFiles/hik_camera_uninstall.dir/depend:
-	cd /root/dart_ws/build/hik_camera && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /root/dart_ws/src/ros2_hik_camera /root/dart_ws/src/ros2_hik_camera /root/dart_ws/build/hik_camera /root/dart_ws/build/hik_camera /root/dart_ws/build/hik_camera/CMakeFiles/hik_camera_uninstall.dir/DependInfo.cmake --color=$(COLOR)
+	cd /root/dart_ws_on/build/hik_camera && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /root/dart_ws_on/src/ros2_hik_camera /root/dart_ws_on/src/ros2_hik_camera /root/dart_ws_on/build/hik_camera /root/dart_ws_on/build/hik_camera /root/dart_ws_on/build/hik_camera/CMakeFiles/hik_camera_uninstall.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/hik_camera_uninstall.dir/depend
 

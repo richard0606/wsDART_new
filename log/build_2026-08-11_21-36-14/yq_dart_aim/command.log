@@ -1,4 +1,0 @@
-Invoking command in '/home/rich/mygithub/our_dart/dart_ws_on/build/yq_dart_aim': CMAKE_PREFIX_PATH=/opt/ros/humble /home/rich/.local/bin/cmake --build /home/rich/mygithub/our_dart/dart_ws_on/build/yq_dart_aim -- -j20 -l20
-Invoked command in '/home/rich/mygithub/our_dart/dart_ws_on/build/yq_dart_aim' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /home/rich/.local/bin/cmake --build /home/rich/mygithub/our_dart/dart_ws_on/build/yq_dart_aim -- -j20 -l20
-Invoking command in '/home/rich/mygithub/our_dart/dart_ws_on/build/yq_dart_aim': CMAKE_PREFIX_PATH=/opt/ros/humble /home/rich/.local/bin/cmake --install /home/rich/mygithub/our_dart/dart_ws_on/build/yq_dart_aim
-Invoked command in '/home/rich/mygithub/our_dart/dart_ws_on/build/yq_dart_aim' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /home/rich/.local/bin/cmake --install /home/rich/mygithub/our_dart/dart_ws_on/build/yq_dart_aim

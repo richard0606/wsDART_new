@@ -1,4 +1,0 @@
-/home/rich/mygithub/our_dart/dart_ws_on/src/yq_dart_aim/src/serial_manager.cpp: In member function ‘void yq_dart_aim::SerialManager::parseData(yq_dart_aim::SerialPortState&, const string&)’:
-/home/rich/mygithub/our_dart/dart_ws_on/src/yq_dart_aim/src/serial_manager.cpp:282:73: warning: unused parameter ‘port_name’ [-Wunused-parameter]
-  282 | void SerialManager::parseData(SerialPortState& port, const std::string& port_name) {
-      |                                                      ~~~~~~~~~~~~~~~~~~~^~~~~~~~~

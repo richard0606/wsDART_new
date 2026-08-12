@@ -2,6 +2,8 @@
 /root/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/launch/MvSdkLog/USB3_00.log
 /root/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/launch/MvSdkLog/CamCtrl_00.log
 /root/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/launch/MvSdkLog/USB3_01.log
+/root/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/launch/start.launch.py
+/root/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/config/params.yaml
 /root/dart_ws_on/install/yq_dart_aim/share/ament_index/resource_index/package_run_dependencies/yq_dart_aim
 /root/dart_ws_on/install/yq_dart_aim/share/ament_index/resource_index/parent_prefix_path/yq_dart_aim
 /root/dart_ws_on/install/yq_dart_aim/share/yq_dart_aim/environment/ament_prefix_path.sh

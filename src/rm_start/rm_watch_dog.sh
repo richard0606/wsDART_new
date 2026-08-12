@@ -12,8 +12,8 @@ if [[ -n "${WORKSPACE_DIR:-}" && -f "${WORKSPACE_DIR}/install/setup.bash" ]]; th
   WORKING_DIR="$WORKSPACE_DIR"
 elif [[ -f "$SCRIPT_DIR/../../install/setup.bash" ]]; then
   WORKING_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
-elif [[ -f "$HOME_DIR/dart_ws/install/setup.bash" ]]; then
-  WORKING_DIR="$HOME_DIR/dart_ws"
+elif [[ -f "$HOME_DIR/dart_ws_on/install/setup.bash" ]]; then
+  WORKING_DIR="$HOME_DIR/dart_ws_on"
 else
   echo "[watchdog] Cannot locate ROS2 workspace (missing install/setup.bash)."
   exit 1

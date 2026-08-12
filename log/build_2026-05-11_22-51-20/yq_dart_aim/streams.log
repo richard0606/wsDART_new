@@ -1,8 +1,0 @@
-[0.104s] Invoking command in '/root/dart_ws/build/yq_dart_aim': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /root/dart_ws/build/yq_dart_aim -- -j8 -l8
-[0.750s] [ 50%] Building CXX object CMakeFiles/dart_aim_node.dir/src/dart_aim_node.cpp.o
-[36.696s] gmake[2]: *** wait: No child processes.  Stop.
-[36.699s] gmake[2]: *** Waiting for unfinished jobs....
-[36.699s] gmake[2]: *** wait: No child processes.  Stop.
-[36.700s] gmake[1]: *** [CMakeFiles/Makefile2:137: CMakeFiles/dart_aim_node.dir/all] Error 2
-[36.701s] gmake: *** [Makefile:146: all] Interrupt
-[36.828s] Invoked command in '/root/dart_ws/build/yq_dart_aim' returned '-2': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /root/dart_ws/build/yq_dart_aim -- -j8 -l8

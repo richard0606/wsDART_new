@@ -1,4 +1,0 @@
-/root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp: In member function ‘void DartAimNode::imageCallback(sensor_msgs::msg::Image_<std::allocator<void> >::SharedPtr)’:
-/root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp:439:12: warning: unused variable ‘img_area’ [-Wunused-variable]
-  439 |     double img_area = width * height;
-      |            ^~~~~~~~

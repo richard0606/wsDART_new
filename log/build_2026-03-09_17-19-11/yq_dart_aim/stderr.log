@@ -1,4 +1,0 @@
-[01m[K/root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp:[m[K In member function ‘[01m[Kvoid DartAimNode::imageCallback(sensor_msgs::msg::Image_<std::allocator<void> >::SharedPtr)[m[K’:
-[01m[K/root/dart_ws/src/yq_dart_aim/src/dart_aim_node.cpp:355:12:[m[K [01;35m[Kwarning: [m[Kunused variable ‘[01m[Kimg_area[m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunused-variable-Wunused-variable]8;;[m[K]
-  355 |     double [01;35m[Kimg_area[m[K = width * height;
-      |            [01;35m[K^~~~~~~~[m[K

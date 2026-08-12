@@ -57,10 +57,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /root/dart_ws/src/ros2_hik_camera
+CMAKE_SOURCE_DIR = /root/dart_ws_on/src/ros2_hik_camera
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /root/dart_ws/build/hik_camera
+CMAKE_BINARY_DIR = /root/dart_ws_on/build/hik_camera
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -142,9 +142,9 @@ install/strip/fast: preinstall/fast
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /root/dart_ws/build/hik_camera/CMakeFiles /root/dart_ws/build/hik_camera//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /root/dart_ws_on/build/hik_camera/CMakeFiles /root/dart_ws_on/build/hik_camera//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /root/dart_ws/build/hik_camera/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /root/dart_ws_on/build/hik_camera/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
