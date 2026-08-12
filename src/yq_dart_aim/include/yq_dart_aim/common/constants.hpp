@@ -20,14 +20,14 @@ constexpr int MAX_DART_ID = 3;
 namespace defaults {
     // HSV 阈值
     constexpr int H_MIN = 35;
-    constexpr int S_MIN = 50;
+    constexpr int S_MIN = 70;
     constexpr int V_MIN = 50;
-    constexpr int H_MAX = 200;
+    constexpr int H_MAX = 80;
     constexpr int S_MAX = 255;
     constexpr int V_MAX = 255;
 
     // 偏移
-    constexpr double OFFSET_X = 43.0;
+    constexpr double OFFSET_X = 35.0;
     constexpr double OFFSET_Y = 0.0;
 
     // 串口
@@ -35,28 +35,28 @@ namespace defaults {
     constexpr bool USE_SERIAL = true;
 
     // 图像裁剪
-    constexpr int CROP_WIDTH = 1280;
-    constexpr int CROP_HEIGHT = 720;
+    constexpr int CROP_WIDTH = 1024;
+    constexpr int CROP_HEIGHT = 480;
 
     // 形态学
-    constexpr int MORPH_KERNEL_SIZE = 5;
-    constexpr int MORPH_DILATE_KERNEL_SIZE = 3;
+    constexpr int MORPH_KERNEL_SIZE = 3;
+    constexpr int MORPH_DILATE_KERNEL_SIZE = 5;
 
     // 目标筛选
     constexpr double MIN_AREA = 4.0;
-    constexpr double MAX_AREA = 100.0;
+    constexpr double MAX_AREA = 130.0;
     constexpr float TARGET_RADIUS_PX = 4.0f;
     constexpr float TARGET_HEIGHT_PX = 140.0f;
 
     // 坐标计算
-    constexpr double P_ERR = 1.0;
+    constexpr double P_ERR = 8.0;
     constexpr float AIM_THRESHOLD = 3.0f;
 
     // 调试输出
     constexpr bool PUBLISH_DEBUG_IMAGE = true;
     constexpr bool PUBLISH_COMPRESSED = true;
     constexpr bool PUBLISH_COMPRESSED_MASK = true;
-    constexpr bool CIRCLE_MASK = false;
+    constexpr bool CIRCLE_MASK = true;
 }
 
 }  // namespace yq_dart_aim

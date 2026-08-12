@@ -43,7 +43,7 @@ def generate_launch_description():
             executable='dart_aim_node',
             name='dart_aim_node',
             parameters=[
-                '/root/dart_ws/src/yq_dart_aim/config/params.yaml',
+                '/root/dart_ws_on/src/yq_dart_aim/config/params.yaml',
                 {
                     'crop_width': ParameterValue(LaunchConfiguration('crop_width'), value_type=int),
                     'crop_height': ParameterValue(LaunchConfiguration('crop_height'), value_type=int),

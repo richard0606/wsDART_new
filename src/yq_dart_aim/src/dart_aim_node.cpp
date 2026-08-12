@@ -63,6 +63,22 @@ public:
       this->get_parameter("usart_port").as_string(),
       this->get_parameter("bound_rate").as_int()
     );
+    serial_manager_.setLogCallback([this](yq_dart_aim::LogLevel level, const std::string& message) {
+      switch (level) {
+        case yq_dart_aim::LogLevel::DEBUG:
+          RCLCPP_DEBUG(this->get_logger(), "%s", message.c_str());
+          break;
+        case yq_dart_aim::LogLevel::INFO:
+          RCLCPP_INFO(this->get_logger(), "%s", message.c_str());
+          break;
+        case yq_dart_aim::LogLevel::WARN:
+          RCLCPP_WARN(this->get_logger(), "%s", message.c_str());
+          break;
+        case yq_dart_aim::LogLevel::ERROR:
+          RCLCPP_ERROR(this->get_logger(), "%s", message.c_str());
+          break;
+      }
+    });
     serial_manager_.setEnabled(use_serial_);
     if (use_serial_) {
       serial_manager_.startMonitoring();
@@ -257,64 +273,37 @@ private:
       return;
     }
 
-    // 裁剪
-    img = image_processor_.cropCenter(img, image_params_.crop_width, image_params_.crop_height);
-    int width = img.cols;
-    int height = img.rows;
+    // 使用 ImageProcessor::process() 进行图像处理
+    cv::Mat mask = image_processor_.process(img, image_params_);
+    int width = mask.cols;
+    int height = mask.rows;
     int cx = width / 2;
     int cy = height / 2;
 
     // 更新偏移
     coord_calculator_.updateOffset(offset_lookup_, current_target_, current_dart_id_);
 
-    // 图像处理：HSV + 阈值 + 形态学
-    cv::Mat mask;
-    {
-      cv::Mat hsv;
-      cv::cvtColor(img, hsv, cv::COLOR_BGR2HSV);
-      cv::inRange(hsv,
-                  cv::Scalar(image_params_.h_min, image_params_.s_min, image_params_.v_min),
-                  cv::Scalar(image_params_.h_max, image_params_.s_max, image_params_.v_max),
-                  mask);
-      // 形态学处理
-      int ksize = image_params_.morph_kernel_size;
-      if (ksize < 1) ksize = 1;
-      if (ksize % 2 == 0) ksize += 1;
-      cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(ksize, ksize));
-      cv::morphologyEx(mask, mask, cv::MORPH_OPEN, kernel);
-
-      int dksize = image_params_.morph_dilate_kernel_size;
-      if (dksize < 1) dksize = 1;
-      if (dksize % 2 == 0) dksize += 1;
-      cv::Mat kernel_dilate = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(dksize, dksize));
-      cv::morphologyEx(mask, mask, cv::MORPH_DILATE, kernel_dilate);
-    }
-
     // 目标检测
     auto targets = target_detector_.detect(mask, detect_params_);
     cv::Point2f target = target_detector_.selectTarget(targets, current_target_, !startup_done_);
     if (targets.size() >= 1) startup_done_ = true;
 
-    // 坐标计算与串口发送
+    // 使用 CoordinateCalculator::calculate() 进行坐标计算
     cv::Point center_img(cx + static_cast<int>(coord_calculator_.getCurrentOffsetX()),
                          cy + static_cast<int>(calc_params_.offset_y));
 
     if (target.x >= 0) {
-      float err_x = target.x - center_img.x;
-      float err_y = target.y - center_img.y;
+      auto aim_result = coord_calculator_.calculate(target, center_img, calc_params_);
 
       // 调试图标注
       cv::circle(img, center_img, 6, cv::Scalar(255, 0, 0), 2);
       cv::circle(img, target, 4, cv::Scalar(0, 255, 0), -1);
 
-      double scaled_err_x = err_x * calc_params_.p_err;
-      double scaled_err_y = err_y * calc_params_.p_err;
       geometry_msgs::msg::Point pt;
-      pt.x = scaled_err_x; pt.y = scaled_err_y; pt.z = 0;
+      pt.x = aim_result.scaled_err_x; pt.y = aim_result.scaled_err_y; pt.z = 0;
       debug_pub_->publish(pt);
 
-      float aim_info = (std::abs(err_x) < yq_dart_aim::defaults::AIM_THRESHOLD) ? 1.0f : 0.0f;
-      serial_manager_.send(static_cast<float>(scaled_err_x), aim_info);
+      serial_manager_.send(static_cast<float>(aim_result.scaled_err_x), aim_result.aim_information);
     } else {
       serial_manager_.send(0.0f, 0.0f);
     }
