@@ -134,3 +134,16 @@ dart_aim_node:
     # image_topic: 订阅的图像话题名称
     # 默认由海康相机驱动发布
     image_topic: "/image_raw"
+
+    # ==================== 模型检测 ====================
+    # use_model: 是否使用模型检测（true=模型, false=HSV 阈值）
+    use_model: false
+
+    # model_path: 模型文件路径（ONNX 格式）
+    model_path: ""
+
+    # conf_threshold: 模型检测置信度阈值
+    conf_threshold: 0.5
+
+    # nms_threshold: 非极大值抑制阈值
+    nms_threshold: 0.45

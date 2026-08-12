@@ -10,7 +10,10 @@ namespace yq_dart_aim {
 struct TargetInfo {
     cv::Point2f center;  // 目标质心（像素坐标）
     double area;         // 轮廓面积
-    double score;        // 圆形匹配评分（越小越圆）
+    double score;        // 圆形匹配评分（越小越圆）/ HSV 模式下使用
+    int class_id = -1;   // 目标类别（模型模式：0=前哨站, 1=基地; HSV 模式：-1）
+    float confidence = 0.0f;  // 置信度（模型模式 0~1; HSV 模式：0）
+    cv::Rect bbox;       // 检测框（模型模式使用; HSV 模式为空）
 };
 
 // 向下位机发送的数据包（16字节）

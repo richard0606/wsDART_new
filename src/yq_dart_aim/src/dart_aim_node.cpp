@@ -14,6 +14,7 @@
 #include "yq_dart_aim/common/constants.hpp"
 #include "yq_dart_aim/image_processor.hpp"
 #include "yq_dart_aim/target_detector.hpp"
+#include "yq_dart_aim/model_detector.hpp"
 #include "yq_dart_aim/coordinate_calculator.hpp"
 #include "yq_dart_aim/serial_manager.hpp"
 
@@ -33,6 +34,10 @@ public:
     compressed_mask_pub_ = this->create_publisher<sensor_msgs::msg::CompressedImage>("/dart_debug/mask_compressed", 10);
     serial_pub_ = this->create_publisher<std_msgs::msg::Float32MultiArray>("/serial", 10);
     serial_debug_pub_ = this->create_publisher<std_msgs::msg::String>("/serial_debug", 10);
+
+    // 模型检测可视化话题
+    model_debug_image_pub_ = this->create_publisher<sensor_msgs::msg::Image>("/model_debug/image", 10);
+    model_debug_compressed_pub_ = this->create_publisher<sensor_msgs::msg::CompressedImage>("/model_debug/image_compressed", 10);
 
     // 转发压缩图像用于 bag 录制
     debug_record_mask_pub_ = this->create_publisher<sensor_msgs::msg::CompressedImage>("/debug_record/mask_compressed", 10);
@@ -84,7 +89,23 @@ public:
       serial_manager_.startMonitoring();
     }
 
-    RCLCPP_INFO(this->get_logger(), "DartAimNode started (p_err=%f)", calc_params_.p_err);
+    // ==================== 模型检测器初始化 ====================
+    use_model_ = this->get_parameter("use_model").as_bool();
+    if (use_model_) {
+      yq_dart_aim::ModelParams model_params;
+      model_params.model_path = this->get_parameter("model_path").as_string();
+      model_params.conf_threshold = static_cast<float>(this->get_parameter("conf_threshold").as_double());
+      model_params.nms_threshold = static_cast<float>(this->get_parameter("nms_threshold").as_double());
+      if (model_detector_.loadModel(model_params)) {
+        RCLCPP_INFO(this->get_logger(), "Model loaded: %s", model_params.model_path.c_str());
+      } else {
+        RCLCPP_ERROR(this->get_logger(), "Failed to load model: %s", model_params.model_path.c_str());
+        use_model_ = false;
+      }
+    }
+
+    RCLCPP_INFO(this->get_logger(), "DartAimNode started (p_err=%f, mode=%s)",
+                calc_params_.p_err, use_model_ ? "model" : "hsv");
   }
 
   ~DartAimNode() override {
@@ -128,6 +149,12 @@ private:
     if (!this->has_parameter("morph_kernel_size")) this->declare_parameter("morph_kernel_size", yq_dart_aim::defaults::MORPH_KERNEL_SIZE);
     if (!this->has_parameter("morph_dilate_kernel_size")) this->declare_parameter("morph_dilate_kernel_size", yq_dart_aim::defaults::MORPH_DILATE_KERNEL_SIZE);
     if (!this->has_parameter("max_area")) this->declare_parameter("max_area", yq_dart_aim::defaults::MAX_AREA);
+
+    // 模型检测
+    if (!this->has_parameter("use_model")) this->declare_parameter("use_model", false);
+    if (!this->has_parameter("model_path")) this->declare_parameter("model_path", std::string(""));
+    if (!this->has_parameter("conf_threshold")) this->declare_parameter("conf_threshold", 0.5);
+    if (!this->has_parameter("nms_threshold")) this->declare_parameter("nms_threshold", 0.45);
 
     // 偏移查找表
     if (!this->has_parameter("offset_0_0")) this->declare_parameter("offset_0_0", 43.0);
@@ -242,6 +269,14 @@ private:
         image_params_.morph_dilate_kernel_size = p.as_int();
       } else if (p.get_name() == "max_area") {
         detect_params_.max_area = p.as_double();
+      } else if (p.get_name() == "use_model") {
+        use_model_ = p.as_bool();
+        RCLCPP_INFO(this->get_logger(), "use_model updated: %s", use_model_ ? "true" : "false");
+      } else if (p.get_name() == "conf_threshold") {
+        // 模型置信度阈值（需要重新加载模型生效）
+        RCLCPP_INFO(this->get_logger(), "conf_threshold updated (reload model to apply)");
+      } else if (p.get_name() == "nms_threshold") {
+        RCLCPP_INFO(this->get_logger(), "nms_threshold updated (reload model to apply)");
       }
       if (p.get_name().rfind("offset_", 0) == 0) {
         int t = 0, d = 0;
@@ -289,8 +324,39 @@ private:
     // 更新偏移
     coord_calculator_.updateOffset(offset_lookup_, current_target_, current_dart_id_);
 
-    // 目标检测（传入灰度图用于亚像素质心）
-    auto targets = target_detector_.detect(mask, gray, detect_params_);
+    // ==================== 目标检测（HSV / 模型 切换） ====================
+    std::vector<yq_dart_aim::TargetInfo> targets;
+    cv::Mat cropped_img = image_processor_.cropCenter(img, image_params_.crop_width, image_params_.crop_height);
+
+    if (use_model_ && model_detector_.isReady()) {
+      // 模型模式：异步提交裁剪图，获取最新结果
+      model_detector_.submit(cropped_img);
+      targets = model_detector_.getResults();
+
+      // 发布模型检测可视化
+      if (publish_debug_image_) {
+        cv::Mat model_vis = cropped_img.clone();
+        for (const auto& t : targets) {
+          // 画检测框
+          cv::Scalar color(0, 255, 0);
+          cv::rectangle(model_vis, t.bbox, color, 2);
+          // 画类别+置信度
+          char label[64];
+          std::string cls_name = (t.class_id >= 0 && t.class_id < static_cast<int>(model_class_names_.size()))
+                                 ? model_class_names_[t.class_id] : "cls" + std::to_string(t.class_id);
+          snprintf(label, sizeof(label), "%s %.0f%%", cls_name.c_str(), t.confidence * 100);
+          cv::putText(model_vis, label, cv::Point(t.bbox.x, t.bbox.y - 5),
+                      cv::FONT_HERSHEY_SIMPLEX, 0.5, color, 1);
+          // 画中心点
+          cv::circle(model_vis, t.center, 3, cv::Scalar(0, 0, 255), -1);
+        }
+        publishModelDebugImage(model_vis, msg->header);
+      }
+    } else {
+      // HSV 模式
+      targets = target_detector_.detect(mask, gray, detect_params_);
+    }
+
     cv::Point2f target = target_detector_.selectTarget(targets, current_target_, !startup_done_);
     if (targets.size() >= 1) startup_done_ = true;
 
@@ -409,10 +475,36 @@ private:
     }
   }
 
+  // ==================== 模型检测可视化发布 ====================
+  void publishModelDebugImage(const cv::Mat& vis, const std_msgs::msg::Header& header) {
+    try {
+      cv_bridge::CvImage out_img;
+      out_img.header = header;
+      out_img.encoding = "bgr8";
+      out_img.image = vis;
+      model_debug_image_pub_->publish(*out_img.toImageMsg());
+
+      if (publish_compressed_) {
+        std::vector<unsigned char> buf;
+        std::vector<int> params = {cv::IMWRITE_JPEG_QUALITY, 90};
+        if (cv::imencode(".jpg", vis, buf, params)) {
+          sensor_msgs::msg::CompressedImage comp_msg;
+          comp_msg.header = header;
+          comp_msg.format = "jpeg";
+          comp_msg.data.assign(buf.begin(), buf.end());
+          model_debug_compressed_pub_->publish(comp_msg);
+        }
+      }
+    } catch (const std::exception &e) {
+      RCLCPP_WARN(this->get_logger(), "failed publish model debug image: %s", e.what());
+    }
+  }
+
   // ==================== 成员变量 ====================
   // 模块实例
   yq_dart_aim::ImageProcessor image_processor_;
   yq_dart_aim::TargetDetector target_detector_;
+  yq_dart_aim::ModelDetector model_detector_;
   yq_dart_aim::CoordinateCalculator coord_calculator_;
   yq_dart_aim::SerialManager serial_manager_;
 
@@ -426,6 +518,10 @@ private:
   rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr serial_pub_;
   rclcpp::Publisher<std_msgs::msg::String>::SharedPtr serial_debug_pub_;
   OnSetParametersCallbackHandle::SharedPtr param_cb_handle_;
+
+  // 模型检测话题
+  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr model_debug_image_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::CompressedImage>::SharedPtr model_debug_compressed_pub_;
 
   // 转发发布/订阅
   rclcpp::Publisher<sensor_msgs::msg::CompressedImage>::SharedPtr debug_record_mask_pub_;
@@ -445,9 +541,11 @@ private:
   int aim_counter_ = 0;  // 连续瞄准帧计数
   bool startup_done_ = false;
   bool use_serial_ = true;
+  bool use_model_ = false;
   bool publish_debug_image_ = true;
   bool publish_compressed_ = true;
   bool publish_compressed_mask_ = true;
+  std::vector<std::string> model_class_names_ = {"outpost", "base"};
 };
 
 int main(int argc, char **argv) {

@@ -5,6 +5,7 @@
 #include <opencv2/core.hpp>
 #include "common/types.hpp"
 #include "common/constants.hpp"
+#include "detector_base.hpp"
 
 namespace yq_dart_aim {
 
@@ -17,9 +18,16 @@ struct DetectParams {
     float target_height_px = defaults::TARGET_HEIGHT_PX;
 };
 
-class TargetDetector {
+// HSV 阈值检测器（实现 DetectorBase 接口）
+class TargetDetector : public DetectorBase {
 public:
     TargetDetector() = default;
+
+    // DetectorBase 接口（HSV 模式下 submit 为空操作，getResults 返回空）
+    void submit(const cv::Mat& /*image*/) override {}
+    std::vector<TargetInfo> getResults() override { return {}; }
+    bool isReady() const override { return true; }
+    std::string name() const override { return "hsv"; }
 
     // 从二值图中检测目标，gray 为灰度图用于亚像素加权质心
     std::vector<TargetInfo> detect(const cv::Mat& mask, const cv::Mat& gray, const DetectParams& params);
