@@ -170,3 +170,21 @@ rm -rf build/ install/ log/
 source /opt/ros/humble/setup.bash
 colcon build
 ```
+
+### 局域网代理
+
+```bash
+export HTTP_PROXY=http://10.35.11.222:7897
+export HTTPS_PROXY=http://10.35.11.222:7897
+export ALL_PROXY=socks5://10.35.11.222:7897
+# 内网地址不走代理，避免ssh、局域网访问卡住
+export NO_PROXY=localhost,127.0.0.1,192.168.*,10.*
+```
+
+```bash
+# 查看出口IP，验证代理是否生效
+curl https://api.ipify.org
+# 访问github测试
+curl -I https://github.com
+```
+

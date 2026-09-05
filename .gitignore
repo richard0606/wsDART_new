@@ -1,5 +1,8 @@
 # ===================== 编译产物、构建目录 =====================
 build/
+install/
+log/
+MvSdkLog/
 build-*/
 cmake-build-*/
 out/

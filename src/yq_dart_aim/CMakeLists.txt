@@ -51,6 +51,12 @@ install(TARGETS
   DESTINATION lib/${PROJECT_NAME}
 )
 
+# 安装 web_tuner Python 包（安装到 share 目录，launch 文件可直接引用）
+install(DIRECTORY web_tuner
+  DESTINATION share/${PROJECT_NAME}
+  PATTERN "__pycache__" EXCLUDE
+)
+
 install(DIRECTORY launch config
   DESTINATION share/${PROJECT_NAME}
 )

@@ -11,17 +11,13 @@ cv::Mat ImageProcessor::cropCenter(const cv::Mat& src, int crop_width, int crop_
     int h = std::min(crop_height, src.rows);
     int x = (src.cols - w) / 2;
     int y = (src.rows - h) / 2;
-    cv::Rect roi(x, y, w, h);
-    return src(roi).clone();
+    return src(cv::Rect(x, y, w, h));  // ROI 视图，零拷贝
 }
 
-cv::Mat ImageProcessor::process(const cv::Mat& input, const ImageProcessParams& params) {
-    // 裁剪中心区域
-    cv::Mat img = cropCenter(input, params.crop_width, params.crop_height);
-
+cv::Mat ImageProcessor::processCropped(const cv::Mat& cropped, const ImageProcessParams& params) {
     // BGR -> HSV
     cv::Mat hsv;
-    cv::cvtColor(img, hsv, cv::COLOR_BGR2HSV);
+    cv::cvtColor(cropped, hsv, cv::COLOR_BGR2HSV);
 
     // 阈值分割
     cv::Mat mask;
@@ -34,6 +30,12 @@ cv::Mat ImageProcessor::process(const cv::Mat& input, const ImageProcessParams& 
     mask = applyMorphology(mask, params.morph_kernel_size, params.morph_dilate_kernel_size);
 
     return mask;
+}
+
+cv::Mat ImageProcessor::process(const cv::Mat& input, const ImageProcessParams& params) {
+    // 裁剪中心区域
+    cv::Mat cropped = cropCenter(input, params.crop_width, params.crop_height);
+    return processCropped(cropped, params);
 }
 
 cv::Mat ImageProcessor::applyMorphology(const cv::Mat& mask, int open_size, int dilate_size) {

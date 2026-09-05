@@ -1,0 +1,31 @@
+_label: 比赛模式
+_desc: 正式比赛参数配置
+_time: "2025-01-01 00:00:00"
+
+# HSV 阈值 - 绿色目标
+h_min: 35
+h_max: 80
+s_min: 70
+s_max: 255
+v_min: 50
+v_max: 255
+
+# 形态学
+morph_kernel_size: 3
+morph_dilate_kernel_size: 5
+
+# 目标筛选
+max_area: 130.0
+circle_mask: true
+
+# 坐标偏移
+p_err: 8.0
+offset_y: 0.0
+
+# 串口
+use_serial: true
+
+# 调试
+publish_debug_image: true
+publish_compressed: true
+publish_compressed_mask: true

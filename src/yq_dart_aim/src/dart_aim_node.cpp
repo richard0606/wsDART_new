@@ -9,6 +9,9 @@
 #include <rcl_interfaces/msg/set_parameters_result.hpp>
 
 #include <opencv2/opencv.hpp>
+#include <thread>
+#include <atomic>
+#include <mutex>
 
 #include "yq_dart_aim/common/types.hpp"
 #include "yq_dart_aim/common/constants.hpp"
@@ -107,9 +110,18 @@ public:
 
     RCLCPP_INFO(this->get_logger(), "DartAimNode started (p_err=%f, mode=%s)",
                 calc_params_.p_err, use_model_ ? "model" : "hsv");
+
+    // 启动调试发布线程
+    debug_thread_ = std::thread(&DartAimNode::debugPublishLoop, this);
   }
 
   ~DartAimNode() override {
+    // 停止调试发布线程
+    stop_debug_.store(true);
+    new_debug_frame_.store(true);  // 唤醒线程
+    if (debug_thread_.joinable()) {
+      debug_thread_.join();
+    }
     serial_manager_.stopMonitoring();
   }
 
@@ -302,21 +314,19 @@ private:
 
   // ==================== 图像回调（核心处理流程） ====================
   void imageCallback(const sensor_msgs::msg::Image::SharedPtr msg) {
-    cv::Mat img;
-    try {
-      img = cv_bridge::toCvShare(msg, "bgr8")->image.clone();
-    } catch (const cv_bridge::Exception &e) {
-      RCLCPP_ERROR(this->get_logger(), "cv_bridge exception: %s", e.what());
-      return;
-    }
+    // 保持 cv_bridge 共享指针存活，确保 ROI 视图数据有效
+    auto cv_image = cv_bridge::toCvShare(msg, "bgr8");
 
-    // 使用 ImageProcessor::process() 进行图像处理
-    cv::Mat mask = image_processor_.process(img, image_params_);
+    // 裁剪中心区域（ROI 视图，零拷贝）
+    cv::Mat cropped = image_processor_.cropCenter(
+        cv_image->image, image_params_.crop_width, image_params_.crop_height);
 
-    // 灰度图（与 mask 同尺寸裁剪）用于亚像素加权质心
-    cv::Mat gray_full;
-    cv::cvtColor(img, gray_full, cv::COLOR_BGR2GRAY);
-    cv::Mat gray = image_processor_.cropCenter(gray_full, image_params_.crop_width, image_params_.crop_height);
+    // HSV 处理（直接用裁剪区域，不再内部裁剪）
+    cv::Mat mask = image_processor_.processCropped(cropped, image_params_);
+
+    // 灰度转换只在裁剪区域做
+    cv::Mat gray;
+    cv::cvtColor(cropped, gray, cv::COLOR_BGR2GRAY);
 
     int width = mask.cols;
     int height = mask.rows;
@@ -328,28 +338,24 @@ private:
 
     // ==================== 目标检测（HSV / 模型 切换） ====================
     std::vector<yq_dart_aim::TargetInfo> targets;
-    cv::Mat cropped_img = image_processor_.cropCenter(img, image_params_.crop_width, image_params_.crop_height);
 
     if (use_model_ && model_detector_.isReady()) {
       // 模型模式：异步提交裁剪图，获取最新结果
-      model_detector_.submit(cropped_img);
+      model_detector_.submit(cropped);
       targets = model_detector_.getResults();
 
-      // 发布模型检测可视化
+      // 模型检测可视化（提交给调试线程）
       if (publish_debug_image_) {
-        cv::Mat model_vis = cropped_img.clone();
+        cv::Mat model_vis = cropped.clone();
         for (const auto& t : targets) {
-          // 画检测框
           cv::Scalar color(0, 255, 0);
           cv::rectangle(model_vis, t.bbox, color, 2);
-          // 画类别+置信度
           char label[64];
           std::string cls_name = (t.class_id >= 0 && t.class_id < static_cast<int>(model_class_names_.size()))
                                  ? model_class_names_[t.class_id] : "cls" + std::to_string(t.class_id);
           snprintf(label, sizeof(label), "%s %.0f%%", cls_name.c_str(), t.confidence * 100);
           cv::putText(model_vis, label, cv::Point(t.bbox.x, t.bbox.y - 5),
                       cv::FONT_HERSHEY_SIMPLEX, 0.5, color, 1);
-          // 画中心点
           cv::circle(model_vis, t.center, 3, cv::Scalar(0, 0, 255), -1);
         }
         publishModelDebugImage(model_vis, msg->header);
@@ -362,32 +368,28 @@ private:
     // ==================== 目标选择 ====================
     cv::Point2f target(-1, -1);
     if (use_model_ && model_detector_.isReady()) {
-      // 模型模式：按 class_id 匹配下位机指定的目标
       for (const auto& t : targets) {
         if (t.class_id == current_target_) {
-          // SG 滤波：对 X 坐标做时序平滑
           float smoothed_x = sg_filter_x_.push(t.center.x);
           target = cv::Point2f(smoothed_x, t.center.y);
           break;
         }
       }
       if (target.x < 0) {
-        sg_filter_x_.reset();  // 目标丢失，重置滤波器
+        sg_filter_x_.reset();
       }
     } else {
-      // HSV 模式：原有位置推断逻辑
       target = target_detector_.selectTarget(targets, current_target_, !startup_done_);
     }
     if (targets.size() >= 1) startup_done_ = true;
 
-    // 使用 CoordinateCalculator::calculate() 进行坐标计算
+    // 坐标计算
     cv::Point center_img(cx + static_cast<int>(coord_calculator_.getCurrentOffsetX()),
                          cy + static_cast<int>(calc_params_.offset_y));
 
     if (target.x >= 0) {
       auto aim_result = coord_calculator_.calculate(target, center_img, calc_params_);
 
-      // 连续 5 帧误差 < 1.5px 判定为已瞄准
       if (std::abs(aim_result.err_x) < yq_dart_aim::defaults::AIM_THRESHOLD) {
         if (aim_counter_ < 5) aim_counter_++;
       } else {
@@ -396,17 +398,12 @@ private:
       bool aimed = (aim_counter_ >= 5);
       float aim_info = aimed ? 1.0f : 0.0f;
 
-      // 死区：已瞄准且差值 < 0.5px 时不修正，发 0
       float send_err;
       if (aimed && std::abs(aim_result.err_x) < yq_dart_aim::defaults::AIM_DEAD_ZONE) {
         send_err = 0.0f;
       } else {
         send_err = static_cast<float>(aim_result.scaled_err_x);
       }
-
-      // 调试图标注
-      cv::circle(img, center_img, 6, cv::Scalar(255, 0, 0), 2);
-      cv::circle(img, target, 4, cv::Scalar(0, 255, 0), -1);
 
       geometry_msgs::msg::Point pt;
       pt.x = aim_result.scaled_err_x; pt.y = aim_result.scaled_err_y; pt.z = 0;
@@ -432,7 +429,6 @@ private:
                          encoder_angle};
       serial_pub_->publish(serial_msg);
 
-      // 发布串口 hex 调试
       std::string hex = serial_manager_.getLastRxHex();
       if (!hex.empty()) {
         std_msgs::msg::String debug_msg;
@@ -441,9 +437,19 @@ private:
       }
     }
 
-    // 发布调试图像
+    // 提交调试图像到调试线程（非阻塞）
     if (publish_debug_image_) {
-      publishDebugImages(img, mask, msg->header);
+      cv::Mat debug_vis = cropped.clone();
+      // 画调试图标注（十字瞄准线 + 目标点）
+      if (target.x >= 0) {
+        cv::circle(debug_vis, center_img, 6, cv::Scalar(255, 0, 0), 2);
+        cv::circle(debug_vis, target, 4, cv::Scalar(0, 255, 0), -1);
+      }
+      std::lock_guard<std::mutex> lock(debug_mutex_);
+      debug_img_ = std::move(debug_vis);
+      debug_mask_ = mask;
+      debug_header_ = msg->header;
+      new_debug_frame_.store(true);
     }
   }
 
@@ -520,6 +526,29 @@ private:
     }
   }
 
+  // ==================== 调试发布线程循环 ====================
+  void debugPublishLoop() {
+    while (!stop_debug_.load()) {
+      while (!new_debug_frame_.load() && !stop_debug_.load()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(2));
+      }
+      if (stop_debug_.load()) break;
+
+      cv::Mat img, mask;
+      std_msgs::msg::Header header;
+      {
+        std::lock_guard<std::mutex> lock(debug_mutex_);
+        img = std::move(debug_img_);
+        mask = std::move(debug_mask_);
+        header = debug_header_;
+        new_debug_frame_.store(false);
+      }
+      if (!img.empty()) {
+        publishDebugImages(img, mask, header);
+      }
+    }
+  }
+
   // ==================== 成员变量 ====================
   // 模块实例
   yq_dart_aim::ImageProcessor image_processor_;
@@ -528,6 +557,15 @@ private:
   yq_dart_aim::SGFilter7 sg_filter_x_;  // 模型模式下 X 坐标时序平滑
   yq_dart_aim::CoordinateCalculator coord_calculator_;
   yq_dart_aim::SerialManager serial_manager_;
+
+  // 调试发布线程
+  std::thread debug_thread_;
+  std::mutex debug_mutex_;
+  std::atomic<bool> stop_debug_{false};
+  std::atomic<bool> new_debug_frame_{false};
+  cv::Mat debug_img_;
+  cv::Mat debug_mask_;
+  std_msgs::msg::Header debug_header_;
 
   // ROS 接口
   rclcpp::Publisher<geometry_msgs::msg::Point>::SharedPtr debug_pub_;
