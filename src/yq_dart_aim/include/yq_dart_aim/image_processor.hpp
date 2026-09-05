@@ -28,7 +28,10 @@ public:
     // 处理图像：裁剪 -> HSV -> 二值化 -> 形态学
     cv::Mat process(const cv::Mat& input, const ImageProcessParams& params);
 
-    // 裁剪中心区域
+    // 处理已裁剪的图像（跳过裁剪步骤）
+    cv::Mat processCropped(const cv::Mat& cropped, const ImageProcessParams& params);
+
+    // 裁剪中心区域（返回 ROI 视图，零拷贝）
     cv::Mat cropCenter(const cv::Mat& src, int width, int height);
 
 private:

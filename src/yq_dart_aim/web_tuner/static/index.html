@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>飞镖调参系统</title>
+<!-- socket.io：必须用 4.x 客户端（与 python-engineio 4.14 的 EIO=4 协议对齐） -->
+<script>
+let socket = null;
+let hasBackend = false;
+/* 尝试连接后端 */
+function initSocket() {
+  if (typeof io === 'undefined') { console.warn('socket.io 未加载，仅预览UI'); return; }
+  try {
+    socket = io({ reconnection: false, timeout: 2000, forceNew: true });
+    hasBackend = true;
+  } catch(e) { console.warn('SocketIO 连接失败'); }
+}
+</script>
+<style>
+/* ============================================================
+   全局样式
+   ============================================================ */
+:root {
+  --bg-primary: #0f0f1a;
+  --bg-card: #1a1a2e;
+  --bg-input: #16213e;
+  --bg-slider: #0f3460;
+  --accent: #00d4ff;
+  --accent-dim: #00d4ff40;
+  --text: #e0e0e0;
+  --text-dim: #8892a0;
+  --text-bright: #ffffff;
+  --success: #00e676;
+  --warning: #ffab00;
+  --error: #ff5252;
+  --border: #2a2a4a;
+  --radius: 10px;
+  --shadow: 0 4px 20px rgba(0,0,0,0.3);
+  /* Emil: 自定义 easing 曲线，比默认 ease 更有冲击力 */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+               "Microsoft YaHei", sans-serif;
+  background: var(--bg-primary);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================================
+   顶部导航栏
+   ============================================================ */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.header-left { display: flex; align-items: center; gap: 12px; }
+.header h1 { font-size: 17px; font-weight: 600; color: var(--text-bright); letter-spacing: 1px; }
+
+.status-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--error); transition: background 200ms ease;
+}
+.status-dot.connected { background: var(--success); }
+
+.header-actions { display: flex; gap: 8px; }
+
+.btn {
+  padding: 7px 14px; border: none; border-radius: 6px; font-size: 13px;
+  font-weight: 500; cursor: pointer;
+  transition: transform 120ms var(--ease-out), background 120ms ease, border-color 120ms ease;
+  display: flex; align-items: center; gap: 6px;
+}
+.btn:active { transform: scale(0.96); }
+.btn-primary { background: var(--accent); color: #000; }
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover { background: #33ddff; }
+}
+.btn-secondary { background: var(--bg-input); color: var(--text); border: 1px solid var(--border); }
+@media (hover: hover) and (pointer: fine) {
+  .btn-secondary:hover { border-color: var(--accent); }
+}
+
+/* ============================================================
+   主布局：左 | 右上(图像) + 右下(参数)
+   ============================================================ */
+.main {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  grid-template-rows: 1fr;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── 左侧栏 ─────────────────────────────── */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+}
+.sidebar-title {
+  padding: 12px 16px 8px;
+  font-size: 11px; color: var(--text-dim);
+  text-transform: uppercase; letter-spacing: 2px;
+  flex-shrink: 0;
+}
+.nav-item {
+  padding: 14px 16px; font-size: 14px; cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+  display: flex; align-items: center; gap: 10px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .nav-item:hover { background: var(--bg-input); }
+}
+.nav-item.active {
+  background: var(--accent-dim); border-left-color: var(--accent);
+  color: var(--accent); font-weight: 600;
+}
+.nav-item .icon { font-size: 18px; }
+.nav-item .badge {
+  margin-left: auto; font-size: 11px; color: var(--text-dim);
+  background: var(--bg-primary); padding: 1px 6px; border-radius: 8px;
+}
+
+/* ── 右侧主区域 ─────────────────────────── */
+.right-panel {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  overflow: hidden;
+}
+
+/* 图像预览区 */
+.preview-area {
+  background: #000;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+  height: 280px;
+  overflow: hidden; cursor: pointer; flex-shrink: 0;
+}
+.preview-area { background: #000; }
+@media (hover: hover) and (pointer: fine) {
+  .preview-area:hover { background: #0a0a15; }
+}
+.preview-area canvas { display: block; }
+
+.preview-controls {
+  position: absolute; top: 8px; right: 8px;
+  display: flex; gap: 4px;
+}
+.preview-controls button {
+  padding: 4px 10px; font-size: 12px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(0,0,0,0.5); color: #ccc;
+  border-radius: 4px; cursor: pointer; backdrop-filter: blur(4px);
+  transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+}
+.preview-controls button.active {
+  background: var(--accent-dim); color: var(--accent); border-color: var(--accent);
+}
+@media (hover: hover) and (pointer: fine) {
+  .preview-controls button:hover { border-color: var(--accent); }
+}
+.preview-label {
+  position: absolute; bottom: 8px; left: 8px;
+  font-size: 11px; color: rgba(255,255,255,0.4); pointer-events: none;
+}
+
+/* 参数内容区 */
+.param-area {
+  overflow-y: auto; padding: 16px 24px;
+  display: flex; flex-direction: column; gap: 12px;
+  transition: opacity 150ms ease;
+}
+.param-area.fade-out { opacity: 0; }
+
+.param-group-header {
+  display: flex; align-items: center; gap: 10px;
+  padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-bottom: 4px;
+}
+.param-group-header .icon { font-size: 22px; }
+.param-group-header h2 { font-size: 16px; font-weight: 600; color: var(--text-bright); }
+.param-group-header .desc { font-size: 12px; color: var(--text-dim); margin-left: auto; }
+
+/* ============================================================
+   参数行
+   ============================================================ */
+.param-row {
+  display: flex; align-items: center; gap: 12px; padding: 6px 0;
+}
+.param-label { min-width: 100px; font-size: 13px; color: var(--text); flex-shrink: 0; }
+.param-label .hint { font-size: 11px; color: #556; margin-top: 2px; }
+
+.param-controls { flex: 1; display: flex; align-items: center; gap: 8px; }
+
+.adj-btn {
+  width: 34px; height: 34px;
+  border: 1px solid var(--border); background: var(--bg-input); color: var(--text);
+  border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 120ms var(--ease-out), border-color 120ms ease, color 120ms ease;
+  user-select: none; flex-shrink: 0;
+}
+@media (hover: hover) and (pointer: fine) {
+  .adj-btn:hover { border-color: var(--accent); color: var(--accent); }
+}
+.adj-btn:active { transform: scale(0.95); }
+
+.slider-wrap { flex: 1; display: flex; align-items: center; }
+
+input[type="range"] {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 6px;
+  background: var(--bg-slider); border-radius: 3px; outline: none; cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px; height: 20px; background: var(--accent);
+  border-radius: 50%; cursor: pointer; box-shadow: 0 0 8px var(--accent-dim);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 20px; height: 20px; background: var(--accent);
+  border-radius: 50%; cursor: pointer; border: none;
+}
+
+.num-input {
+  width: 72px; height: 34px;
+  background: var(--bg-input); border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text-bright); text-align: center; font-size: 15px; font-weight: 600;
+  outline: none; flex-shrink: 0;
+  transition: border-color 150ms ease, color 150ms ease;
+}
+.num-input:focus { border-color: var(--accent); }
+.num-input.modified { border-color: var(--warning); color: var(--warning); }
+
+/* 布尔开关 */
+.toggle-switch { position: relative; width: 50px; height: 28px; cursor: pointer; }
+.toggle-switch input { display: none; }
+.toggle-slider {
+  position: absolute; inset: 0; background: var(--bg-slider);
+  border-radius: 14px;
+  transition: background 180ms ease, border-color 180ms ease;
+  border: 1px solid var(--border);
+}
+.toggle-slider::before {
+  content: ""; position: absolute;
+  width: 22px; height: 22px; left: 2px; top: 2px;
+  background: var(--text-dim); border-radius: 50%;
+  transition: transform 180ms var(--ease-out), background 180ms ease;
+}
+.toggle-switch input:checked + .toggle-slider {
+  background: var(--accent-dim); border-color: var(--accent);
+}
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(22px); background: var(--accent);
+}
+.toggle-label { font-size: 13px; color: var(--text-dim); margin-left: 4px; min-width: 28px; }
+
+/* ============================================================
+   坐标偏移 - Tab 切换卡片布局
+   ============================================================ */
+.offset-tabs {
+  display: flex; gap: 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+.offset-tab {
+  padding: 10px 20px; font-size: 13px; cursor: pointer;
+  border-bottom: 2px solid transparent; color: var(--text-dim);
+  transition: color 150ms ease, border-color 150ms ease; white-space: nowrap;
+}
+@media (hover: hover) and (pointer: fine) {
+  .offset-tab:hover { color: var(--text); }
+}
+.offset-tab.active {
+  color: var(--accent); border-bottom-color: var(--accent); font-weight: 500;
+}
+
+.offset-panel { display: none; opacity: 0; }
+.offset-panel.active { display: block; opacity: 1; animation: fadeIn 150ms ease-out; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.offset-dart-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 0; border-bottom: 1px solid #1a1a2e;
+}
+.offset-dart-label {
+  min-width: 70px; font-size: 13px; color: var(--accent);
+  font-weight: 500; flex-shrink: 0;
+}
+.offset-dart-controls { flex: 1; display: flex; align-items: center; gap: 8px; }
+
+/* ============================================================
+   弹窗
+   ============================================================ */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0);
+  z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity 200ms ease, background 200ms ease, visibility 0s 200ms;
+}
+.modal-overlay.show {
+  background: rgba(0,0,0,0.6);
+  opacity: 1; visibility: visible; pointer-events: auto;
+  transition: opacity 200ms ease, background 200ms ease, visibility 0s;
+}
+.modal {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 12px; width: 90%; max-width: 420px;
+  max-height: 80vh; overflow-y: auto; box-shadow: var(--shadow);
+  transform: scale(0.95); opacity: 0;
+  transition: transform 250ms var(--ease-out), opacity 200ms ease;
+}
+.modal-overlay.show .modal {
+  transform: scale(1); opacity: 1;
+}
+.modal-header {
+  padding: 14px 20px; border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.modal-header h3 { font-size: 15px; color: var(--text-bright); }
+.modal-close { background: none; border: none; color: var(--text-dim); font-size: 22px; cursor: pointer; }
+.modal-body { padding: 14px 20px; }
+
+.preset-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 12px; border-radius: 6px; cursor: pointer;
+  transition: background 120ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .preset-item:hover { background: var(--bg-input); }
+}
+.preset-item .name { font-weight: 500; color: var(--text-bright); }
+.preset-item .desc { font-size: 11px; color: var(--text-dim); }
+.preset-item .actions { display: flex; gap: 4px; }
+.preset-item .actions button {
+  padding: 4px 10px; font-size: 11px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--text-dim); border-radius: 4px; cursor: pointer;
+  transition: border-color 120ms ease, color 120ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .preset-item .actions button:hover { border-color: var(--accent); color: var(--accent); }
+}
+
+/* 图像放大弹窗 */
+.image-modal {
+  position: fixed; inset: 0; background: rgba(0,0,0,0);
+  z-index: 250;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity 200ms ease, background 200ms ease, visibility 0s 200ms;
+}
+.image-modal.show {
+  background: rgba(0,0,0,0.88);
+  opacity: 1; visibility: visible; pointer-events: auto;
+  transition: opacity 200ms ease, background 200ms ease, visibility 0s;
+}
+.image-modal canvas {
+  max-width: 95vw; max-height: 90vh; border-radius: 8px;
+  transform: scale(0.95); opacity: 0;
+  transition: transform 250ms var(--ease-out), opacity 200ms ease;
+}
+.image-modal.show canvas {
+  transform: scale(1); opacity: 1;
+}
+.image-modal .close-btn {
+  position: absolute; top: 16px; right: 16px;
+  background: rgba(255,255,255,0.1); border: none; color: #fff;
+  font-size: 24px; cursor: pointer; width: 40px; height: 40px; border-radius: 50%;
+}
+
+/* Toast - 用 transition 替代 keyframes，支持快速连续触发 */
+.toast-container {
+  position: fixed; top: 56px; right: 16px; z-index: 300;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.toast {
+  padding: 10px 16px; border-radius: 8px; font-size: 13px; box-shadow: var(--shadow);
+  transform: translateX(0); opacity: 1;
+  transition: transform 300ms var(--ease-out), opacity 200ms ease;
+}
+.toast.entering {
+  transform: translateX(100%); opacity: 0;
+}
+.toast.success { background: #1b5e20; color: var(--success); border: 1px solid #2e7d32; }
+.toast.error { background: #b71c1c33; color: var(--error); border: 1px solid #c62828; }
+.toast.info { background: #0d47a1; color: var(--accent); border: 1px solid #1565c0; }
+
+/* ============================================================
+   手机端适配
+   ============================================================ */
+@media (max-width: 768px) {
+  .main {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto 1fr;
+    overflow: hidden;
+  }
+
+  /* 顶部栏紧凑 */
+  .header { padding: 8px 12px; }
+  .header h1 { font-size: 15px; }
+  .btn { padding: 6px 10px; font-size: 12px; }
+
+  /* 左侧栏 → 顶部网格菜单（2行×N列） */
+  .sidebar {
+    flex-direction: row; flex-wrap: wrap;
+    border-right: none; border-bottom: 1px solid var(--border);
+    overflow: hidden; flex-shrink: 0;
+    padding: 6px; gap: 0;
+  }
+  .sidebar-title { display: none; }
+  #navGroup {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px; width: 100%;
+  }
+  .nav-item {
+    padding: 8px 4px; border-left: none;
+    flex-direction: column; gap: 3px;
+    text-align: center; font-size: 11px;
+    border-radius: 6px; border-bottom: none;
+  }
+  .nav-item.active {
+    background: var(--accent-dim); border-left-color: transparent;
+  }
+  .nav-item .icon { font-size: 20px; }
+  .nav-item .badge { display: none; }
+
+  /* 图像预览区 */
+  .preview-area {
+    height: 35vw; flex-shrink: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .preview-area canvas { width: 100%; height: 100%; object-fit: contain; }
+  .preview-label { display: none; }
+  .preview-controls button { padding: 3px 8px; font-size: 11px; }
+
+  /* 参数区 */
+  .param-area {
+    padding: 10px 12px; overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .param-group-header { gap: 8px; padding-bottom: 6px; margin-bottom: 2px; }
+  .param-group-header .icon { font-size: 18px; }
+  .param-group-header h2 { font-size: 14px; }
+  .param-group-header .desc { display: none; }
+
+  /* 参数行 */
+  .param-row { flex-wrap: wrap; gap: 6px; padding: 8px 0; border-bottom: 1px solid #1a1a2e; }
+  .param-label { min-width: 100%; font-size: 13px; }
+  .param-label .hint { display: inline; margin-left: 6px; font-size: 11px; }
+  .param-controls { width: 100%; gap: 6px; }
+
+  .adj-btn { width: 40px; height: 40px; font-size: 18px; }
+  .num-input { width: 68px; height: 40px; font-size: 16px; }
+  input[type="range"] { height: 8px; }
+  input[type="range"]::-webkit-slider-thumb { width: 24px; height: 24px; }
+  .slider-wrap { height: 40px; }
+
+  .toggle-switch { width: 54px; height: 30px; }
+  .toggle-slider { border-radius: 15px; }
+  .toggle-slider::before { width: 24px; height: 24px; }
+  .toggle-switch input:checked + .toggle-slider::before { transform: translateX(24px); }
+
+  /* 偏移量 Tab */
+  .offset-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .offset-tab { padding: 8px 14px; font-size: 12px; }
+  .offset-dart-row { padding: 6px 0; gap: 8px; }
+  .offset-dart-label { min-width: 56px; font-size: 12px; }
+  .offset-dart-controls .adj-btn { width: 36px; height: 36px; }
+  .offset-dart-controls .num-input { width: 60px; height: 36px; font-size: 14px; }
+
+  .modal { width: 95%; }
+  .toast-container { top: 48px; right: 8px; }
+  .toast { font-size: 12px; padding: 8px 12px; }
+}
+
+/* ============================================================
+   无障碍：减少动画
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- 顶部导航 -->
+<div class="header">
+  <div class="header-left">
+    <div class="status-dot" id="statusDot"></div>
+    <h1>飞镖调参系统</h1>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-secondary" onclick="showPresetModal()">预设</button>
+    <button class="btn btn-primary" onclick="saveParams()">保存配置</button>
+  </div>
+</div>
+
+<!-- 主布局 -->
+<div class="main">
+  <!-- 左侧一级菜单 -->
+  <div class="sidebar">
+    <div class="sidebar-title">参数分组</div>
+    <div id="navGroup"></div>
+  </div>
+
+  <!-- 右侧：图像 + 参数 -->
+  <div class="right-panel">
+    <div class="preview-area" onclick="showImageModal()">
+      <canvas id="previewCanvas" width="640" height="360"></canvas>
+      <div class="preview-controls">
+        <button class="active" onclick="event.stopPropagation();switchPreview('image')">原图</button>
+        <button onclick="event.stopPropagation();switchPreview('mask')">Mask</button>
+      </div>
+      <div class="preview-label">点击放大</div>
+    </div>
+    <div class="param-area" id="paramArea"></div>
+  </div>
+</div>
+
+<!-- 预设弹窗 -->
+<div class="modal-overlay" id="presetModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>预设配置</h3>
+      <button class="modal-close" onclick="hidePresetModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="presetList"></div>
+  </div>
+</div>
+
+<!-- 图像放大弹窗 -->
+<div class="image-modal" id="imageModal">
+  <button class="close-btn" onclick="hideImageModal()">&times;</button>
+  <canvas id="imageCanvas"></canvas>
+</div>
+
+<!-- Toast -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+/* ============================================================
+   全局状态
+   ============================================================ */
+let schema = null;
+let paramValues = {};
+let modifiedParams = {};
+let currentPreview = 'image';
+let currentGroup = null;
+let currentOffsetTab = '0';
+
+/* ============================================================
+   初始化（支持无后端预览）
+   ============================================================ */
+async function init() {
+  if (hasBackend) {
+    try {
+      const [schemaRes, paramsRes] = await Promise.all([
+        fetch('/api/schema'), fetch('/api/params'),
+      ]);
+      schema = await schemaRes.json();
+      paramValues = await paramsRes.json();
+    } catch(e) {
+      console.warn('后端不可用，使用演示数据');
+      hasBackend = false;
+    }
+  }
+
+  if (!hasBackend) {
+    schema = getDemoSchema();
+    paramValues = getDemoParams();
+    document.getElementById('statusDot').style.background = '#888';
+  }
+
+  renderNav();
+  if (schema.groups.length > 0) selectGroup(schema.groups[0].id);
+
+  // 设置 WebSocket 事件（仅在有后端时）
+  if (hasBackend && socket) {
+    socket.on('connect', () => {
+      document.getElementById('statusDot').classList.add('connected');
+      toast('已连接', 'success');
+    });
+    socket.on('disconnect', () => {
+      document.getElementById('statusDot').classList.remove('connected');
+      toast('连接断开', 'error');
+    });
+    socket.on('param_changed', (data) => {
+      paramValues[data.name] = data.value;
+      updateParamUI(data.name, data.value);
+      delete modifiedParams[data.name];
+      updateModifiedUI(data.name);
+    });
+    socket.on('image_frame', (data) => drawPreview(data.topic, data.data));
+  }
+}
+
+/* 演示数据 */
+function getDemoSchema() {
+  return { groups: [
+    { id:'hsv', label:'HSV 颜色阈值', icon:'🎨', desc:'目标颜色筛选', params:[
+      {name:'h_min',type:'int',min:0,max:180,step:1,default:35,label:'色相下限',desc:'',node:'dart'},
+      {name:'h_max',type:'int',min:0,max:180,step:1,default:80,label:'色相上限',desc:'',node:'dart'},
+      {name:'s_min',type:'int',min:0,max:255,step:1,default:70,label:'饱和度下限',desc:'',node:'dart'},
+      {name:'s_max',type:'int',min:0,max:255,step:1,default:255,label:'饱和度上限',desc:'',node:'dart'},
+      {name:'v_min',type:'int',min:0,max:255,step:1,default:50,label:'明度下限',desc:'',node:'dart'},
+      {name:'v_max',type:'int',min:0,max:255,step:1,default:255,label:'明度上限',desc:'',node:'dart'},
+    ]},
+    { id:'morphology', label:'形态学处理', icon:'🔧', desc:'去噪', params:[
+      {name:'morph_kernel_size',type:'int',min:1,max:21,step:2,default:3,label:'开运算核大小',desc:'必须奇数',node:'dart'},
+      {name:'morph_dilate_kernel_size',type:'int',min:1,max:21,step:2,default:5,label:'膨胀核大小',desc:'必须奇数',node:'dart'},
+    ]},
+    { id:'target', label:'目标筛选', icon:'🎯', desc:'面积过滤', params:[
+      {name:'max_area',type:'float',min:1,max:1000,step:1,default:130,label:'最大面积',desc:'',node:'dart'},
+      {name:'circle_mask',type:'bool',min:0,max:1,step:1,default:true,label:'圆形匹配',desc:'',node:'dart'},
+    ]},
+    { id:'coordinate', label:'坐标偏移', icon:'📐', desc:'瞄准偏移', params:[
+      {name:'p_err',type:'float',min:0.1,max:50,step:0.1,default:8,label:'误差系数',desc:'',node:'dart'},
+      {name:'offset_y',type:'float',min:-100,max:100,step:0.5,default:0,label:'Y方向偏移',desc:'',node:'dart'},
+      {name:'offset_0_0',type:'float',min:-100,max:100,step:0.5,default:35,label:'无目标·飞镖0',desc:'',node:'dart'},
+      {name:'offset_0_1',type:'float',min:-100,max:100,step:0.5,default:35,label:'',desc:'',node:'dart'},
+      {name:'offset_0_2',type:'float',min:-100,max:100,step:0.5,default:35,label:'',desc:'',node:'dart'},
+      {name:'offset_0_3',type:'float',min:-100,max:100,step:0.5,default:35,label:'',desc:'',node:'dart'},
+      {name:'offset_1_0',type:'float',min:-100,max:100,step:0.5,default:35,label:'前哨站·飞镖0',desc:'',node:'dart'},
+      {name:'offset_1_1',type:'float',min:-100,max:100,step:0.5,default:35,label:'',desc:'',node:'dart'},
+      {name:'offset_1_2',type:'float',min:-100,max:100,step:0.5,default:35,label:'',desc:'',node:'dart'},
+      {name:'offset_1_3',type:'float',min:-100,max:100,step:0.5,default:35,label:'',desc:'',node:'dart'},
+      {name:'offset_2_0',type:'float',min:-100,max:100,step:0.5,default:12,label:'基地·飞镖0',desc:'',node:'dart'},
+      {name:'offset_2_1',type:'float',min:-100,max:100,step:0.5,default:29,label:'',desc:'',node:'dart'},
+      {name:'offset_2_2',type:'float',min:-100,max:100,step:0.5,default:34,label:'',desc:'',node:'dart'},
+      {name:'offset_2_3',type:'float',min:-100,max:100,step:0.5,default:30,label:'',desc:'',node:'dart'},
+    ]},
+    { id:'camera', label:'相机参数', icon:'📷', desc:'曝光增益', params:[
+      {name:'exposure_time',type:'int',min:1,max:100000,step:100,default:300,label:'曝光时间(μs)',desc:'',node:'hik'},
+      {name:'gain',type:'float',min:0,max:100,step:0.1,default:0,label:'增益',desc:'',node:'hik'},
+    ]},
+    { id:'model', label:'模型检测', icon:'🤖', desc:'ONNX推理', params:[
+      {name:'use_model',type:'bool',min:0,max:1,step:1,default:false,label:'启用模型检测',desc:'',node:'dart'},
+      {name:'conf_threshold',type:'float',min:0,max:1,step:0.01,default:0.5,label:'置信度',desc:'',node:'dart'},
+      {name:'nms_threshold',type:'float',min:0,max:1,step:0.01,default:0.45,label:'NMS阈值',desc:'',node:'dart'},
+    ]},
+    { id:'system', label:'系统设置', icon:'⚙️', desc:'裁剪串口', params:[
+      {name:'crop_width',type:'int',min:320,max:1920,step:16,default:1024,label:'裁剪宽度',desc:'',node:'dart'},
+      {name:'crop_height',type:'int',min:240,max:1080,step:16,default:480,label:'裁剪高度',desc:'',node:'dart'},
+      {name:'use_serial',type:'bool',min:0,max:1,step:1,default:true,label:'启用串口',desc:'',node:'dart'},
+      {name:'publish_debug_image',type:'bool',min:0,max:1,step:1,default:true,label:'发布调试图像',desc:'',node:'dart'},
+    ]},
+  ]};
+}
+function getDemoParams() {
+  return { h_min:35,h_max:80,s_min:70,s_max:255,v_min:50,v_max:255,
+    morph_kernel_size:3,morph_dilate_kernel_size:5,max_area:130,circle_mask:true,
+    p_err:8,offset_y:0,offset_0_0:35,offset_0_1:35,offset_0_2:35,offset_0_3:35,
+    offset_1_0:35,offset_1_1:35,offset_1_2:35,offset_1_3:35,
+    offset_2_0:12,offset_2_1:29,offset_2_2:34,offset_2_3:30,
+    exposure_time:300,gain:0,use_model:false,conf_threshold:0.5,nms_threshold:0.45,
+    crop_width:1024,crop_height:480,use_serial:true,publish_debug_image:true };
+}
+
+/* ============================================================
+   导航渲染
+   ============================================================ */
+function renderNav() {
+  document.getElementById('navGroup').innerHTML = schema.groups.map(g => `
+    <div class="nav-item" data-group="${g.id}" onclick="selectGroup('${g.id}')">
+      <span class="icon">${g.icon}</span>
+      <span>${g.label}</span>
+      <span class="badge">${g.params.length}</span>
+    </div>
+  `).join('');
+}
+
+/* ============================================================
+   选中分组 → 渲染右侧（带淡入过渡）
+   ============================================================ */
+function selectGroup(groupId) {
+  if (groupId === currentGroup) return;
+  currentGroup = groupId;
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.group === groupId);
+  });
+  const area = document.getElementById('paramArea');
+  area.classList.add('fade-out');
+  setTimeout(() => {
+    renderGroupContent(groupId);
+    area.classList.remove('fade-out');
+  }, 120);
+}
+
+function renderGroupContent(groupId) {
+  const group = schema.groups.find(g => g.id === groupId);
+  if (!group) return;
+  const area = document.getElementById('paramArea');
+  if (groupId === 'coordinate') {
+    area.innerHTML = renderCoordinateGroup(group);
+  } else {
+    area.innerHTML = `
+      <div class="param-group-header">
+        <span class="icon">${group.icon}</span>
+        <h2>${group.label}</h2>
+        <span class="desc">${group.desc}</span>
+      </div>
+      ${group.params.map(p => renderParamRow(p)).join('')}
+    `;
+  }
+}
+
+/* ============================================================
+   坐标偏移 - Tab 卡片布局
+   ============================================================ */
+const OFFSET_TARGETS = [
+  { prefix: '0', label: '无目标', icon: '⬜' },
+  { prefix: '1', label: '前哨站', icon: '🔶' },
+  { prefix: '2', label: '基地',   icon: '🔷' },
+];
+
+function renderCoordinateGroup(group) {
+  const pErr = group.params.find(p => p.name === 'p_err');
+  const offsetY = group.params.find(p => p.name === 'offset_y');
+
+  const tabsHtml = OFFSET_TARGETS.map(t =>
+    `<div class="offset-tab ${t.prefix === currentOffsetTab ? 'active' : ''}"
+          data-target="${t.prefix}"
+          onclick="switchOffsetTab('${t.prefix}')">${t.icon} ${t.label}</div>`
+  ).join('');
+
+  const panelsHtml = OFFSET_TARGETS.map(t => {
+    const darts = group.params.filter(p => p.name.startsWith(`offset_${t.prefix}_`));
+    return `
+      <div class="offset-panel ${t.prefix === currentOffsetTab ? 'active' : ''}"
+           id="offset-panel-${t.prefix}">
+        ${darts.map((p, i) => {
+          const val = paramValues[p.name] ?? p.default;
+          const step = p.step || 0.5;
+          return `
+            <div class="offset-dart-row" data-param="${p.name}">
+              <div class="offset-dart-label">飞镖 ${i}</div>
+              <div class="offset-dart-controls">
+                <button class="adj-btn" onclick="adjustParam('${p.name}', -${step})">◀</button>
+                <div class="slider-wrap">
+                  <input type="range" id="slider-${p.name}"
+                         min="${p.min}" max="${p.max}" step="${step}" value="${val}"
+                         oninput="onSliderInput('${p.name}', this.value)">
+                </div>
+                <button class="adj-btn" onclick="adjustParam('${p.name}', ${step})">▶</button>
+                <input type="number" class="num-input" id="input-${p.name}"
+                       min="${p.min}" max="${p.max}" step="${step}"
+                       value="${parseFloat(val).toFixed(1)}"
+                       onchange="onInputChange('${p.name}', this.value)"
+                       onkeydown="if(event.key==='Enter')this.blur()">
+              </div>
+            </div>`;
+        }).join('')}
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="param-group-header">
+      <span class="icon">${group.icon}</span>
+      <h2>${group.label}</h2>
+      <span class="desc">${group.desc}</span>
+    </div>
+
+    ${pErr ? renderParamRow(pErr) : ''}
+    ${offsetY ? renderParamRow(offsetY) : ''}
+
+    <div style="margin-top:8px">
+      <div class="offset-tabs">${tabsHtml}</div>
+      ${panelsHtml}
+    </div>
+  `;
+}
+
+function switchOffsetTab(prefix) {
+  if (prefix === currentOffsetTab) return;
+  currentOffsetTab = prefix;
+  document.querySelectorAll('.offset-tab').forEach(el => {
+    el.classList.toggle('active', el.dataset.target === prefix);
+  });
+  // 淡入切换
+  const panels = document.querySelectorAll('.offset-panel');
+  panels.forEach(el => el.classList.remove('active'));
+  setTimeout(() => {
+    const target = document.getElementById(`offset-panel-${prefix}`);
+    if (target) target.classList.add('active');
+  }, 60);
+}
+
+/* ============================================================
+   参数行渲染（通用）
+   ============================================================ */
+function renderParamRow(p) {
+  const val = paramValues[p.name] ?? p.default;
+
+  if (p.type === 'bool') {
+    return `
+      <div class="param-row" data-param="${p.name}">
+        <div class="param-label">
+          <div>${p.label}</div>
+          ${p.desc ? `<div class="hint">${p.desc}</div>` : ''}
+        </div>
+        <div class="param-controls">
+          <label class="toggle-switch">
+            <input type="checkbox" ${val ? 'checked' : ''}
+                   onchange="setParam('${p.name}', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label">${val ? '开启' : '关闭'}</span>
+        </div>
+      </div>`;
+  }
+
+  const step = p.step || (p.type === 'float' ? 0.1 : 1);
+  const displayVal = p.type === 'float' ? parseFloat(val).toFixed(1) : val;
+
+  return `
+    <div class="param-row" data-param="${p.name}">
+      <div class="param-label">
+        <div>${p.label}</div>
+        ${p.desc ? `<div class="hint">${p.desc}</div>` : ''}
+      </div>
+      <div class="param-controls">
+        <button class="adj-btn" onclick="adjustParam('${p.name}', -${step})">◀</button>
+        <div class="slider-wrap">
+          <input type="range" id="slider-${p.name}"
+                 min="${p.min}" max="${p.max}" step="${step}" value="${val}"
+                 oninput="onSliderInput('${p.name}', this.value)">
+        </div>
+        <button class="adj-btn" onclick="adjustParam('${p.name}', ${step})">▶</button>
+        <input type="number" class="num-input" id="input-${p.name}"
+               min="${p.min}" max="${p.max}" step="${step}" value="${displayVal}"
+               onchange="onInputChange('${p.name}', this.value)"
+               onkeydown="if(event.key==='Enter')this.blur()">
+      </div>
+    </div>`;
+}
+
+/* ============================================================
+   参数操作
+   ============================================================ */
+function setParam(name, value) {
+  paramValues[name] = value;
+  modifiedParams[name] = value;
+  if (hasBackend && socket) socket.emit('set_param', { name, value });
+  updateModifiedUI(name);
+  const row = document.querySelector(`[data-param="${name}"]`);
+  if (row) { const l = row.querySelector('.toggle-label'); if (l) l.textContent = value ? '开启' : '关闭'; }
+}
+
+function onSliderInput(name, value) {
+  const p = findParam(name);
+  const v = p.type === 'float' ? parseFloat(value) : parseInt(value);
+  const inp = document.getElementById(`input-${name}`);
+  if (inp) inp.value = p.type === 'float' ? v.toFixed(1) : v;
+  paramValues[name] = v; modifiedParams[name] = v;
+  if (hasBackend && socket) socket.emit('set_param', { name, value: v });
+  updateModifiedUI(name);
+}
+
+function onInputChange(name, value) {
+  const p = findParam(name);
+  let v = p.type === 'float' ? parseFloat(value) : parseInt(value);
+  v = Math.max(p.min, Math.min(p.max, v));
+  const sl = document.getElementById(`slider-${name}`);
+  if (sl) sl.value = v;
+  const inp = document.getElementById(`input-${name}`);
+  if (inp) inp.value = p.type === 'float' ? v.toFixed(1) : v;
+  paramValues[name] = v; modifiedParams[name] = v;
+  if (hasBackend && socket) socket.emit('set_param', { name, value: v });
+  updateModifiedUI(name);
+}
+
+function adjustParam(name, delta) {
+  const p = findParam(name);
+  const cur = paramValues[name] ?? p.default;
+  let v = Math.max(p.min, Math.min(p.max, cur + delta));
+  if (p.type === 'float') v = Math.round(v * 10) / 10;
+  paramValues[name] = v; modifiedParams[name] = v;
+  const sl = document.getElementById(`slider-${name}`);
+  if (sl) sl.value = v;
+  const inp = document.getElementById(`input-${name}`);
+  if (inp) inp.value = p.type === 'float' ? v.toFixed(1) : v;
+  if (hasBackend && socket) socket.emit('set_param', { name, value: v });
+  updateModifiedUI(name);
+}
+
+function findParam(name) {
+  for (const g of schema.groups) for (const p of g.params) if (p.name === name) return p;
+  return null;
+}
+
+/* ============================================================
+   UI 更新
+   ============================================================ */
+function updateParamUI(name, value) {
+  const p = findParam(name);
+  if (!p) return;
+  if (p.type === 'bool') {
+    const row = document.querySelector(`[data-param="${name}"]`);
+    if (row) {
+      const cb = row.querySelector('input[type="checkbox"]');
+      if (cb) cb.checked = value;
+      const l = row.querySelector('.toggle-label');
+      if (l) l.textContent = value ? '开启' : '关闭';
+    }
+  } else {
+    const sl = document.getElementById(`slider-${name}`);
+    if (sl) sl.value = value;
+    const inp = document.getElementById(`input-${name}`);
+    if (inp) inp.value = p.type === 'float' ? parseFloat(value).toFixed(1) : value;
+  }
+}
+
+function updateModifiedUI(name) {
+  const row = document.querySelector(`[data-param="${name}"]`);
+  if (!row) return;
+  const inp = row.querySelector('.num-input');
+  if (inp) inp.classList.toggle('modified', modifiedParams[name] !== undefined);
+}
+
+/* ============================================================
+   图像预览
+   ============================================================ */
+const previewTopics = { 'image': '/dart_debug/image_compressed', 'mask': '/dart_debug/mask_compressed' };
+
+function switchPreview(type) {
+  currentPreview = type;
+  document.querySelectorAll('.preview-controls button').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent === (type === 'image' ? '原图' : 'Mask'));
+  });
+  if (hasBackend && socket) socket.emit('subscribe_image', { topic: previewTopics[type] });
+}
+
+function drawPreview(topic, b64Data) {
+  const canvas = document.getElementById('previewCanvas');
+  const ctx = canvas.getContext('2d');
+  const img = new Image();
+  img.onload = () => {
+    const container = canvas.parentElement;
+    const cw = container.clientWidth;
+    const ch = container.clientHeight;
+    const scale = Math.min(cw / img.width, ch / img.height);
+    const dw = Math.round(img.width * scale);
+    const dh = Math.round(img.height * scale);
+    canvas.width = dw; canvas.height = dh;
+    canvas.style.width = dw + 'px'; canvas.style.height = dh + 'px';
+    ctx.drawImage(img, 0, 0, dw, dh);
+    const bigCanvas = document.getElementById('imageCanvas');
+    if (bigCanvas && document.getElementById('imageModal').classList.contains('show')) {
+      bigCanvas.width = img.width; bigCanvas.height = img.height;
+      bigCanvas.getContext('2d').drawImage(img, 0, 0);
+    }
+  };
+  img.src = 'data:image/jpeg;base64,' + b64Data;
+}
+
+function showImageModal() {
+  document.getElementById('imageModal').classList.add('show');
+  const src = document.getElementById('previewCanvas');
+  const dst = document.getElementById('imageCanvas');
+  dst.width = src.width; dst.height = src.height;
+  dst.getContext('2d').drawImage(src, 0, 0);
+}
+function hideImageModal() { document.getElementById('imageModal').classList.remove('show'); }
+
+/* ============================================================
+   预设管理
+   ============================================================ */
+async function showPresetModal() {
+  if (!hasBackend) { toast('演示模式，无预设', 'info'); return; }
+  document.getElementById('presetModal').classList.add('show');
+  await loadPresets();
+}
+function hidePresetModal() { document.getElementById('presetModal').classList.remove('show'); }
+
+async function loadPresets() {
+  const res = await fetch('/api/presets');
+  const presets = await res.json();
+  document.getElementById('presetList').innerHTML = `
+    <div style="margin-bottom:12px;">
+      <button class="btn btn-primary" style="width:100%" onclick="saveCurrentPreset()">保存当前配置为预设</button>
+    </div>
+    ${presets.map(p => `
+      <div class="preset-item">
+        <div>
+          <div class="name">${p.label || p.name}</div>
+          <div class="desc">${p.desc || ''} ${p.time ? '· ' + p.time : ''}</div>
+        </div>
+        <div class="actions">
+          <button onclick="loadPreset('${p.name}')">加载</button>
+          <button onclick="deletePreset('${p.name}')">删除</button>
+        </div>
+      </div>`).join('')}
+  `;
+}
+
+async function loadPreset(name) {
+  const res = await fetch('/api/presets/load', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+  const data = await res.json();
+  if (data.success) {
+    toast('预设已加载', 'success'); hidePresetModal();
+    paramValues = await (await fetch('/api/params')).json();
+    selectGroup(currentGroup);
+  } else { toast(data.error || '加载失败', 'error'); }
+}
+
+async function saveCurrentPreset() {
+  const name = prompt('预设名称:');
+  if (!name) return;
+  const label = prompt('显示名称（可选）:') || name;
+  const res = await fetch('/api/presets/save', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, label }),
+  });
+  const data = await res.json();
+  if (data.success) { toast('已保存', 'success'); await loadPresets(); }
+  else { toast(data.error || '保存失败', 'error'); }
+}
+
+async function deletePreset(name) {
+  if (!confirm(`确定删除 "${name}"？`)) return;
+  await fetch('/api/presets/delete', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+  toast('已删除', 'info'); await loadPresets();
+}
+
+/* ============================================================
+   保存参数
+   ============================================================ */
+async function saveParams() {
+  if (!hasBackend) { toast('演示模式，无法保存', 'error'); return; }
+  const res = await fetch('/api/params/save', { method: 'POST' });
+  const data = await res.json();
+  if (data.success) {
+    modifiedParams = {};
+    document.querySelectorAll('.num-input.modified').forEach(el => el.classList.remove('modified'));
+    toast('已保存到配置文件', 'success');
+  } else { toast(data.error || '保存失败', 'error'); }
+}
+
+/* ============================================================
+   Toast
+   ============================================================ */
+function toast(msg, type = 'info') {
+  const c = document.getElementById('toastContainer');
+  const el = document.createElement('div');
+  el.className = `toast entering ${type}`;
+  el.textContent = msg;
+  c.appendChild(el);
+  // 下一帧移除 entering 触发 transition
+  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.remove('entering')));
+  setTimeout(() => {
+    el.classList.add('entering');
+    setTimeout(() => el.remove(), 300);
+  }, 2200);
+}
+
+/* ============================================================
+   启动 + 窗口适配
+   ============================================================ */
+/* 动态加载 socket.io-client 4.x（与 python-engineio 4.14 的 EIO=4 协议对齐）
+   优先从本地 vendor 加载（离线可用），失败回落到 CDN。 */
+(function loadSocketIO() {
+  const tryLoad = (src, onFail) => {
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = function() { initSocket(); init(); };
+    s.onerror = function() { if (onFail) onFail(); };
+    document.head.appendChild(s);
+  };
+  // 本地 vendor 优先（symlink-install 下与源码同步）
+  tryLoad('vendor/socket.io.min.js', function() {
+    console.warn('本地 vendor 加载失败，尝试 CDN');
+    tryLoad('https://cdn.jsdelivr.net/npm/socket.io-client@4.7.5/dist/socket.io.min.js', function() {
+      console.warn('CDN 加载失败，进入纯预览模式');
+      init();
+    });
+  });
+})();
+
+let _resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(() => {
+    const canvas = document.getElementById('previewCanvas');
+    if (canvas.width > 1) {
+      const tmp = document.createElement('canvas');
+      tmp.width = canvas.width; tmp.height = canvas.height;
+      tmp.getContext('2d').drawImage(canvas, 0, 0);
+      const container = canvas.parentElement;
+      const scale = Math.min(container.clientWidth / tmp.width, container.clientHeight / tmp.height);
+      canvas.width = Math.round(tmp.width * scale);
+      canvas.height = Math.round(tmp.height * scale);
+      canvas.style.width = canvas.width + 'px';
+      canvas.style.height = canvas.height + 'px';
+      canvas.getContext('2d').drawImage(tmp, 0, 0, canvas.width, canvas.height);
+    }
+  }, 200);
+});
+</script>
+</body>
+</html>

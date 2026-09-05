@@ -1,0 +1,8 @@
+_label: 调试模式
+_desc: 关闭串口，开启全部调试输出
+_time: "2025-01-01 00:00:00"
+
+use_serial: false
+publish_debug_image: true
+publish_compressed: true
+publish_compressed_mask: true
