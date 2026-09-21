@@ -23,8 +23,12 @@ bool ModelDetector::loadModel(const ModelParams& params) {
     }
 
     try {
-        // 根据文件扩展名选择加载方式
-        std::string ext = params_.model_path.substr(params_.model_path.rfind('.'));
+        // 根据文件扩展名选择加载方式（无 '.' 时 rfind 返回 npos，substr 会抛 out_of_range）
+        std::string ext;
+        const size_t dot_pos = params_.model_path.rfind('.');
+        if (dot_pos != std::string::npos) {
+            ext = params_.model_path.substr(dot_pos);
+        }
         if (ext == ".onnx") {
             net_ = cv::dnn::readNetFromONNX(params_.model_path);
         } else if (ext == ".caffemodel" || ext == ".prototxt") {
@@ -46,14 +50,12 @@ bool ModelDetector::loadModel(const ModelParams& params) {
         infer_thread_ = std::thread(&ModelDetector::inferenceLoop, this);
 
         return true;
-    } catch (const cv::Exception& e) {
+    } catch (const std::exception&) {
+        // 模型路径非法/文件损坏/格式不支持等一律视为加载失败，
+        // 不能把异常抛到节点构造函数里（会直接终止进程）
         model_loaded_ = false;
         return false;
     }
-}
-
-void ModelDetector::setClassNames(const std::vector<std::string>& names) {
-    class_names_ = names;
 }
 
 bool ModelDetector::isReady() const {
@@ -206,7 +208,6 @@ std::vector<TargetInfo> ModelDetector::postprocess(const cv::Mat& output, int im
             std::round((cy * scale_y) * 100.0f) / 100.0f
         );
         info.area = bbox.area();
-        info.score = conf;
         info.class_id = class_id;
         info.confidence = conf;
         info.bbox = bbox;

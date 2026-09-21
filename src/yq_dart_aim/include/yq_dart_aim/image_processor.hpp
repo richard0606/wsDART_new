@@ -18,15 +18,11 @@ struct ImageProcessParams {
     int v_max = defaults::V_MAX;
     int morph_kernel_size = defaults::MORPH_KERNEL_SIZE;
     int morph_dilate_kernel_size = defaults::MORPH_DILATE_KERNEL_SIZE;
-    bool circle_mask = defaults::CIRCLE_MASK;
 };
 
 class ImageProcessor {
 public:
     ImageProcessor() = default;
-
-    // 处理图像：裁剪 -> HSV -> 二值化 -> 形态学
-    cv::Mat process(const cv::Mat& input, const ImageProcessParams& params);
 
     // 处理已裁剪的图像（跳过裁剪步骤）
     cv::Mat processCropped(const cv::Mat& cropped, const ImageProcessParams& params);

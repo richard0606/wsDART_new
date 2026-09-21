@@ -32,12 +32,6 @@ cv::Mat ImageProcessor::processCropped(const cv::Mat& cropped, const ImageProces
     return mask;
 }
 
-cv::Mat ImageProcessor::process(const cv::Mat& input, const ImageProcessParams& params) {
-    // 裁剪中心区域
-    cv::Mat cropped = cropCenter(input, params.crop_width, params.crop_height);
-    return processCropped(cropped, params);
-}
-
 cv::Mat ImageProcessor::applyMorphology(const cv::Mat& mask, int open_size, int dilate_size) {
     cv::Mat result = mask;
 

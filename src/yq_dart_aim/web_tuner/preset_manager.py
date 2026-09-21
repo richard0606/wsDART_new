@@ -93,7 +93,6 @@ class PresetManager:
                 "morph_kernel_size": 3,
                 "morph_dilate_kernel_size": 5,
                 "max_area": 130.0,
-                "circle_mask": True,
                 "p_err": 8.0,
                 "offset_y": 0.0,
                 "use_serial": True,

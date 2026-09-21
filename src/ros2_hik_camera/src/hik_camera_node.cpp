@@ -155,7 +155,14 @@ namespace hik_camera {
             result.successful = true;
             for (const auto &param: parameters) {
                 if (param.get_name() == "exposure_time") {
-                    int status = MV_CC_SetFloatValue(camera_handle_, "ExposureTime", param.as_int());
+                    // exposure_time 按 double 声明，但 web 调参/CLI 可能下发整数，
+                    // 直接 as_int() 在值为 double 时会抛 InvalidParameterTypeException，
+                    // 异常穿透参数回调会直接终止节点，所以两种类型都要接受
+                    const double exposure_time =
+                            param.get_type() == rclcpp::ParameterType::PARAMETER_INTEGER
+                            ? static_cast<double>(param.as_int())
+                            : param.as_double();
+                    int status = MV_CC_SetFloatValue(camera_handle_, "ExposureTime", exposure_time);
                     if (MV_OK != status) {
                         result.successful = false;
                         result.reason = "Failed to set exposure time, status = " + std::to_string(status);

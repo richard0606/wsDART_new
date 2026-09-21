@@ -16,7 +16,6 @@ morph_dilate_kernel_size: 5
 
 # 目标筛选
 max_area: 130.0
-circle_mask: true
 
 # 坐标偏移
 p_err: 8.0

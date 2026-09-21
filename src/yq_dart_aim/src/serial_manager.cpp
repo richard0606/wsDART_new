@@ -3,6 +3,7 @@
 #include <termios.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <poll.h>
 #include <dirent.h>
 #include <cerrno>
 #include <cstring>
@@ -139,14 +140,25 @@ void SerialManager::startMonitoring() {
                 for (auto& kv : serial_ports_) {
                     SerialPortState& port = kv.second;
                     if (port.fd < 0) continue;
+                    // 先探测可读性再读：VMIN=1/VTIME=10 时 VTIME 只在收到首字节后才开始计时，
+                    // 对端静默时 read() 会无限期阻塞，而这里持着 mutex_，
+                    // 会导致 send()/getReceivedData()/超时重连线程全部卡死
+                    struct pollfd pfd{};
+                    pfd.fd = port.fd;
+                    pfd.events = POLLIN;
+                    if (poll(&pfd, 1, 0) <= 0) continue;
+                    if (!(pfd.revents & POLLIN)) continue;
+                    // poll 已确认有数据，read 不会阻塞
                     ssize_t n = read(port.fd, buf, sizeof(buf));
                     if (n > 0) {
-                        // 记录 hex 串用于调试
-                        char hex_str[512];
+                        // 记录 hex 串用于调试（每字节 3 字符 "XX "，末尾需留 NUL）
+                        char hex_str[3 * 256 + 1];
+                        const int hex_cap = static_cast<int>(sizeof(hex_str)) - 1;
                         int offset = 0;
-                        for (ssize_t i = 0; i < n && i < 256; i++) {
+                        for (ssize_t i = 0; i < n && i < 256 && offset + 3 <= hex_cap; i++) {
                             offset += snprintf(hex_str + offset, sizeof(hex_str) - offset, "%02X ", buf[i]);
                         }
+                        hex_str[offset] = '\0';
                         last_rx_hex_ = hex_str;
 
                         for (ssize_t i = 0; i < n; i++) {
