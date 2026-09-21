@@ -45,8 +45,6 @@ namespace defaults {
     // 目标筛选
     constexpr double MIN_AREA = 4.0;
     constexpr double MAX_AREA = 130.0;
-    constexpr float TARGET_RADIUS_PX = 4.0f;
-    constexpr float TARGET_HEIGHT_PX = 140.0f;
 
     // 坐标计算
     constexpr double P_ERR = 8.0;
@@ -57,7 +55,6 @@ namespace defaults {
     constexpr bool PUBLISH_DEBUG_IMAGE = true;
     constexpr bool PUBLISH_COMPRESSED = true;
     constexpr bool PUBLISH_COMPRESSED_MASK = true;
-    constexpr bool CIRCLE_MASK = true;
 }
 
 }  // namespace yq_dart_aim

@@ -33,7 +33,6 @@ public:
     // ==================== ROS 接口 ====================
     debug_pub_ = this->create_publisher<geometry_msgs::msg::Point>("/dart_debug", 10);
     debug_image_pub_ = this->create_publisher<sensor_msgs::msg::Image>("/dart_debug/image", 10);
-    mask_pub_ = this->create_publisher<sensor_msgs::msg::Image>("/dart_debug/mask", 10);
     compressed_image_pub_ = this->create_publisher<sensor_msgs::msg::CompressedImage>("/dart_debug/image_compressed", 10);
     compressed_mask_pub_ = this->create_publisher<sensor_msgs::msg::CompressedImage>("/dart_debug/mask_compressed", 10);
     serial_pub_ = this->create_publisher<std_msgs::msg::Float32MultiArray>("/serial", 10);
@@ -157,7 +156,6 @@ private:
     if (!this->has_parameter("crop_height")) this->declare_parameter("crop_height", yq_dart_aim::defaults::CROP_HEIGHT);
 
     // 目标筛选
-    if (!this->has_parameter("circle_mask")) this->declare_parameter("circle_mask", yq_dart_aim::defaults::CIRCLE_MASK);
     if (!this->has_parameter("p_err")) this->declare_parameter("p_err", yq_dart_aim::defaults::P_ERR);
     if (!this->has_parameter("morph_kernel_size")) this->declare_parameter("morph_kernel_size", yq_dart_aim::defaults::MORPH_KERNEL_SIZE);
     if (!this->has_parameter("morph_dilate_kernel_size")) this->declare_parameter("morph_dilate_kernel_size", yq_dart_aim::defaults::MORPH_DILATE_KERNEL_SIZE);
@@ -206,11 +204,9 @@ private:
     image_params_.v_max = this->get_parameter("v_max").as_int();
     image_params_.morph_kernel_size = this->get_parameter("morph_kernel_size").as_int();
     image_params_.morph_dilate_kernel_size = this->get_parameter("morph_dilate_kernel_size").as_int();
-    image_params_.circle_mask = this->get_parameter("circle_mask").as_bool();
 
     // 目标检测参数
     detect_params_.max_area = this->get_parameter("max_area").as_double();
-    detect_params_.circle_mask = image_params_.circle_mask;
 
     // 坐标计算参数
     calc_params_.p_err = this->get_parameter("p_err").as_double();
@@ -246,9 +242,6 @@ private:
       if (p.get_name() == "image_topic") {
         createImageSubscription(p.as_string());
         RCLCPP_INFO(this->get_logger(), "image subscription changed to %s", p.as_string().c_str());
-      } else if (p.get_name() == "circle_mask") {
-        image_params_.circle_mask = p.as_bool();
-        detect_params_.circle_mask = p.as_bool();
       } else if (p.get_name() == "crop_width") {
         image_params_.crop_width = p.as_int();
       } else if (p.get_name() == "crop_height") {
@@ -383,7 +376,8 @@ private:
     }
     if (targets.size() >= 1) startup_done_ = true;
 
-    // 坐标计算
+    // 坐标计算：瞄准中心 = 图像中心 + 偏移补偿
+    // （全流程只有这一处施加偏移，CoordinateCalculator::calculate() 内部不再叠加）
     cv::Point center_img(cx + static_cast<int>(coord_calculator_.getCurrentOffsetX()),
                          cy + static_cast<int>(calc_params_.offset_y));
 
@@ -570,7 +564,6 @@ private:
   // ROS 接口
   rclcpp::Publisher<geometry_msgs::msg::Point>::SharedPtr debug_pub_;
   rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr debug_image_pub_;
-  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr mask_pub_;
   rclcpp::Publisher<sensor_msgs::msg::CompressedImage>::SharedPtr compressed_image_pub_;
   rclcpp::Publisher<sensor_msgs::msg::CompressedImage>::SharedPtr compressed_mask_pub_;
   rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr image_sub_;

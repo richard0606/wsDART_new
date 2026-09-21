@@ -617,7 +617,12 @@ async function init() {
       delete modifiedParams[data.name];
       updateModifiedUI(data.name);
     });
-    socket.on('image_frame', (data) => drawPreview(data.topic, data.data));
+    // 服务端会把「原图」和「mask」两路都推过来，这里必须按当前选中项过滤，
+    // 否则同一个画布会被两路画面交替覆盖
+    socket.on('image_frame', (data) => {
+      if (data.topic !== previewTopics[currentPreview]) return;
+      drawPreview(data.topic, data.data);
+    });
   }
 }
 
@@ -638,7 +643,6 @@ function getDemoSchema() {
     ]},
     { id:'target', label:'目标筛选', icon:'🎯', desc:'面积过滤', params:[
       {name:'max_area',type:'float',min:1,max:1000,step:1,default:130,label:'最大面积',desc:'',node:'dart'},
-      {name:'circle_mask',type:'bool',min:0,max:1,step:1,default:true,label:'圆形匹配',desc:'',node:'dart'},
     ]},
     { id:'coordinate', label:'坐标偏移', icon:'📐', desc:'瞄准偏移', params:[
       {name:'p_err',type:'float',min:0.1,max:50,step:0.1,default:8,label:'误差系数',desc:'',node:'dart'},
@@ -675,7 +679,7 @@ function getDemoSchema() {
 }
 function getDemoParams() {
   return { h_min:35,h_max:80,s_min:70,s_max:255,v_min:50,v_max:255,
-    morph_kernel_size:3,morph_dilate_kernel_size:5,max_area:130,circle_mask:true,
+    morph_kernel_size:3,morph_dilate_kernel_size:5,max_area:130,
     p_err:8,offset_y:0,offset_0_0:35,offset_0_1:35,offset_0_2:35,offset_0_3:35,
     offset_1_0:35,offset_1_1:35,offset_1_2:35,offset_1_3:35,
     offset_2_0:12,offset_2_1:29,offset_2_2:34,offset_2_3:30,
@@ -1029,7 +1033,8 @@ async function loadPreset(name) {
   if (data.success) {
     toast('预设已加载', 'success'); hidePresetModal();
     paramValues = await (await fetch('/api/params')).json();
-    selectGroup(currentGroup);
+    // 用 renderGroupContent：selectGroup 在 groupId === currentGroup 时会提前返回，刷不出新值
+    renderGroupContent(currentGroup);
   } else { toast(data.error || '加载失败', 'error'); }
 }
 

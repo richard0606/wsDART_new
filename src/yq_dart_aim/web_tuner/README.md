@@ -82,7 +82,7 @@ python3 -m http.server 8080
 |------|------|------|
 | HSV 颜色阈值 | h_min/h_max, s_min/s_max, v_min/v_max | 目标颜色筛选 |
 | 形态学处理 | morph_kernel_size, morph_dilate_kernel_size | 去噪、连接断裂区域 |
-| 目标筛选 | max_area, circle_mask | 面积和形状过滤 |
+| 目标筛选 | max_area | 面积过滤 |
 | 坐标偏移 | p_err, offset_y, offset_X_Y (12个) | 瞄准点偏移补偿 |
 | 相机参数 | exposure_time, gain | 曝光和增益（hik_camera 节点） |
 | 模型检测 | use_model, conf_threshold, nms_threshold | ONNX 模型推理 |

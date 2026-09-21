@@ -2,7 +2,6 @@
 #include <opencv2/imgproc.hpp>
 #include <algorithm>
 #include <cmath>
-#include <limits>
 
 namespace yq_dart_aim {
 
@@ -42,21 +41,9 @@ std::vector<TargetInfo> TargetDetector::detect(const cv::Mat& mask, const cv::Ma
         float cy = static_cast<float>(std::round(sum_y / sum_w * 100.0) / 100.0);
         cv::Point2f center(cx, cy);
 
-        // 圆形匹配评分（可选）
-        double score = std::numeric_limits<double>::max();
-        if (params.circle_mask) {
-            cv::Point2f enclosing_center;
-            float enclosing_radius = 0.0f;
-            cv::minEnclosingCircle(c, enclosing_center, enclosing_radius);
-            double radius_diff = std::fabs(static_cast<double>(enclosing_radius - params.target_radius_px));
-            double height_diff = std::fabs(static_cast<double>(rect.height - params.target_height_px));
-            score = radius_diff + height_diff;
-        }
-
         TargetInfo info;
         info.center = center;
         info.area = area;
-        info.score = score;
         info.class_id = -1;       // HSV 模式无类别
         info.confidence = 0.0f;   // HSV 模式无置信度
         info.bbox = rect;
@@ -80,23 +67,33 @@ cv::Point2f TargetDetector::selectTarget(const std::vector<TargetInfo>& targets,
             });
         int idx = (current_target == 2) ? sorted.size() - 1 : 0;
         target = sorted[idx].center;
-        single_target_timeout_active_ = false;  // 重置超时标志
+        // 已经能看到两个目标，启动期的单目标歧义自然解除
+        single_target_timeout_active_ = false;
+        startup_single_target_wait_done_ = true;
     } else if (targets.size() == 1) {
-        // 单目标：仅在启动时等待1秒
-        if (!single_target_timeout_active_ && !startup_single_target_wait_done_) {
-            // 启动时首次检测到单目标，开始等待
-            single_target_timeout_active_ = true;
-            startup_single_target_wait_done_ = true;
-            single_target_start_ = std::chrono::steady_clock::now();
-            target = cv::Point2f(-1, -1);  // 暂不发送数据
-        } else {
-            // 非启动阶段或超时已激活，直接当作基地处理
+        if (startup_single_target_wait_done_) {
+            // 启动期已结束：单目标直接按该目标处理
             target = targets[0].center;
-            single_target_timeout_active_ = false;
+        } else {
+            // 启动期只看到一个目标：等待 SINGLE_TARGET_WAIT_MS，
+            // 给第二个目标（前哨站/基地的另一侧）出现留出时间
+            if (!single_target_timeout_active_) {
+                single_target_timeout_active_ = true;
+                single_target_start_ = std::chrono::steady_clock::now();
+            }
+            // 计时只从首次检测到单目标开始，中途目标丢失也不重新计时，保证等待时长有界
+            const auto waited_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::steady_clock::now() - single_target_start_).count();
+            if (waited_ms < SINGLE_TARGET_WAIT_MS) {
+                target = cv::Point2f(-1, -1);  // 等待期内不下发数据
+            } else {
+                single_target_timeout_active_ = false;
+                startup_single_target_wait_done_ = true;
+                target = targets[0].center;
+            }
         }
     } else {
-        // 无目标
-        single_target_timeout_active_ = false;
+        // 无目标：等待窗口保持计时状态，目标重新出现时不会重新计时
         target = cv::Point2f(-1, -1);
     }
 

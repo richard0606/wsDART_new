@@ -13,13 +13,11 @@ AimResult CoordinateCalculator::calculate(const cv::Point2f& target,
         return result;
     }
 
-    // 计算中心点（图像中心 + 偏移补偿）
-    cv::Point center_img(image_center.x + static_cast<int>(current_offset_x_),
-                         image_center.y + static_cast<int>(params.offset_y));
-
+    // 瞄准中心（图像中心 + 偏移补偿）已由调用方算好传入，这里不能再叠加一次，
+    // 否则 offset_x / offset_y 会被放大 2 倍
     // 计算像素误差
-    result.err_x = static_cast<double>(target.x - center_img.x);
-    result.err_y = static_cast<double>(target.y - center_img.y);
+    result.err_x = static_cast<double>(target.x - image_center.x);
+    result.err_y = static_cast<double>(target.y - image_center.y);
 
     // 缩放误差
     result.scaled_err_x = result.err_x * params.p_err;

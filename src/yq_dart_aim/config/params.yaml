@@ -1,7 +1,6 @@
 dart_aim_node:
   ros__parameters:
     bound_rate: 115200
-    circle_mask: true
     conf_threshold: 0.5
     crop_height: 720
     crop_width: 1280

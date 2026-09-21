@@ -7,11 +7,11 @@
 namespace yq_dart_aim {
 
 // 坐标计算参数
+// 注意：offset_x / offset_y 的补偿由调用方在算瞄准中心时施加（全流程只施加一次），
+// calculate() 内部不再叠加，否则偏移会被放大 2 倍
 struct CalcParams {
-    double p_err = defaults::P_ERR;
-    double offset_x = defaults::OFFSET_X;
-    double offset_y = defaults::OFFSET_Y;
-    float aim_threshold = defaults::AIM_THRESHOLD;
+    double p_err = defaults::P_ERR;      // 误差缩放系数
+    double offset_y = defaults::OFFSET_Y;  // Y 方向偏移（由调用方施加）
 };
 
 // 瞄准结果

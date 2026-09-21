@@ -36,9 +36,6 @@ public:
     // 加载模型
     bool loadModel(const ModelParams& params);
 
-    // 设置类别名称（用于日志/调试）
-    void setClassNames(const std::vector<std::string>& names);
-
 private:
     void inferenceLoop();
 
@@ -52,7 +49,6 @@ private:
     cv::dnn::Net net_;
 
     ModelParams params_;
-    std::vector<std::string> class_names_;
 
     // 异步推理
     std::thread infer_thread_;

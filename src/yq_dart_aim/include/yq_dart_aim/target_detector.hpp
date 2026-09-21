@@ -13,9 +13,6 @@ namespace yq_dart_aim {
 struct DetectParams {
     double min_area = defaults::MIN_AREA;
     double max_area = defaults::MAX_AREA;
-    bool circle_mask = defaults::CIRCLE_MASK;
-    float target_radius_px = defaults::TARGET_RADIUS_PX;
-    float target_height_px = defaults::TARGET_HEIGHT_PX;
 };
 
 // HSV 阈值检测器（实现 DetectorBase 接口）
@@ -33,12 +30,19 @@ public:
     std::vector<TargetInfo> detect(const cv::Mat& mask, const cv::Mat& gray, const DetectParams& params);
 
     // 根据当前目标类型选择最终目标
+    // 说明：启动期的单目标歧义由本类内部状态管理（见 SINGLE_TARGET_WAIT_MS），
+    // is_startup 参数当前未被使用
     cv::Point2f selectTarget(const std::vector<TargetInfo>& targets,
                              int current_target, bool is_startup);
 
 private:
-    bool single_target_timeout_active_ = false;
-    bool startup_single_target_wait_done_ = false;
+    // 启动阶段只看到一个目标时的等待时长：
+    // 此时无法区分它是前哨站还是基地，先等一段时间看第二个目标会不会出现；
+    // 等待期内不下发目标（返回 (-1,-1)），超时仍只有一个目标则直接按该目标处理
+    static constexpr int SINGLE_TARGET_WAIT_MS = 1000;
+
+    bool single_target_timeout_active_ = false;     // 启动等待窗口是否已开始计时
+    bool startup_single_target_wait_done_ = false;  // 启动期单目标歧义是否已解除
     std::chrono::steady_clock::time_point single_target_start_;
 };
 

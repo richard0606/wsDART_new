@@ -37,6 +37,10 @@ class ParamManager:
         self._cache: dict[str, dict[str, Any]] = {}
         self._cache_lock = threading.Lock()
 
+        # 复用的 service client {(服务名, 服务类型): client}，避免每次调用都新建 DDS 实体
+        self._clients: dict[tuple[str, str], Any] = {}
+        self._client_lock = threading.Lock()
+
     def start(self):
         """启动 ROS2 参数管理线程"""
         if self._running:
@@ -71,12 +75,26 @@ class ParamManager:
 
     # ── 参数读写 ──────────────────────────────────────
 
+    def _get_client(self, srv_type: Any, srv_name: str) -> Any:
+        """获取（并缓存）service client
+
+        每次调用都 create_client 会持续泄漏 DDS 实体：前端滑条的每个 input
+        事件都会触发一次 set_param，长时间调参后节点会明显变慢。
+        """
+        key = (srv_name, srv_type.__name__)
+        with self._client_lock:
+            client = self._clients.get(key)
+            if client is None:
+                client = self._node.create_client(srv_type, srv_name)
+                self._clients[key] = client
+            return client
+
     def get_param(self, node_name: str, param_name: str) -> Any | None:
         """读取指定节点的参数值"""
         if not self._node:
             return None
 
-        client = self._node.create_client(GetParameters, f'/{node_name}/get_parameters')
+        client = self._get_client(GetParameters, f'/{node_name}/get_parameters')
         if not client.wait_for_service(timeout_sec=2.0):
             self._node.get_logger().warn(f'节点 {node_name} 不可达')
             return None
@@ -122,7 +140,7 @@ class ParamManager:
         if not self._node:
             return False
 
-        client = self._node.create_client(SetParameters, f'/{node_name}/set_parameters')
+        client = self._get_client(SetParameters, f'/{node_name}/set_parameters')
         if not client.wait_for_service(timeout_sec=2.0):
             self._node.get_logger().warn(f'节点 {node_name} 不可达')
             return False
