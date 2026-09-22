@@ -144,6 +144,40 @@ hb_mapper makertbin --config dart_576x768.yaml --model-type onnx
 
 **精度验证**（量化后一定要做）：用同一张图，比对 `.bin` 与 `.onnx` 的输出。若类别/框明显变差，就回去调 int16 节点配置。
 
+### 3.7 checker 实测结果（2026-09-22，本机已跑通）
+
+环境：`openexplorer/ai_toolchain_ubuntu_20_x5_cpu:v1.2.8`（hbdk 3.49.15 / horizon_nn 1.1.0 / hb_mapper 1.24.3）
+
+```bash
+docker run --rm --user $(id -u):$(id -g) -v ~/horizon_work:/work -w /work \
+  openexplorer/ai_toolchain_ubuntu_20_x5_cpu:v1.2.8 \
+  hb_mapper checker --model-type onnx --march bayes-e --model praysky_dart_576x768_cut.onnx
+```
+
+**结果：零 error / 零 warning / 零 "不支持"**，路径走通。摘要：
+
+| 项 | 结果 |
+|---|---|
+| 输入 | `images` `[1,3,576,768]` FLOAT32 ✅ 与设计一致 |
+| 输出 | `[1,9072,28]` FLOAT32 ✅ 与设计一致 |
+| 节点分配 | **328 个 BPU + 2 个 CPU** |
+| 量化类型 | 299 个 int8、28 个 int16 |
+| 算子映射 | Conv→`HzSQuantizedConv`、MatMul→`HzSQuantizedMatmul`、Resize→`HzQuantizedResizeUpsample`、MaxPool→`HzQuantizedMaxPool`、Sigmoid/激活→`HzLut`、Softmax→**CPU float** |
+
+**两个需要注意的点**：
+
+1. **PSA 注意力的 2 个 Softmax 落在 CPU 上（float 执行）**
+   ```
+   /model.10/m/m.0/attn/Softmax        CPU  Softmax  float
+   /model.22/m.0/m.0.1/attn/Softmax    CPU  Softmax  float
+   ```
+   这正是模型作者警告过的"PSA 的 SoftMax 对量化不友好"——工具链自动把它挪到 CPU 保精度。
+   转换仍然成功（生成的是 hybrid 模型），但**这两处在推理时会走 CPU + 数据在 BPU/CPU 之间来回搬**，
+   板子上实测帧率时如果明显偏低，优先怀疑这里。想进一步验证可以看 `.hb_check/` 里导出的子图可视化。
+
+2. **输出张量是 int16**（`Concat_5` / 最后的 `Transpose` 都是 int16）
+   → 与 `model_backend_bpu.cpp` 里按 `scale` 反量化的实现一致（S16 分支），无需改代码。
+
 ---
 
 ## 4. 板子上：编译 + 运行
