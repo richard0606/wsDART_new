@@ -41,19 +41,11 @@ public:
     // 模型检测可视化话题（同样只发压缩图）
     model_debug_compressed_pub_ = this->create_publisher<sensor_msgs::msg::CompressedImage>("/model_debug/image_compressed", 10);
 
-    // 转发压缩图像用于 bag 录制
-    debug_record_mask_pub_ = this->create_publisher<sensor_msgs::msg::CompressedImage>("/debug_record/mask_compressed", 10);
-    debug_record_image_pub_ = this->create_publisher<sensor_msgs::msg::CompressedImage>("/debug_record/image_compressed", 10);
-    debug_record_mask_sub_ = this->create_subscription<sensor_msgs::msg::CompressedImage>(
-      "/dart_debug/mask_compressed", 10,
-      [this](const sensor_msgs::msg::CompressedImage::SharedPtr msg) {
-        debug_record_mask_pub_->publish(*msg);
-      });
-    debug_record_image_sub_ = this->create_subscription<sensor_msgs::msg::CompressedImage>(
-      "/dart_debug/image_compressed", 10,
-      [this](const sensor_msgs::msg::CompressedImage::SharedPtr msg) {
-        debug_record_image_pub_->publish(*msg);
-      });
+    // 转发压缩图像用于 bag 录制（仅在录制功能开启时才创建/发布话题）
+    enable_record_ = this->get_parameter("enable_record").as_bool();
+    if (enable_record_) {
+      setupRecordTopics();
+    }
 
     // 图像订阅
     std::string topic = this->get_parameter("image_topic").as_string();
@@ -139,6 +131,7 @@ private:
     // 调试输出
     if (!this->has_parameter("publish_debug_image")) this->declare_parameter("publish_debug_image", yq_dart_aim::defaults::PUBLISH_DEBUG_IMAGE);
     if (!this->has_parameter("publish_compressed_mask")) this->declare_parameter("publish_compressed_mask", yq_dart_aim::defaults::PUBLISH_COMPRESSED_MASK);
+    if (!this->has_parameter("enable_record")) this->declare_parameter("enable_record", yq_dart_aim::defaults::ENABLE_RECORD);
 
     // 图像话题
     if (!this->has_parameter("image_topic")) this->declare_parameter("image_topic", std::string("/image_raw"));
@@ -291,6 +284,13 @@ private:
         publish_debug_image_ = p.as_bool();
       } else if (p.get_name() == "publish_compressed_mask") {
         publish_compressed_mask_ = p.as_bool();
+      } else if (p.get_name() == "enable_record") {
+        enable_record_ = p.as_bool();
+        if (enable_record_) {
+          setupRecordTopics();
+        } else {
+          teardownRecordTopics();
+        }
       } else if (p.get_name() == "p_err") {
         calc_params_.p_err = p.as_double();
         RCLCPP_INFO(this->get_logger(), "p_err updated: %f", calc_params_.p_err);
@@ -317,6 +317,37 @@ private:
       }
     }
     return result;
+  }
+
+  // ==================== 录制转发话题 ====================
+  // /dart_debug/* -> /debug_record/*，仅 enable_record=true 时创建，
+  // 避免不开录制时白白占用话题和转发带宽
+  void setupRecordTopics() {
+    if (debug_record_image_pub_) return;  // 已创建
+    debug_record_mask_pub_ = this->create_publisher<sensor_msgs::msg::CompressedImage>(
+      "/debug_record/mask_compressed", 10);
+    debug_record_image_pub_ = this->create_publisher<sensor_msgs::msg::CompressedImage>(
+      "/debug_record/image_compressed", 10);
+    debug_record_mask_sub_ = this->create_subscription<sensor_msgs::msg::CompressedImage>(
+      "/dart_debug/mask_compressed", 10,
+      [this](const sensor_msgs::msg::CompressedImage::SharedPtr msg) {
+        if (debug_record_mask_pub_) debug_record_mask_pub_->publish(*msg);
+      });
+    debug_record_image_sub_ = this->create_subscription<sensor_msgs::msg::CompressedImage>(
+      "/dart_debug/image_compressed", 10,
+      [this](const sensor_msgs::msg::CompressedImage::SharedPtr msg) {
+        if (debug_record_image_pub_) debug_record_image_pub_->publish(*msg);
+      });
+    RCLCPP_INFO(this->get_logger(), "录制话题已开启 (/debug_record/*)");
+  }
+
+  void teardownRecordTopics() {
+    if (!debug_record_image_pub_) return;  // 本来就未创建
+    debug_record_mask_sub_.reset();
+    debug_record_image_sub_.reset();
+    debug_record_mask_pub_.reset();
+    debug_record_image_pub_.reset();
+    RCLCPP_INFO(this->get_logger(), "录制话题已关闭 (/debug_record/*)");
   }
 
   // ==================== 图像订阅 ====================
@@ -606,6 +637,7 @@ private:
   bool use_model_ = false;
   bool publish_debug_image_ = true;
   bool publish_compressed_mask_ = true;
+  bool enable_record_ = false;
 };
 
 int main(int argc, char **argv) {

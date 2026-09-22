@@ -55,6 +55,9 @@ namespace defaults {
     // 调试输出
     constexpr bool PUBLISH_DEBUG_IMAGE = true;
     constexpr bool PUBLISH_COMPRESSED_MASK = true;
+
+    // 录制转发话题（/debug_record/*），仅录制功能开启时才创建
+    constexpr bool ENABLE_RECORD = false;
 }
 
 }  // namespace yq_dart_aim

@@ -4,13 +4,14 @@ dart_aim_node:
     conf_threshold: 0.25
     crop_height: 720
     crop_width: 1280
+    enable_record: false
     h_max: 80
     h_min: 35
     image_topic: /image_raw
     max_area: 130.0
     model_input_height: 576
     model_input_width: 768
-    model_path: ''
+    model_path: /root/dart_ws_on/src/yq_dart_aim/model/praysky_dart_576x768_cut.onnx
     morph_dilate_kernel_size: 5
     morph_kernel_size: 3
     offset_0_0: 35.0
@@ -32,7 +33,7 @@ dart_aim_node:
     s_max: 255
     s_min: 75
     usart_port: /dev/ttyACM0
-    use_model: false
+    use_model: true
     use_serial: true
     v_max: 255
     v_min: 50

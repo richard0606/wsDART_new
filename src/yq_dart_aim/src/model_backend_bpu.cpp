@@ -47,7 +47,7 @@ inline rclcpp::Logger logger() { return rclcpp::get_logger("model_backend_bpu");
         }                                                  \
     } while (0)
 
-hbDNNPackedHandle_t g_packed = nullptr;
+hbPackedDNNHandle_t g_packed = nullptr;
 hbDNNHandle_t g_model = nullptr;
 std::mutex g_mutex;
 int g_channels = 28;
@@ -103,14 +103,16 @@ size_t elemSize(int32_t t) {
 
 void logTensor(const char* tag, const hbDNNTensorProperties& p) {
     std::string shape, aligned, stride;
-    for (int i = 0; i < p.numDimensions; ++i) {
-        shape += std::to_string(p.validShape[i]);
-        aligned += std::to_string(p.alignedShape[i]);
+    const int nd = p.validShape.numDimensions;
+    for (int i = 0; i < nd; ++i) {
+        shape += std::to_string(p.validShape.dimensionSize[i]);
+        aligned += std::to_string(p.alignedShape.dimensionSize[i]);
         stride += std::to_string(p.stride[i]);
-        if (i + 1 < p.numDimensions) { shape += ","; aligned += ","; stride += ","; }
+        if (i + 1 < nd) { shape += ","; aligned += ","; stride += ","; }
     }
-    RCLCPP_INFO(logger(), "%s type=%s valid=[%s] aligned=[%s] stride=[%s] scale=%f", tag,
-                typeName(p.tensorType), shape.c_str(), aligned.c_str(), stride.c_str(),
+    RCLCPP_INFO(logger(), "%s type=%s quanti=%d valid=[%s] aligned=[%s] stride=[%s] scale=%f", tag,
+                typeName(p.tensorType), static_cast<int>(p.quantiType), shape.c_str(),
+                aligned.c_str(), stride.c_str(),
                 (p.scale.scaleData != nullptr) ? p.scale.scaleData[0] : 1.0f);
 }
 
@@ -143,13 +145,13 @@ bool backendLoad(const std::string& model_path, int raw_channels) {
     int32_t name_count = 0;
     if (hbDNNGetModelNameList(&names, &name_count, g_packed) != 0 || name_count < 1) {
         RCLCPP_ERROR(logger(), "hbDNNGetModelNameList failed");
-        hbDNNRelease(&g_packed);
+        hbDNNRelease(g_packed);
         g_packed = nullptr;
         return false;
     }
     if (hbDNNGetModelHandle(&g_model, g_packed, names[0]) != 0) {
         RCLCPP_ERROR(logger(), "hbDNNGetModelHandle failed");
-        hbDNNRelease(&g_packed);
+        hbDNNRelease(g_packed);
         g_packed = nullptr;
         return false;
     }
@@ -167,15 +169,15 @@ bool backendLoad(const std::string& model_path, int raw_channels) {
     logTensor("input ", in_props);
     if (in_props.scale.scaleData != nullptr) g_in_scale = in_props.scale.scaleData[0];
 
-    g_in_nd = in_props.numDimensions;
+    g_in_nd = in_props.validShape.numDimensions;
     g_in_type = in_props.tensorType;
     if (g_in_nd < 2) {
         RCLCPP_ERROR(logger(), "bad input dims: %d", g_in_nd);
         backendUnload();
         return false;
     }
-    g_in_h = in_props.validShape[g_in_nd - 2];
-    g_in_w = in_props.validShape[g_in_nd - 1];
+    g_in_h = in_props.validShape.dimensionSize[g_in_nd - 2];
+    g_in_w = in_props.validShape.dimensionSize[g_in_nd - 1];
     g_in_y_stride = in_props.stride[g_in_nd - 2];
     if (g_in_y_stride <= 0) g_in_y_stride = g_in_w;
     g_in_is_nv12 = (g_in_type == HB_DNN_IMG_TYPE_NV12 ||
@@ -228,8 +230,11 @@ bool backendLoad(const std::string& model_path, int raw_channels) {
         hbDNNGetOutputTensorProperties(&p, g_model, i);
         logTensor("output", p);
         size_t elems = 1;
-        for (int d = 0; d < p.numDimensions; ++d) elems *= static_cast<size_t>(p.alignedShape[d]);
-        const size_t bytes = elems * elemSize(p.tensorType);
+        for (int d = 0; d < p.alignedShape.numDimensions; ++d) {
+            elems *= static_cast<size_t>(p.alignedShape.dimensionSize[d]);
+        }
+        size_t bytes = elems * elemSize(p.tensorType);
+        if (p.alignedByteSize > 0) bytes = static_cast<size_t>(p.alignedByteSize);
         if (hbSysAllocCachedMem(&g_outputs[i].sysMem[0], static_cast<uint32_t>(bytes)) != 0) {
             RCLCPP_ERROR(logger(), "alloc output failed (%zu bytes)", bytes);
             backendUnload();
@@ -247,14 +252,14 @@ bool backendLoad(const std::string& model_path, int raw_channels) {
 void backendUnload() {
     std::lock_guard<std::mutex> lock(g_mutex);
     for (auto& out : g_outputs) {
-        if (out.sysMem[0].vir_addr != nullptr) hbSysFreeMem(&out.sysMem[0]);
+        if (out.sysMem[0].virAddr != nullptr) hbSysFreeMem(&out.sysMem[0]);
     }
     g_outputs.clear();
-    if (g_input.sysMem[0].vir_addr != nullptr) hbSysFreeMem(&g_input.sysMem[0]);
-    if (g_input.sysMem[1].vir_addr != nullptr) hbSysFreeMem(&g_input.sysMem[1]);
+    if (g_input.sysMem[0].virAddr != nullptr) hbSysFreeMem(&g_input.sysMem[0]);
+    if (g_input.sysMem[1].virAddr != nullptr) hbSysFreeMem(&g_input.sysMem[1]);
     g_input = hbDNNTensor{};
     g_out_buf.clear();
-    if (g_packed != nullptr) hbDNNRelease(&g_packed);
+    if (g_packed != nullptr) hbDNNRelease(g_packed);
     g_packed = nullptr;
     g_model = nullptr;
     g_loaded = false;
@@ -280,9 +285,9 @@ bool backendInfer(const cv::Mat& bgr_image, RawOutput& raw) {
         const uint8_t* src_u = src_y + static_cast<size_t>(g_in_w) * g_in_h;
         const uint8_t* src_v = src_u + static_cast<size_t>(g_in_w) * g_in_h / 4;
 
-        uint8_t* dst_y = static_cast<uint8_t*>(g_input.sysMem[0].vir_addr);
+        uint8_t* dst_y = static_cast<uint8_t*>(g_input.sysMem[0].virAddr);
         uint8_t* dst_uv = g_in_is_nv12_sep
-                              ? static_cast<uint8_t*>(g_input.sysMem[1].vir_addr)
+                              ? static_cast<uint8_t*>(g_input.sysMem[1].virAddr)
                               : dst_y + y_bytes;
         (void)uv_bytes;
         for (int r = 0; r < g_in_h; ++r) {
@@ -305,7 +310,7 @@ bool backendInfer(const cv::Mat& bgr_image, RawOutput& raw) {
         cv::Mat rgb;
         cv::cvtColor(bgr_image, rgb, cv::COLOR_BGR2RGB);
         const size_t plane = static_cast<size_t>(g_in_w) * g_in_h;
-        void* dst = g_input.sysMem[0].vir_addr;
+        void* dst = g_input.sysMem[0].virAddr;
         for (int ch = 0; ch < 3; ++ch) {
             const uint8_t* src = rgb.data + plane * static_cast<size_t>(ch);
             if (g_in_type == HB_DNN_TENSOR_TYPE_F32) {
@@ -327,7 +332,9 @@ bool backendInfer(const cv::Mat& bgr_image, RawOutput& raw) {
     // ── 推理 ──
     hbDNNTaskHandle_t task = nullptr;
     hbDNNTensor* outputs = g_outputs.data();
-    if (hbDNNInfer(&task, &outputs, &g_input, g_model) != 0) {
+    hbDNNInferCtrlParam infer_ctrl;
+    HB_DNN_INITIALIZE_INFER_CTRL_PARAM(&infer_ctrl);
+    if (hbDNNInfer(&task, &outputs, &g_input, g_model, &infer_ctrl) != 0) {
         BPU_ERR_ONCE("hbDNNInfer failed");
         return false;
     }
@@ -341,11 +348,11 @@ bool backendInfer(const cv::Mat& bgr_image, RawOutput& raw) {
     // ── 反量化成连续 (N, C) float ──
     hbDNNTensor& out = outputs[0];
     hbSysFlushMem(&out.sysMem[0], HB_SYS_MEM_CACHE_INVALIDATE);
-    const int ond = out.properties.numDimensions;
+    const int ond = out.properties.validShape.numDimensions;
     if (ond < 2) return false;
 
-    const int last = out.properties.validShape[ond - 1];
-    const int second_last = out.properties.validShape[ond - 2];
+    const int last = out.properties.validShape.dimensionSize[ond - 1];
+    const int second_last = out.properties.validShape.dimensionSize[ond - 2];
     int n = 0;
     bool transposed = false;
     if (last == g_channels) {
@@ -364,7 +371,7 @@ bool backendInfer(const cv::Mat& bgr_image, RawOutput& raw) {
     const int stride_row = static_cast<int>(out.properties.stride[ond - 2] / es);
     const float scale = (out.properties.scale.scaleData != nullptr)
                             ? out.properties.scale.scaleData[0] : 1.0f;
-    const void* base = out.sysMem[0].vir_addr;
+    const void* base = out.sysMem[0].virAddr;
 
     g_out_buf.resize(static_cast<size_t>(n) * g_channels);
     for (int a = 0; a < n; ++a) {
