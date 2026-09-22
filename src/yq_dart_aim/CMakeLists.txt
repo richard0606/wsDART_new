@@ -54,6 +54,10 @@ elseif(DART_INFER_BACKEND STREQUAL "ORT")
     # 用官方 release 包解压出来的目录
     target_include_directories(dart_aim_node PRIVATE ${ORT_ROOT}/include)
     target_link_directories(dart_aim_node PRIVATE ${ORT_ROOT}/lib)
+    # 把 ORT 库目录写进 RPATH，保证运行时（含 systemd 启动）能找到 libonnxruntime.so
+    set_target_properties(dart_aim_node PROPERTIES
+      BUILD_RPATH "${ORT_ROOT}/lib"
+      INSTALL_RPATH "${ORT_ROOT}/lib")
     set(ORT_LIB onnxruntime)
   else()
     # 退回系统安装路径
