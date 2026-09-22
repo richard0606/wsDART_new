@@ -118,14 +118,17 @@ compiler_parameters:
 ### 3.4 执行
 
 ```bash
-docker run --rm -it -v /path/to/horizon_work:/work \
-  openexplorer/ai_toolchain_ubuntu_20_x5_cpu:v1.2.8 bash
-
-# 容器内：
-cd /work
-hb_mapper checker --model-type onnx --march bayes-e --model praysky_dart_576x768_cut.onnx
-hb_mapper makertbin --config dart_576x768.yaml --model-type onnx
+docker run --rm -v /path/to/horizon_work:/work -w /work \
+  openexplorer/ai_toolchain_ubuntu_20_x5_cpu:v1.2.8 bash -c "
+    hb_mapper makertbin --config dart_576x768.yaml --model-type onnx
+    rc=\$?
+    chown -R $(id -u):$(id -g) /work
+    exit \$rc
+  "
 ```
+
+> 也可以进容器交互调试：`docker run --rm -it -v ...:/work <镜像> bash`，
+> 但**退出前记得在容器里 `chown -R <你的uid>:<你的gid> /work`**，否则产物是 root 属主。
 
 产物：`model_output/praysky_dart_576x768.bin`
 
@@ -149,10 +152,18 @@ hb_mapper makertbin --config dart_576x768.yaml --model-type onnx
 环境：`openexplorer/ai_toolchain_ubuntu_20_x5_cpu:v1.2.8`（hbdk 3.49.15 / horizon_nn 1.1.0 / hb_mapper 1.24.3）
 
 ```bash
-docker run --rm --user $(id -u):$(id -g) -v ~/horizon_work:/work -w /work \
-  openexplorer/ai_toolchain_ubuntu_20_x5_cpu:v1.2.8 \
-  hb_mapper checker --model-type onnx --march bayes-e --model praysky_dart_576x768_cut.onnx
+docker run --rm -v ~/horizon_work:/work -w /work \
+  openexplorer/ai_toolchain_ubuntu_20_x5_cpu:v1.2.8 bash -c "
+    hb_mapper checker --model-type onnx --march bayes-e --model praysky_dart_576x768_cut.onnx
+    rc=\$?
+    chown -R $(id -u):$(id -g) /work      # 把产物属主改回自己
+    exit \$rc
+  "
 ```
+
+> ⚠️ **不要用 `--user $(id -u):$(id -g)`**：工具链的 torch 装在 `/root/.local`，
+> 而 `/root` 是 700，非 root 用户根本读不到，会报 `No module named 'torch'`。
+> 正确做法就是上面这样——**以 root 跑，跑完在容器里 chown 回来**（实测有效）。
 
 **结果：零 error / 零 warning / 零 "不支持"**，路径走通。摘要：
 
