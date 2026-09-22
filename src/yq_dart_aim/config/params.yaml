@@ -1,17 +1,18 @@
 dart_aim_node:
   ros__parameters:
     bound_rate: 115200
-    conf_threshold: 0.5
+    conf_threshold: 0.25
     crop_height: 720
     crop_width: 1280
     h_max: 80
     h_min: 35
     image_topic: /image_raw
     max_area: 130.0
+    model_input_height: 576
+    model_input_width: 768
     model_path: ''
     morph_dilate_kernel_size: 5
     morph_kernel_size: 3
-    nms_threshold: 0.45
     offset_0_0: 35.0
     offset_0_1: 35.0
     offset_0_2: 35.0
