@@ -97,7 +97,8 @@ public:
       yq_dart_aim::ModelParams model_params;
       model_params.model_path = this->get_parameter("model_path").as_string();
       model_params.conf_threshold = static_cast<float>(this->get_parameter("conf_threshold").as_double());
-      model_params.nms_threshold = static_cast<float>(this->get_parameter("nms_threshold").as_double());
+      model_params.input_width = static_cast<int>(this->get_parameter("model_input_width").as_int());
+      model_params.input_height = static_cast<int>(this->get_parameter("model_input_height").as_int());
       if (model_detector_.loadModel(model_params)) {
         RCLCPP_INFO(this->get_logger(), "Model loaded: %s", model_params.model_path.c_str());
       } else {
@@ -160,10 +161,12 @@ private:
     if (!this->has_parameter("max_area")) this->declare_parameter("max_area", yq_dart_aim::defaults::MAX_AREA);
 
     // 模型检测
+    // model_path: BPU 上是切好后处理导出的 .bin；开发机(cv::dnn)上是同一个 .onnx
     if (!this->has_parameter("use_model")) this->declare_parameter("use_model", false);
     if (!this->has_parameter("model_path")) this->declare_parameter("model_path", std::string(""));
-    if (!this->has_parameter("conf_threshold")) this->declare_parameter("conf_threshold", 0.5);
-    if (!this->has_parameter("nms_threshold")) this->declare_parameter("nms_threshold", 0.45);
+    if (!this->has_parameter("conf_threshold")) this->declare_parameter("conf_threshold", 0.25);
+    if (!this->has_parameter("model_input_width")) this->declare_parameter("model_input_width", 768);
+    if (!this->has_parameter("model_input_height")) this->declare_parameter("model_input_height", 576);
 
     // 偏移查找表（默认值与 config/params.yaml 一致）
     if (!this->has_parameter("offset_0_0")) this->declare_parameter("offset_0_0", 35.0);
@@ -275,10 +278,7 @@ private:
         sg_filter_x_.reset();  // 切换模式时重置滤波器
         RCLCPP_INFO(this->get_logger(), "use_model updated: %s", use_model_ ? "true" : "false");
       } else if (p.get_name() == "conf_threshold") {
-        // 模型置信度阈值（需要重新加载模型生效）
         RCLCPP_INFO(this->get_logger(), "conf_threshold updated (reload model to apply)");
-      } else if (p.get_name() == "nms_threshold") {
-        RCLCPP_INFO(this->get_logger(), "nms_threshold updated (reload model to apply)");
       }
       if (p.get_name().rfind("offset_", 0) == 0) {
         int t = 0, d = 0;
@@ -334,8 +334,10 @@ private:
           cv::Scalar color(0, 255, 0);
           cv::rectangle(model_vis, t.bbox, color, 2);
           char label[64];
-          std::string cls_name = (t.class_id >= 0 && t.class_id < static_cast<int>(model_class_names_.size()))
-                                 ? model_class_names_[t.class_id] : "cls" + std::to_string(t.class_id);
+          std::string cls_name =
+              (t.class_id >= 0 && t.class_id < yq_dart_aim::model_classes::kNumClasses)
+                  ? yq_dart_aim::model_classes::kNames[t.class_id]
+                  : "cls" + std::to_string(t.class_id);
           snprintf(label, sizeof(label), "%s %.0f%%", cls_name.c_str(), t.confidence * 100);
           cv::putText(model_vis, label, cv::Point(t.bbox.x, t.bbox.y - 5),
                       cv::FONT_HERSHEY_SIMPLEX, 0.5, color, 1);
@@ -352,17 +354,22 @@ private:
     }
 
     // ==================== 目标选择 ====================
+    // 下位机的 enemy 字段指定打哪个目标：1=前哨站(s0_o6)、2=基地(s1_o7)、0=无目标
+    // 模型类别 id 与 enemy 不是同一个编号体系，必须查表映射，不能直接比
     cv::Point2f target(-1, -1);
     if (use_model_ && model_detector_.isReady()) {
-      for (const auto& t : targets) {
-        if (t.class_id == current_target_) {
-          float smoothed_x = sg_filter_x_.push(t.center.x);
-          target = cv::Point2f(smoothed_x, t.center.y);
-          break;
+      const int want_class = yq_dart_aim::ModelDetector::classIdForTarget(current_target_);
+      if (want_class >= 0) {
+        for (const auto& t : targets) {
+          if (t.class_id == want_class) {
+            float smoothed_x = sg_filter_x_.push(t.center.x);
+            target = cv::Point2f(smoothed_x, t.center.y);
+            break;
+          }
         }
       }
       if (target.x < 0) {
-        sg_filter_x_.reset();
+        sg_filter_x_.reset();  // 目标丢失/被要求不瞄准，重置滤波器
       }
     } else {
       target = target_detector_.selectTarget(targets, current_target_);
@@ -572,7 +579,6 @@ private:
   bool use_model_ = false;
   bool publish_debug_image_ = true;
   bool publish_compressed_mask_ = true;
-  std::vector<std::string> model_class_names_ = {"outpost", "base"};
 };
 
 int main(int argc, char **argv) {

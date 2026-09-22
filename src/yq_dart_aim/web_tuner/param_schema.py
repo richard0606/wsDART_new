@@ -122,9 +122,10 @@ ALL_PARAMS: list[ParamDef] = [
     ParamDef("gain",          "float", 0, 100,    0.1, 0.0,  "增益",         "camera", "增大 → 画面更亮但噪点增多", target_node="hik_camera"),
 
     # ── 模型检测 ──────────────────────────────────────
-    ParamDef("use_model",      "bool",  0, 1,   1,   False, "启用模型检测", "model", "HSV模式关闭，模型模式开启"),
-    ParamDef("conf_threshold", "float", 0, 1,   0.01, 0.5,  "置信度阈值",   "model", "降低 → 检测更多但可能误检"),
-    ParamDef("nms_threshold",  "float", 0, 1,   0.01, 0.45, "NMS阈值",      "model", "降低 → 去重更严格"),
+    ParamDef("use_model",         "bool",  0, 1,     1,    False, "启用模型检测", "model", "HSV模式关闭，模型模式开启"),
+    ParamDef("conf_threshold",    "float", 0, 1,     0.01, 0.25,  "置信度阈值",   "model", "降低 → 检测更多但可能误检"),
+    ParamDef("model_input_width", "int",   64, 2048, 16,   768,   "模型输入宽",   "model", "需与导出模型一致，裁剪按此宽高比进行"),
+    ParamDef("model_input_height","int",   64, 2048, 16,   576,   "模型输入高",   "model", "需与导出模型一致"),
 
     # ── 系统设置 ──────────────────────────────────────
     ParamDef("crop_width",               "int", 320, 1920, 16,  1024, "裁剪宽度",     "system", "处理区域宽度"),

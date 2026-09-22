@@ -21,6 +21,19 @@ source /opt/ros/humble/setup.bash
 colcon build
 ```
 
+### 模型识别的推理后端（二选一）
+
+模型识别有两套加速方案，编译时用 `DART_INFER_BACKEND` 选择：
+
+| 取值 | 说明 | 编译命令 |
+|---|---|---|
+| `BPU` | RDK X5 BPU，跑量化好的 `.bin` | `colcon build --cmake-args -DDART_INFER_BACKEND=BPU` |
+| `ORT`（默认） | ONNX Runtime，跑切掉后处理的 `.onnx`，CPU 方案 | `colcon build --cmake-args -DDART_INFER_BACKEND=ORT -DORT_ROOT=<onnxruntime目录>` |
+| `DNN` | OpenCV DNN 后端（备选） | `colcon build --cmake-args -DDART_INFER_BACKEND=DNN` |
+
+> ⚠️ `DNN` 后端要求 OpenCV ≥ 5.x：ROS humble 自带的 4.5.4 不支持本模型的 `ArgMax` 节点，加载会直接失败。
+> 板子上部署用 `BPU`；只想在开发机上验证预处理/后处理逻辑用 `ORT`（需下载 ONNX Runtime 的 C++ release 包）。
+
 ## 生产部署（systemd 开机自启）
 
 ```bash
