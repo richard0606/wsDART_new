@@ -4,5 +4,4 @@ _time: "2025-01-01 00:00:00"
 
 use_serial: false
 publish_debug_image: true
-publish_compressed: true
 publish_compressed_mask: true

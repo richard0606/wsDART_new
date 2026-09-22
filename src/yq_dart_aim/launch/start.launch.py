@@ -32,8 +32,9 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             'web_tuner',
-            default_value='true',
-            description='Set true to start web tuning dashboard on port 8080'
+            default_value='false',
+            description='Set true to start web tuning dashboard on port 8080 '
+                        '(开发者目前用 foxglove + yaml 调参，默认关闭)'
         ),
         DeclareLaunchArgument(
             'web_tuner_port',

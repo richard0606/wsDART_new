@@ -26,7 +26,6 @@ dart_aim_node:
     offset_2_3: 30.0
     offset_y: 0.0
     p_err: 8.0
-    publish_compressed: true
     publish_compressed_mask: true
     publish_debug_image: true
     s_max: 255

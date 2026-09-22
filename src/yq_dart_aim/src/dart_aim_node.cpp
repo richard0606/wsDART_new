@@ -32,14 +32,13 @@ public:
 
     // ==================== ROS 接口 ====================
     debug_pub_ = this->create_publisher<geometry_msgs::msg::Point>("/dart_debug", 10);
-    debug_image_pub_ = this->create_publisher<sensor_msgs::msg::Image>("/dart_debug/image", 10);
+    // 只发布压缩图像，不发布未压缩的 sensor_msgs::Image
     compressed_image_pub_ = this->create_publisher<sensor_msgs::msg::CompressedImage>("/dart_debug/image_compressed", 10);
     compressed_mask_pub_ = this->create_publisher<sensor_msgs::msg::CompressedImage>("/dart_debug/mask_compressed", 10);
     serial_pub_ = this->create_publisher<std_msgs::msg::Float32MultiArray>("/serial", 10);
     serial_debug_pub_ = this->create_publisher<std_msgs::msg::String>("/serial_debug", 10);
 
-    // 模型检测可视化话题
-    model_debug_image_pub_ = this->create_publisher<sensor_msgs::msg::Image>("/model_debug/image", 10);
+    // 模型检测可视化话题（同样只发压缩图）
     model_debug_compressed_pub_ = this->create_publisher<sensor_msgs::msg::CompressedImage>("/model_debug/image_compressed", 10);
 
     // 转发压缩图像用于 bag 录制
@@ -145,7 +144,6 @@ private:
 
     // 调试输出
     if (!this->has_parameter("publish_debug_image")) this->declare_parameter("publish_debug_image", yq_dart_aim::defaults::PUBLISH_DEBUG_IMAGE);
-    if (!this->has_parameter("publish_compressed")) this->declare_parameter("publish_compressed", yq_dart_aim::defaults::PUBLISH_COMPRESSED);
     if (!this->has_parameter("publish_compressed_mask")) this->declare_parameter("publish_compressed_mask", yq_dart_aim::defaults::PUBLISH_COMPRESSED_MASK);
 
     // 图像话题
@@ -167,19 +165,19 @@ private:
     if (!this->has_parameter("conf_threshold")) this->declare_parameter("conf_threshold", 0.5);
     if (!this->has_parameter("nms_threshold")) this->declare_parameter("nms_threshold", 0.45);
 
-    // 偏移查找表
-    if (!this->has_parameter("offset_0_0")) this->declare_parameter("offset_0_0", 43.0);
-    if (!this->has_parameter("offset_0_1")) this->declare_parameter("offset_0_1", 43.0);
-    if (!this->has_parameter("offset_0_2")) this->declare_parameter("offset_0_2", 43.0);
-    if (!this->has_parameter("offset_0_3")) this->declare_parameter("offset_0_3", 43.0);
-    if (!this->has_parameter("offset_1_0")) this->declare_parameter("offset_1_0", 43.0);
-    if (!this->has_parameter("offset_1_1")) this->declare_parameter("offset_1_1", 43.0);
-    if (!this->has_parameter("offset_1_2")) this->declare_parameter("offset_1_2", 43.0);
-    if (!this->has_parameter("offset_1_3")) this->declare_parameter("offset_1_3", 43.0);
-    if (!this->has_parameter("offset_2_0")) this->declare_parameter("offset_2_0", 43.0);
-    if (!this->has_parameter("offset_2_1")) this->declare_parameter("offset_2_1", 43.0);
-    if (!this->has_parameter("offset_2_2")) this->declare_parameter("offset_2_2", 43.0);
-    if (!this->has_parameter("offset_2_3")) this->declare_parameter("offset_2_3", 43.0);
+    // 偏移查找表（默认值与 config/params.yaml 一致）
+    if (!this->has_parameter("offset_0_0")) this->declare_parameter("offset_0_0", 35.0);
+    if (!this->has_parameter("offset_0_1")) this->declare_parameter("offset_0_1", 35.0);
+    if (!this->has_parameter("offset_0_2")) this->declare_parameter("offset_0_2", 35.0);
+    if (!this->has_parameter("offset_0_3")) this->declare_parameter("offset_0_3", 35.0);
+    if (!this->has_parameter("offset_1_0")) this->declare_parameter("offset_1_0", 35.0);
+    if (!this->has_parameter("offset_1_1")) this->declare_parameter("offset_1_1", 35.0);
+    if (!this->has_parameter("offset_1_2")) this->declare_parameter("offset_1_2", 35.0);
+    if (!this->has_parameter("offset_1_3")) this->declare_parameter("offset_1_3", 35.0);
+    if (!this->has_parameter("offset_2_0")) this->declare_parameter("offset_2_0", 12.0);
+    if (!this->has_parameter("offset_2_1")) this->declare_parameter("offset_2_1", 29.0);
+    if (!this->has_parameter("offset_2_2")) this->declare_parameter("offset_2_2", 34.0);
+    if (!this->has_parameter("offset_2_3")) this->declare_parameter("offset_2_3", 30.0);
 
     // 加载偏移查找表
     for (int t = 0; t < 3; t++) {
@@ -214,7 +212,6 @@ private:
 
     // 调试选项
     publish_debug_image_ = this->get_parameter("publish_debug_image").as_bool();
-    publish_compressed_ = this->get_parameter("publish_compressed").as_bool();
     publish_compressed_mask_ = this->get_parameter("publish_compressed_mask").as_bool();
     use_serial_ = this->get_parameter("use_serial").as_bool();
   }
@@ -262,8 +259,6 @@ private:
         calc_params_.offset_y = p.as_double();
       } else if (p.get_name() == "publish_debug_image") {
         publish_debug_image_ = p.as_bool();
-      } else if (p.get_name() == "publish_compressed") {
-        publish_compressed_ = p.as_bool();
       } else if (p.get_name() == "publish_compressed_mask") {
         publish_compressed_mask_ = p.as_bool();
       } else if (p.get_name() == "p_err") {
@@ -314,23 +309,18 @@ private:
     cv::Mat cropped = image_processor_.cropCenter(
         cv_image->image, image_params_.crop_width, image_params_.crop_height);
 
-    // HSV 处理（直接用裁剪区域，不再内部裁剪）
-    cv::Mat mask = image_processor_.processCropped(cropped, image_params_);
-
-    // 灰度转换只在裁剪区域做
-    cv::Mat gray;
-    cv::cvtColor(cropped, gray, cv::COLOR_BGR2GRAY);
-
-    int width = mask.cols;
-    int height = mask.rows;
-    int cx = width / 2;
-    int cy = height / 2;
+    // 图像中心（按裁剪区域尺寸算，两种模式一致）
+    int cx = cropped.cols / 2;
+    int cy = cropped.rows / 2;
 
     // 更新偏移
     coord_calculator_.updateOffset(offset_lookup_, current_target_, current_dart_id_);
 
     // ==================== 目标检测（HSV / 模型 切换） ====================
+    // 两种模式的预处理完全独立：模型模式只把裁剪图交给模型自己处理，
+    // 不再做 HSV 阈值/灰度那套传统 CV 预处理（结果也用不上）
     std::vector<yq_dart_aim::TargetInfo> targets;
+    cv::Mat mask;  // 仅 HSV 模式产生；模型模式为空
 
     if (use_model_ && model_detector_.isReady()) {
       // 模型模式：异步提交裁剪图，获取最新结果
@@ -354,7 +344,10 @@ private:
         publishModelDebugImage(model_vis, msg->header);
       }
     } else {
-      // HSV 模式
+      // HSV 模式：裁剪图 -> 二值化 -> 形态学，灰度图用于亚像素加权质心
+      mask = image_processor_.processCropped(cropped, image_params_);
+      cv::Mat gray;
+      cv::cvtColor(cropped, gray, cv::COLOR_BGR2GRAY);
       targets = target_detector_.detect(mask, gray, detect_params_);
     }
 
@@ -372,9 +365,8 @@ private:
         sg_filter_x_.reset();
       }
     } else {
-      target = target_detector_.selectTarget(targets, current_target_, !startup_done_);
+      target = target_detector_.selectTarget(targets, current_target_);
     }
-    if (targets.size() >= 1) startup_done_ = true;
 
     // 坐标计算：瞄准中心 = 图像中心 + 偏移补偿
     // （全流程只有这一处施加偏移，CoordinateCalculator::calculate() 内部不再叠加）
@@ -451,15 +443,8 @@ private:
   void publishDebugImages(const cv::Mat& img, const cv::Mat& mask,
                           const std_msgs::msg::Header& header) {
     try {
-      // 原始调试图像
-      cv_bridge::CvImage out_img;
-      out_img.header = header;
-      out_img.encoding = "bgr8";
-      out_img.image = img;
-      debug_image_pub_->publish(*out_img.toImageMsg());
-
-      // 压缩图像
-      if (publish_compressed_) {
+      // 压缩图像（是否发布由 publish_debug_image 在回调侧统一控制）
+      if (!img.empty()) {
         try {
           std::vector<unsigned char> buf;
           std::vector<int> params = {cv::IMWRITE_JPEG_QUALITY, 90};
@@ -475,8 +460,8 @@ private:
         }
       }
 
-      // 压缩 mask
-      if (publish_compressed_mask_) {
+      // 压缩 mask（模型模式下没有 mask，跳过）
+      if (publish_compressed_mask_ && !mask.empty()) {
         try {
           std::vector<unsigned char> mbuf;
           if (cv::imencode(".png", mask, mbuf)) {
@@ -498,13 +483,7 @@ private:
   // ==================== 模型检测可视化发布 ====================
   void publishModelDebugImage(const cv::Mat& vis, const std_msgs::msg::Header& header) {
     try {
-      cv_bridge::CvImage out_img;
-      out_img.header = header;
-      out_img.encoding = "bgr8";
-      out_img.image = vis;
-      model_debug_image_pub_->publish(*out_img.toImageMsg());
-
-      if (publish_compressed_) {
+      if (!vis.empty()) {
         std::vector<unsigned char> buf;
         std::vector<int> params = {cv::IMWRITE_JPEG_QUALITY, 90};
         if (cv::imencode(".jpg", vis, buf, params)) {
@@ -563,7 +542,6 @@ private:
 
   // ROS 接口
   rclcpp::Publisher<geometry_msgs::msg::Point>::SharedPtr debug_pub_;
-  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr debug_image_pub_;
   rclcpp::Publisher<sensor_msgs::msg::CompressedImage>::SharedPtr compressed_image_pub_;
   rclcpp::Publisher<sensor_msgs::msg::CompressedImage>::SharedPtr compressed_mask_pub_;
   rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr image_sub_;
@@ -572,7 +550,6 @@ private:
   OnSetParametersCallbackHandle::SharedPtr param_cb_handle_;
 
   // 模型检测话题
-  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr model_debug_image_pub_;
   rclcpp::Publisher<sensor_msgs::msg::CompressedImage>::SharedPtr model_debug_compressed_pub_;
 
   // 转发发布/订阅
@@ -591,11 +568,9 @@ private:
   int current_target_ = 0;
   int current_dart_id_ = 0;
   int aim_counter_ = 0;  // 连续瞄准帧计数
-  bool startup_done_ = false;
   bool use_serial_ = true;
   bool use_model_ = false;
   bool publish_debug_image_ = true;
-  bool publish_compressed_ = true;
   bool publish_compressed_mask_ = true;
   std::vector<std::string> model_class_names_ = {"outpost", "base"};
 };

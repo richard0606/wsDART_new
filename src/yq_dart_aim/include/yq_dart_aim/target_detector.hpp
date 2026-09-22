@@ -29,11 +29,9 @@ public:
     // 从二值图中检测目标，gray 为灰度图用于亚像素加权质心
     std::vector<TargetInfo> detect(const cv::Mat& mask, const cv::Mat& gray, const DetectParams& params);
 
-    // 根据当前目标类型选择最终目标
-    // 说明：启动期的单目标歧义由本类内部状态管理（见 SINGLE_TARGET_WAIT_MS），
-    // is_startup 参数当前未被使用
-    cv::Point2f selectTarget(const std::vector<TargetInfo>& targets,
-                             int current_target, bool is_startup);
+    // 根据下位机指定的目标（0=无目标, 1=前哨站, 2=基地）选择最终目标
+    // 启动期的单目标歧义由本类内部状态管理（见 SINGLE_TARGET_WAIT_MS）
+    cv::Point2f selectTarget(const std::vector<TargetInfo>& targets, int current_target);
 
 private:
     // 启动阶段只看到一个目标时的等待时长：

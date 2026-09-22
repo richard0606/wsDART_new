@@ -131,7 +131,6 @@ ALL_PARAMS: list[ParamDef] = [
     ParamDef("crop_height",              "int", 240, 1080, 16,  480,  "裁剪高度",     "system", "处理区域高度"),
     ParamDef("use_serial",               "bool", 0, 1,     1,   True, "启用串口",     "system", "比赛模式开启，调试模式关闭"),
     ParamDef("publish_debug_image",      "bool", 0, 1,     1,   True, "发布调试图像", "system", "关闭可节省性能"),
-    ParamDef("publish_compressed",       "bool", 0, 1,     1,   True, "发布压缩图像", "system", "JPEG格式"),
     ParamDef("publish_compressed_mask",  "bool", 0, 1,     1,   True, "发布压缩mask", "system", "PNG无损格式"),
 ]
 

@@ -373,6 +373,19 @@ void SerialManager::parseData(SerialPortState& port, const std::string& port_nam
         // 解析数据
         VisionSendPacket data;
         memcpy(&data, &port.rx_buffer[ri + 1], sizeof(data));
+
+        // 合法性校验：enemy 只能是 0=无目标 / 1=前哨站 / 2=基地，cur 只能是 0~3
+        // 越界按脏包丢弃（只记录，不更新状态，保留上一次的有效值）
+        if (data.enemy < 0 || data.enemy > MAX_TARGET_ID ||
+            data.cur < 0 || data.cur > MAX_DART_ID) {
+            char msg[160];
+            snprintf(msg, sizeof(msg), "serial payload out of range on %s: enemy=%d cur=%d (dropped)",
+                     port_name.c_str(), data.enemy, data.cur);
+            log(LogLevel::WARN, msg);
+            ri += packet_len;
+            continue;
+        }
+
         current_target_ = data.enemy;
         current_dart_id_ = data.cur;
         current_encoder_angle_ = data.encoder_angle;

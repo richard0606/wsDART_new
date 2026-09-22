@@ -16,11 +16,12 @@ constexpr auto SERIAL_RX_TIMEOUT = std::chrono::seconds(1);
 constexpr int MAX_TARGET_ID = 2;
 constexpr int MAX_DART_ID = 3;
 
-// 默认参数值（与原 params.yaml 保持一致）
+// 默认参数值（必须与 config/params.yaml 保持一致：yaml 是唯一权威来源，
+// 这里的值只在 yaml 没加载成功时兜底，不一致会导致静默用另一套参数跑）
 namespace defaults {
     // HSV 阈值
     constexpr int H_MIN = 35;
-    constexpr int S_MIN = 70;
+    constexpr int S_MIN = 75;
     constexpr int V_MIN = 50;
     constexpr int H_MAX = 80;
     constexpr int S_MAX = 255;
@@ -35,8 +36,8 @@ namespace defaults {
     constexpr bool USE_SERIAL = true;
 
     // 图像裁剪
-    constexpr int CROP_WIDTH = 1024;
-    constexpr int CROP_HEIGHT = 480;
+    constexpr int CROP_WIDTH = 1280;
+    constexpr int CROP_HEIGHT = 720;
 
     // 形态学
     constexpr int MORPH_KERNEL_SIZE = 3;
@@ -53,7 +54,6 @@ namespace defaults {
 
     // 调试输出
     constexpr bool PUBLISH_DEBUG_IMAGE = true;
-    constexpr bool PUBLISH_COMPRESSED = true;
     constexpr bool PUBLISH_COMPRESSED_MASK = true;
 }
 
