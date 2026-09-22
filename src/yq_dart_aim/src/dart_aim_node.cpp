@@ -94,17 +94,10 @@ public:
     // ==================== 模型检测器初始化 ====================
     use_model_ = this->get_parameter("use_model").as_bool();
     if (use_model_) {
-      yq_dart_aim::ModelParams model_params;
-      model_params.model_path = this->get_parameter("model_path").as_string();
-      model_params.conf_threshold = static_cast<float>(this->get_parameter("conf_threshold").as_double());
-      model_params.input_width = static_cast<int>(this->get_parameter("model_input_width").as_int());
-      model_params.input_height = static_cast<int>(this->get_parameter("model_input_height").as_int());
-      if (model_detector_.loadModel(model_params)) {
-        RCLCPP_INFO(this->get_logger(), "Model loaded: %s", model_params.model_path.c_str());
-      } else {
-        RCLCPP_ERROR(this->get_logger(), "Failed to load model: %s", model_params.model_path.c_str());
-        use_model_ = false;
-      }
+      // 加载失败会明确报错并退回 HSV（不再静默降级）
+      use_model_ = tryEnableModel();
+    } else {
+      RCLCPP_INFO(this->get_logger(), "模型模式未启用（use_model=false），使用 HSV");
     }
 
     RCLCPP_INFO(this->get_logger(), "DartAimNode started (p_err=%f, mode=%s)",
@@ -192,6 +185,40 @@ private:
     }
   }
 
+  // ==================== 模型参数 ====================
+  yq_dart_aim::ModelParams buildModelParams() const {
+    yq_dart_aim::ModelParams p;
+    p.model_path = this->get_parameter("model_path").as_string();
+    p.conf_threshold = static_cast<float>(this->get_parameter("conf_threshold").as_double());
+    p.input_width = static_cast<int>(this->get_parameter("model_input_width").as_int());
+    p.input_height = static_cast<int>(this->get_parameter("model_input_height").as_int());
+    return p;
+  }
+
+  // 尝试进入模型模式。任何一步失败都明确报错并返回 false（由调用方退回 HSV）。
+  bool tryEnableModel() {
+    if (model_detector_.isReady()) {
+      return true;  // 已经加载过
+    }
+    const yq_dart_aim::ModelParams mp = buildModelParams();
+    if (mp.model_path.empty()) {
+      RCLCPP_ERROR(this->get_logger(),
+                   "use_model=true 但 model_path 为空，已退回 HSV 模式"
+                   "（请在 params.yaml 里指定模型路径：BPU 后端填 .bin，ORT 后端填切好的 .onnx）");
+      return false;
+    }
+    if (!model_detector_.loadModel(mp)) {
+      RCLCPP_ERROR(this->get_logger(),
+                   "模型加载失败: %s，已退回 HSV 模式"
+                   "（检查文件是否存在、格式是否与编译时选择的推理后端匹配）",
+                   mp.model_path.c_str());
+      return false;
+    }
+    RCLCPP_INFO(this->get_logger(), "模型模式已启用: %s (输入 %dx%d)",
+                mp.model_path.c_str(), mp.input_width, mp.input_height);
+    return true;
+  }
+
   // ==================== 缓存参数更新 ====================
   void updateCachedParams() {
     // 图像处理参数
@@ -274,9 +301,9 @@ private:
       } else if (p.get_name() == "max_area") {
         detect_params_.max_area = p.as_double();
       } else if (p.get_name() == "use_model") {
-        use_model_ = p.as_bool();
+        use_model_ = p.as_bool() ? tryEnableModel() : false;
         sg_filter_x_.reset();  // 切换模式时重置滤波器
-        RCLCPP_INFO(this->get_logger(), "use_model updated: %s", use_model_ ? "true" : "false");
+        RCLCPP_INFO(this->get_logger(), "当前模式: %s", use_model_ ? "模型" : "HSV");
       } else if (p.get_name() == "conf_threshold") {
         RCLCPP_INFO(this->get_logger(), "conf_threshold updated (reload model to apply)");
       }
