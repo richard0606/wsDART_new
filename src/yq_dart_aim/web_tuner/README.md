@@ -196,7 +196,7 @@ ros2 launch yq_dart_aim start.launch.py
 |------|------|------|
 | 打不开网页 | web_tuner 没启动 | 检查 `python3 server.py` 是否在运行 |
 | 参数改了没效果 | 节点没启动 | 确认 `dart_aim_node` 在运行 |
-| 图像预览黑屏 | 没有图像话题 | 检查 `publish_compressed` 是否开启 |
+| 图像预览黑屏 | 没有图像话题 | 检查 `publish_debug_image` 是否开启 |
 | 手机连不上 | 网络不通 | 确认手机和 RDKX5 在同一局域网 |
 | 保存失败 | 文件权限 | 检查 `config/params.yaml` 是否可写 |
 | 页面显示但无数据 | 后端未启动 | 页面自动进入演示模式，用内置数据预览 |

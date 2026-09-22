@@ -26,5 +26,4 @@ use_serial: true
 
 # 调试
 publish_debug_image: true
-publish_compressed: true
 publish_compressed_mask: true

@@ -104,6 +104,5 @@ class PresetManager:
             self.save_preset("debug", {
                 "use_serial": False,
                 "publish_debug_image": True,
-                "publish_compressed": True,
                 "publish_compressed_mask": True,
             }, label="调试模式", desc="关闭串口，开启全部调试输出")

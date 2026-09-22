@@ -5,3 +5,12 @@
     exposure_time: 300
     gain: 0.0
     use_sensor_data_qos: true
+
+    # 显式指定输出格式，避免依赖相机掉电前的状态
+    # 0 = 使用相机支持的最大分辨率（与相机型号无关，推荐先留 0）
+    image_width: 0
+    image_height: 0
+    # RGB8 / BGR8
+    # BGR8：dart_aim_node 直接零拷贝共享，省掉每帧一次 RGB->BGR 转换拷贝（约 2.7MB/帧）
+    # 输出话题的 encoding 会跟着变成 bgr8，foxglove 按 encoding 渲染，颜色正常
+    pixel_format: BGR8
