@@ -138,6 +138,63 @@ docker run --rm -v /path/to/horizon_work:/work -w /work \
 - ❌ 不要用 `AT_NN_Detector/video/` 里那两个视频抽帧：一个是导播直播合成画面、一个是旧系统的 Foxglove 录屏，都不是有效样本
 - 尺寸随意（工具链会自己处理），但内容要是真实的装甲板画面
 
+### 3.5.1 采集工具用法（`tools/collect_dataset.py`）
+
+工具**订阅已经在跑的相机节点**存图，而不是自己调 SDK——这样存下来的就是
+**比赛那套曝光/增益/分辨率**下的原始帧（`camera_params.yaml` 说了算），
+不裁剪、不改色，正好是 hb_mapper 要的输入。
+
+```bash
+# 1) 先起相机节点（只起相机，不要起 dart_aim_node —— 要的是原始全画幅图）
+ros2 launch hik_camera hik_camera.launch.py
+
+# 2) 采集
+python3 tools/collect_dataset.py --out ~/calib --interval 0.5
+```
+
+**两种模式**（按有没有屏幕自动选择，也可用 `--no-window` 强制）：
+
+| 场景 | 行为 |
+|---|---|
+| 有屏幕（桌面/本地终端） | 弹预览窗口（带张数/帧率/模式叠加），**按键控制**：<br>`s`/空格 存一张 · `a` 切换自动模式 · `d` 切换重复过滤 · `q`/ESC 退出 |
+| 无屏幕（ssh 上板） | 自动模式，每 `--interval` 秒存一张，**Ctrl-C 结束**（会正常收尾写 meta） |
+
+**参数**：
+
+| 参数 | 默认 | 说明 |
+|---|---|---|
+| `--out DIR` | `./dataset_<时间戳>/` | 输出目录 |
+| `--topic` | `/image_raw` | 图像话题 |
+| `--interval` | 1.0 | 自动模式间隔秒；`0` = 纯手动 |
+| `--max N` | 0（不限） | 存够 N 张自动退出 |
+| `--format` | `jpg` | `jpg` / `png`（png 无损但大很多） |
+| `--quality` | 95 | jpg 质量 |
+| `--dup-threshold` | 1.5 | 与上一张的平均像素差低于此值就跳过；`0` = 不判断 |
+| `--keep-dups` | — | 关掉重复过滤 |
+| `--timeout` | 10 | 等第一帧的超时秒数 |
+
+结束时会在输出目录写一份 `meta.json`：图像尺寸、编码、存入张数、跳过重复数、
+收到帧数、间隔、起止时间——**方便回溯这批数据是怎么采的**。
+
+### 3.5.2 采集注意事项
+
+1. **必须用比赛时的相机参数采**。数据要代表现场，`exposure_time` / `gain` /
+   `pixel_format` 改了，这批数据就白采了。采之前先核对 `camera_params.yaml`。
+2. **要"多样性"，不要"数量多但都一样"**。100 张各不相同的图，远好过 300 张同一机位的连拍。
+   工具默认会跳过和上一张几乎相同的画面（`--dup-threshold`），但最好还是**每次存之前稍微动一下机位**。
+3. **覆盖实际会遇到的条件**：不同光照（白天/逆光/阴影）、不同距离（远/近）、
+   不同角度（正对/斜角/仰角），以及靶子占画面大/小两种情况。
+4. **目标要出现在画面里，但不必只有目标**。赛场背景、其他机器人、灯光干扰都值得采进去——
+   量化标定是按实际分布算的，全是干净空背景反而不好。
+5. **不建议用 `--format png`**：无压缩图单张 2~3MB，300 张就接近 1GB；JPEG q95 足够，
+   压缩伪影对量化影响可忽略。
+6. **数据的去向**：采完把图拷进 `~/horizon_work/calib/`（或直接在采集机上指定
+   `--out ~/horizon_work/calib`），然后 `./makertbin.sh` 量化出 `.bin`。
+7. **别用 `AT_NN_Detector/video/` 里那两个视频抽帧**：一个是导播直播合成画面、
+   一个是旧系统 Foxglove 录屏，都不是有效样本（详见 3.5 开头）。
+8. **同一批数据既能当标定集也能当校验集**：量化完用其中一部分图比对
+   `.bin` 与 `.onnx` 的输出（见 3.4 的精度验证），能直接看出量化掉没掉点。
+
 ### 3.6 已知量化风险
 
 | 风险点 | 说明 | 缓解 |
@@ -208,6 +265,10 @@ colcon build --cmake-args -DDART_INFER_BACKEND=BPU
 
 > 不指定的话默认是 `ORT`（ONNX Runtime），板子上没装 onnxruntime 会**编译报错**并提示怎么改——这是故意的，避免静默用错后端。
 
+> 💡 **自编译 ORT 后端时的坑**：只给 `target_link_directories` 不够，运行时（尤其是 systemd
+> 启动）会找不到 `libonnxruntime.so.1`。`CMakeLists.txt` 里已经写好了 `BUILD_RPATH` /
+> `INSTALL_RPATH`（commit `247315b` 补的），改动时别删掉。
+
 ### 4.3 改参数（`src/yq_dart_aim/config/params.yaml`）
 
 ```yaml
@@ -235,16 +296,35 @@ output type=S16 valid=[1,9072,28] aligned=[...] stride=[...] scale=...
 BPU model loaded: 768x576 nv12
 ```
 
-**这是设计好的自检输出**——因为 `model_backend_bpu.cpp` 是在没有板子的情况下写的，
-文件头列了 5 条假设，用这段日志逐条核对：
+**这段日志是设计好的自检输出**——`model_backend_bpu.cpp` 最早是在没有板子的机器上写的，
+API 名称全靠推断，所以打印张量信息便于核对。
 
-| # | 假设 | 日志里怎么看 | 不对时改哪 |
-|---|---|---|---|
-| 1 | 头文件路径是 `<hobot/dnn/hb_dnn.h>` | 编译期就该过 | `CMakeLists.txt` 里注释掉的 `target_include_directories` |
-| 2 | 输入是 `nv12` 或 `featuremap` | `input type=` 是 `IMG_NV12*` 还是 `S8/F32` | 两种都实现了，日志对得上就不用改 |
-| 3 | 输出最后一维是 28 | `output valid=[1,9072,28]` | 若不是 28，说明切点或模型版本变了 |
-| 4 | 输出会量化（S8/S16） | `output type=` + `scale=` | 代码已按 `scale` 反量化；若 `scale` 打印为 0 需检查 |
-| 5 | `hbDNNInfer` 需要调用方预分配输出缓冲 | 推理返回 false 会打 `hbDNNInfer failed` | 参考官方 sample 调整 `g_outputs` 的分配 |
+**2026-09-22 已在板子上编译对齐（commit `247315b`）**。最初推断与实际 hobot_dnn 1.24.5
+的差异如下（均已改正，记录在此备查）：
+
+| 最初推断 | 实际接口（hobot_dnn 1.24.5） |
+|---|---|
+| `hbDNNPackedHandle_t` | `hbPackedDNNHandle_t` |
+| `hbDNNRelease(&handle)` | `hbDNNRelease(handle)` |
+| `p.numDimensions` | `p.validShape.numDimensions` |
+| `p.validShape[i]` / `p.alignedShape[i]` | `p.validShape.dimensionSize[i]` / `p.alignedShape.dimensionSize[i]` |
+| `sysMem[i].vir_addr` | `sysMem[i].virAddr` |
+| `hbDNNInfer(&task,&out,&in,model)` | 多一个控制参数：`hbDNNInferCtrlParam` + `HB_DNN_INITIALIZE_INFER_CTRL_PARAM(&ctrl)` |
+| 输出缓冲字节数 = alignedShape 连乘 | 优先用 `p.alignedByteSize` |
+
+日志里要核对的字段（现在还多打一个 `quanti=`）：
+
+| 检查项 | 期望值 | 不符说明什么 |
+|---|---|---|
+| 输入类型 | `IMG_NV12*`（yaml 配 nv12 时）或 `S8/F32`（featuremap） | 两种都已实现；对不上就查 hb_mapper 的 `input_type_rt` |
+| 输入形状 | `[1,3,576,768]` | 与 `model_input_*` 或 .bin 不一致 |
+| 输出形状 | `[1,9072,28]` | 切点或模型版本变了 |
+| 输出类型 + scale | 量化类型（如 `S16`）+ scale 非 0 | 代码按 `scale` 反量化；scale 为 0 要查 |
+| 推理调用 | 不出现 `hbDNNInfer failed` | 出现了就对 `g_outputs` 的分配方式 |
+
+> ⚠️ **当前状态**：2026-09-22 板子上实际运行的是 **ORT 后端**（`model_path` 指向
+> 切好的 `.onnx`，见 `screen.output`）；BPU 后端已完成接口对齐并编译通过，
+> **是否已在板上实际推理验证，请与维护者确认**。
 
 ---
 
@@ -283,31 +363,36 @@ ros2 topic hz /image_raw
    `h_*`/`s_*`/`v_*`/形态学/`max_area` 这些参数在模型模式下**不生效**。
 4. **裁剪会丢画面左右各 160px**。1280×720 的裁剪图按 4:3 中心裁成 960×720 再缩到 768×576。
    如果靶子可能出现在画面左右边缘，要改成 letterbox（代码里改 `preprocess`）。
-5. **`use_model=true` 打不开模型时会明确报错并退回 HSV**（不会静默用错模式）：
+5. **相机启动时那条 `Failed to set PixelFormat` 是正常的**（CU013 不支持 BGR8 输出格式）。
+   代码会保留相机默认格式，再由 SDK 内部转成 BGR8 发布，话题 `encoding` 仍是 `bgr8`，
+   下游不受影响。想要日志干净就把 `camera_params.yaml` 的 `pixel_format` 改回 `RGB8`。
+6. **曝光时间直接决定帧率上限**：当前 `exposure_time: 50000`（= 50ms）→ 相机最多 **20fps**。
+   模型推理再叠加几十~几百毫秒，实际出图率会更低。如果瞄准环需要更高帧率，先从这里下手。
+7. **`use_model=true` 打不开模型时会明确报错并退回 HSV**（不会静默用错模式）：
    - `model_path` 为空 → `ERROR: use_model=true 但 model_path 为空…`
    - 加载失败 → `ERROR: 模型加载失败: <路径>…`
    日志里看到这类 ERROR 就说明当前跑的是 HSV。
-6. **`.bin` 不要提交进 git**（`.gitignore` 已忽略 `*.bin`），板子上单独放。
-7. **模型是 AGPL-3.0**，本仓库是公开仓库，别把 `.onnx`/`.bin` 提交进去。
+8. **`.bin` 不要提交进 git**（`.gitignore` 已忽略 `*.bin`），板子上单独放。
+9. **模型是 AGPL-3.0**，本仓库是公开仓库，别把 `.onnx`/`.bin` 提交进去。
 
 ### 6.2 与其它模块的联动
 
-8. **偏移量表要按现场重新标定**（`offset_0_*` / `offset_1_*` / `offset_2_*`）。
+10. **偏移量表要按现场重新标定**（`offset_0_*` / `offset_1_*` / `offset_2_*`）。
    注意代码已经修正过"偏移被叠加两次"的 bug，**现在的补偿量只有修复前的一半**，
    旧值一律不要用。标定方法：打一发 → 看弹着点偏多少 → 该目标该飞镖的 offset 加减对应像素。
-9. **`crop_width` / `crop_height` 与偏移表绑定**（HSV 路径的图像中心与裁剪图尺寸有关）。
+11. **`crop_width` / `crop_height` 与偏移表绑定**（HSV 路径的图像中心与裁剪图尺寸有关）。
    模型路径的坐标已经映射回同一个裁剪图坐标系，所以改裁剪尺寸时 **HSV 的偏移要重标，模型路径不用**。
-10. **串口数据校验**：下位机发来的 `enemy` 只能是 0/1/2、`cur` 只能是 0~3。
+12. **串口数据校验**：下位机发来的 `enemy` 只能是 0/1/2、`cur` 只能是 0~3。
     收到越界值（比如 9、-3）时，代码**丢弃这个包并保留上一次的有效值**，同时打 WARN 日志。
     这样单帧脏数据不会让瞄准跳到一个不存在目标上。
-11. **模型内置 TopK，不需要 NMS**。所以 `nms_threshold` 参数已被删除，
+13. **模型内置 TopK，不需要 NMS**。所以 `nms_threshold` 参数已被删除，
     后处理里也没有 NMS 环节（候选框之间不会互相抑制，靠 `conf_threshold` 过滤）。
 
 ### 6.3 模型本身的已知限制（作者原话）
 
-12. **不识别"基地小装甲"**（RM2026 新增的目标，训练集未覆盖）。
-13. **量化版本下 Outpost 偶有异常**（w8a16 时），作者判断是数据集脏数据，不影响拟合。
-14. 模型覆盖：所有参赛环境的目标（轨道哨兵、5 号小装甲步兵、3/4/5 号大装甲步兵等）。
+14. **不识别"基地小装甲"**（RM2026 新增的目标，训练集未覆盖）。
+15. **量化版本下 Outpost 偶有异常**（w8a16 时），作者判断是数据集脏数据，不影响拟合。
+16. 模型覆盖：所有参赛环境的目标（轨道哨兵、5 号小装甲步兵、3/4/5 号大装甲步兵等）。
 
 ---
 
