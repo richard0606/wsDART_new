@@ -47,14 +47,22 @@ ros2 param set /dart_aim_node infer_backend BPU
 编译期只决定"哪些后端编进程序"（默认自动探测依赖）：
 
 ```bash
-# 显式指定 ONNX Runtime 路径（找不到系统安装时）
-colcon build --cmake-args -DORT_ROOT=/root/onnxruntime/onnxruntime-linux-aarch64-1.19.2
+# 板子上 ONNX Runtime 已装在 /usr/local（v1.19.2），裸 colcon build 就能自动探测到；
+# 换一台没装的机器时再指定路径：
+colcon build --cmake-args -DORT_ROOT=/path/to/onnxruntime-linux-aarch64
 
 # 关掉某个后端（减小体积/避免缺依赖）
 colcon build --cmake-args -DDART_ENABLE_ORT=OFF
 
 # params.yaml 没写 infer_backend 时的默认值
 colcon build --cmake-args -DDART_INFER_BACKEND=BPU
+```
+
+编译日志会打印实际启用的后端，例如：
+
+```
+yq_dart_aim: BPU 后端 = 启用 (/usr/lib/libdnn.so)
+yq_dart_aim: CPU(ORT) 后端 = 启用 (/usr/local/lib/libonnxruntime.so)
 ```
 
 > BPU 需要量化好的 `.bin`（生成流程见 `docs/BPU部署指南.md`）；CPU 需要切掉后处理的 `.onnx`（同文档第 2 步）。
