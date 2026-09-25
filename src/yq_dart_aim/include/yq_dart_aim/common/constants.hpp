@@ -58,6 +58,12 @@ namespace defaults {
 
     // 录制转发话题（/debug_record/*），仅录制功能开启时才创建
     constexpr bool ENABLE_RECORD = false;
+
+    // 模型模式：下位机没给过目标提示时的兜底目标（1=前哨站, 2=基地, 0=不瞄准）
+    constexpr int MODEL_DEFAULT_TARGET = 2;
+
+    // 模型结果有效期(ms)，0=不限制（ORT 单帧 500ms 左右，限制反而会误杀）
+    constexpr int MODEL_MAX_RESULT_AGE_MS = 0;
 }
 
 }  // namespace yq_dart_aim

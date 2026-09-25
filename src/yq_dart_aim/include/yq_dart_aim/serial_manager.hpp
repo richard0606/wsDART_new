@@ -48,6 +48,9 @@ public:
     // 获取接收到的数据（线程安全）
     bool getReceivedData(int& target, int& dart_id, float& encoder_angle);
 
+    // 是否曾经收到过校验通过的包（用于判断下位机有没有给过目标提示）
+    bool hasValidData() const { return has_valid_data_.load(); }
+
     // 启用/禁用串口
     void setEnabled(bool enabled);
     bool isEnabled() const;
@@ -80,6 +83,7 @@ private:
     int current_dart_id_ = 0;
     float current_encoder_angle_ = 0.0f;
     std::string last_rx_hex_;
+    std::atomic<bool> has_valid_data_{false};
 
     std::string configured_port_;
     int baud_rate_ = 115200;

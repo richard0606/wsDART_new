@@ -389,6 +389,7 @@ void SerialManager::parseData(SerialPortState& port, const std::string& port_nam
         current_target_ = data.enemy;
         current_dart_id_ = data.cur;
         current_encoder_angle_ = data.encoder_angle;
+        has_valid_data_.store(true);
 
         ri += packet_len;
     }
