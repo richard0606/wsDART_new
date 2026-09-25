@@ -22,7 +22,8 @@ namespace yq_dart_aim {
 // （TopK/GatherElements 等算子 BPU 不支持），切点即 /model.23/Transpose_output_0，
 // 剩下对 (1,N,28) 的解码由本类在 CPU 上完成，实测与模型原生输出逐位一致。
 struct ModelParams {
-    std::string model_path;          // BPU: .bin；开发机(cv::dnn): .onnx（切好的版本）
+    std::string model_path;          // CPU/ORT/DNN: 切好的 .onnx；BPU: 量化 .bin
+    InferBackend backend = InferBackend::kCpu;  // 运行期推理后端
     float conf_threshold = 0.25f;    // 置信度阈值
     int input_width = 768;           // 模型输入宽（576x768 型号）
     int input_height = 576;          // 模型输入高
@@ -64,8 +65,15 @@ public:
     bool isReady() const override;
     std::string name() const override { return "model"; }
 
-    // 加载模型（BPU 的 .bin 或开发机的 .onnx）
+    // 加载模型（CPU/ORT/DNN 跑切好的 .onnx，BPU 跑量化 .bin）
     bool loadModel(const ModelParams& params);
+
+    // 卸载模型并停掉推理线程（切换推理后端/模型路径时用，可反复调用）
+    void unloadModel();
+
+    // 当前生效的推理后端与模型路径（仅用于日志）
+    InferBackend backend() const { return params_.backend; }
+    const std::string& modelPath() const { return params_.model_path; }
 
     // 结果序号：每产生一批新结果 +1。异步推理下同一批结果会被多帧重复读取，
     // 调用方据此判断"是不是新结果"（例如时序滤波只在有新结果时推入样本）

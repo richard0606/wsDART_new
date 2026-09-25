@@ -21,18 +21,44 @@ source /opt/ros/humble/setup.bash
 colcon build
 ```
 
-### 模型识别的推理后端（二选一）
+### 模型推理后端（运行期切换）
 
-模型识别有两套加速方案，编译时用 `DART_INFER_BACKEND` 选择：
+模型识别有两条路径，由 `params.yaml` 的 `infer_backend` 在**运行期**切换，不用重新编译：
 
-| 取值 | 说明 | 编译命令 |
+| 取值 | 说明 | 模型文件 |
 |---|---|---|
-| `BPU` | RDK X5 BPU，跑量化好的 `.bin` | `colcon build --cmake-args -DDART_INFER_BACKEND=BPU` |
-| `ORT`（默认） | ONNX Runtime，跑切掉后处理的 `.onnx`，CPU 方案 | `colcon build --cmake-args -DDART_INFER_BACKEND=ORT -DORT_ROOT=<onnxruntime目录>` |
-| `DNN` | OpenCV DNN 后端（备选） | `colcon build --cmake-args -DDART_INFER_BACKEND=DNN` |
+| `BPU` | RDK X5 BPU（hobot_dnn），板子部署用，速度最快 | `model_path_bpu` 指向量化 `.bin` |
+| `CPU` | ONNX Runtime，纯 CPU 推理，用于没量化模型时验证 | `model_path_cpu` 指向切好后的 `.onnx` |
+| `DNN` | OpenCV DNN，备选（比 ONNX Runtime 慢） | 同 CPU |
 
-> ⚠️ `DNN` 后端要求 OpenCV ≥ 5.x：ROS humble 自带的 4.5.4 不支持本模型的 `ArgMax` 节点，加载会直接失败。
-> 板子上部署用 `BPU`；只想在开发机上验证预处理/后处理逻辑用 `ORT`（需下载 ONNX Runtime 的 C++ release 包）。
+```yaml
+use_model: true          # 一级开关：模型模式（false = 传统 HSV）
+infer_backend: CPU       # 二级开关：选 BPU 还是 CPU
+model_path_cpu: /root/dart_ws_on/src/yq_dart_aim/model/praysky_dart_576x768_cut.onnx
+model_path_bpu: ''       # 量化模型放好后填 .bin 路径
+```
+
+运行时切换（会自动卸载旧后端、热加载新模型，失败明确报错并退回 HSV）：
+
+```bash
+ros2 param set /dart_aim_node infer_backend BPU
+```
+
+编译期只决定"哪些后端编进程序"（默认自动探测依赖）：
+
+```bash
+# 显式指定 ONNX Runtime 路径（找不到系统安装时）
+colcon build --cmake-args -DORT_ROOT=/root/onnxruntime/onnxruntime-linux-aarch64-1.19.2
+
+# 关掉某个后端（减小体积/避免缺依赖）
+colcon build --cmake-args -DDART_ENABLE_ORT=OFF
+
+# params.yaml 没写 infer_backend 时的默认值
+colcon build --cmake-args -DDART_INFER_BACKEND=BPU
+```
+
+> BPU 需要量化好的 `.bin`（生成流程见 `docs/BPU部署指南.md`）；CPU 需要切掉后处理的 `.onnx`（同文档第 2 步）。
+> CPU 路径在 RDK X5 上单帧约 0.5 秒，只能用来验证流程，不能实时运行。
 
 ## 生产部署（systemd 开机自启）
 

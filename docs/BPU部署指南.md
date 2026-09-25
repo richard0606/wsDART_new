@@ -255,15 +255,20 @@ docker run --rm -v ~/horizon_work:/work -w /work \
 - 整个工作区源码（或者直接 `git pull`）
 - **`praysky_dart_576x768.bin`**（建议放 `src/yq_dart_aim/model/`，注意 `.gitignore` 忽略了 `*.bin`，不会被提交）
 
-### 4.2 编译（**必须指定后端**）
+### 4.2 编译
 
 ```bash
 source /opt/ros/humble/setup.bash
 cd /root/dart_ws_on
-colcon build --cmake-args -DDART_INFER_BACKEND=BPU
+colcon build
 ```
 
-> 不指定的话默认是 `ORT`（ONNX Runtime），板子上没装 onnxruntime 会**编译报错**并提示怎么改——这是故意的，避免静默用错后端。
+> BPU / CPU 两个后端只要依赖在，编译时都会编进同一个程序（CMake 自动探测 `libdnn` 与
+> onnxruntime），**运行期**再用 `infer_backend` 参数选哪条路径，不用为切后端重新编译。
+> 板子上没装 onnxruntime 只是编不进 CPU 后端，不影响 BPU。
+>
+> 想裁掉某个后端：`colcon build --cmake-args -DDART_ENABLE_ORT=OFF`；
+> ORT 装在非标准路径时加 `-DORT_ROOT=<onnxruntime 目录>`。
 
 > 💡 **自编译 ORT 后端时的坑**：只给 `target_link_directories` 不够，运行时（尤其是 systemd
 > 启动）会找不到 `libonnxruntime.so.1`。`CMakeLists.txt` 里已经写好了 `BUILD_RPATH` /
@@ -273,7 +278,8 @@ colcon build --cmake-args -DDART_INFER_BACKEND=BPU
 
 ```yaml
 use_model: true
-model_path: /root/dart_ws_on/src/yq_dart_aim/model/praysky_dart_576x768.bin
+infer_backend: BPU
+model_path_bpu: /root/dart_ws_on/src/yq_dart_aim/model/praysky_dart_576x768.bin
 model_input_width: 768
 model_input_height: 576
 conf_threshold: 0.25      # 先 0.25，误检多就往上调
@@ -400,8 +406,9 @@ ros2 topic hz /image_raw
 
 | 现象 | 原因 | 处理 |
 |---|---|---|
-| 编译报错找不到 onnxruntime | 忘了指定后端 | 加 `-DDART_INFER_BACKEND=BPU` |
-| 启动日志 `模型加载失败` | `.bin` 路径错 / 格式不匹配 | 检查 `model_path`；确认编译时选的是 BPU |
+| 编译日志 `跳过 CPU(ORT) 后端` | 板子上没装 onnxruntime | 正常，不影响 BPU；要 CPU 路径就装 ORT 并加 `-DORT_ROOT=` |
+| 启动日志 `推理后端 ... 未编译进本程序` | 该后端被 `-DDART_ENABLE_*=OFF` 关掉了，或缺依赖 | 去掉该开关重新编译 |
+| 启动日志 `模型加载失败` | `.bin` 路径错 / 格式不匹配 / 后端选错 | 检查 `model_path_bpu` 与 `infer_backend` 是否都是 BPU |
 | 日志 `input size mismatch` | 模型输入尺寸与 `model_input_width/height` 不一致 | 改 yaml 里的 `model_input_*` 与模型对齐 |
 | `hbDNNInfer failed` | 输出缓冲分配方式与工具链版本不符 | 按第 4.4 节第 5 条核对 |
 | 识别框位置整体偏移 | 裁剪/缩放假设与模型训练时不一致 | 确认是"中心裁剪 4:3"而不是 letterbox；两者坐标映射不同 |

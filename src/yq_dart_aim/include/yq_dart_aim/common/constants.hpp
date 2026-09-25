@@ -64,6 +64,8 @@ namespace defaults {
 
     // 模型结果有效期(ms)，0=不限制（ORT 单帧 500ms 左右，限制反而会误杀）
     constexpr int MODEL_MAX_RESULT_AGE_MS = 0;
-}
+
+    // 模型模式的二级开关：推理后端（CPU=ONNX Runtime / BPU=hobot_dnn / DNN=OpenCV）
+    constexpr const char* INFER_BACKEND = "CPU";}
 
 }  // namespace yq_dart_aim

@@ -87,16 +87,18 @@ public:
     }
 
     // ==================== 模型检测器初始化 ====================
+    // use_model_ 表示"用户是否要求模型模式"，加载失败不会把它改回 false，
+    // 否则改好模型路径后不会再自动重试；实际是否在跑模型看 model_detector_.isReady()
     use_model_ = this->get_parameter("use_model").as_bool();
     if (use_model_) {
       // 加载失败会明确报错并退回 HSV（不再静默降级）
-      use_model_ = tryEnableModel();
+      tryEnableModel();
     } else {
       RCLCPP_INFO(this->get_logger(), "模型模式未启用（use_model=false），使用 HSV");
     }
 
     RCLCPP_INFO(this->get_logger(), "DartAimNode started (p_err=%f, mode=%s)",
-                calc_params_.p_err, use_model_ ? "model" : "hsv");
+                calc_params_.p_err, currentModeName());
 
     // 启动调试发布线程
     debug_thread_ = std::thread(&DartAimNode::debugPublishLoop, this);
@@ -153,6 +155,9 @@ private:
     // model_path: BPU 上是切好后处理导出的 .bin；开发机(cv::dnn)上是同一个 .onnx
     if (!this->has_parameter("use_model")) this->declare_parameter("use_model", false);
     if (!this->has_parameter("model_path")) this->declare_parameter("model_path", std::string(""));
+    if (!this->has_parameter("infer_backend")) this->declare_parameter("infer_backend", DART_DEFAULT_INFER_BACKEND);
+    if (!this->has_parameter("model_path_cpu")) this->declare_parameter("model_path_cpu", std::string(""));
+    if (!this->has_parameter("model_path_bpu")) this->declare_parameter("model_path_bpu", std::string(""));
     if (!this->has_parameter("conf_threshold")) this->declare_parameter("conf_threshold", 0.25);
     if (!this->has_parameter("model_input_width")) this->declare_parameter("model_input_width", 768);
     if (!this->has_parameter("model_input_height")) this->declare_parameter("model_input_height", 576);
@@ -186,7 +191,19 @@ private:
   // ==================== 模型参数 ====================
   yq_dart_aim::ModelParams buildModelParams() const {
     yq_dart_aim::ModelParams p;
-    p.model_path = this->get_parameter("model_path").as_string();
+    p.backend = infer_backend_;
+    // 分后端的模型路径：model_path_{cpu,bpu} 为空时回退到通用 model_path
+    const std::string cpu_path = this->get_parameter("model_path_cpu").as_string();
+    const std::string bpu_path = this->get_parameter("model_path_bpu").as_string();
+    const std::string common_path = this->get_parameter("model_path").as_string();
+    switch (p.backend) {
+      case yq_dart_aim::InferBackend::kBpu:
+        p.model_path = bpu_path.empty() ? common_path : bpu_path;
+        break;
+      default:
+        p.model_path = cpu_path.empty() ? common_path : cpu_path;
+        break;
+    }
     p.conf_threshold = static_cast<float>(this->get_parameter("conf_threshold").as_double());
     p.input_width = static_cast<int>(this->get_parameter("model_input_width").as_int());
     p.input_height = static_cast<int>(this->get_parameter("model_input_height").as_int());
@@ -199,22 +216,32 @@ private:
     if (model_detector_.isReady()) {
       return true;  // 已经加载过
     }
+    if (!this->has_parameter("infer_backend")) return false;
+    const std::string backend_text = this->get_parameter("infer_backend").as_string();
+    if (!yq_dart_aim::parseInferBackend(backend_text, infer_backend_)) {
+      RCLCPP_ERROR(this->get_logger(),
+                   "infer_backend='%s' 无法识别（可用: CPU / BPU / DNN）",
+                   backend_text.c_str());
+      return false;
+    }
     const yq_dart_aim::ModelParams mp = buildModelParams();
     if (mp.model_path.empty()) {
       RCLCPP_ERROR(this->get_logger(),
-                   "use_model=true 但 model_path 为空，已退回 HSV 模式"
-                   "（请在 params.yaml 里指定模型路径：BPU 后端填 .bin，ORT 后端填切好的 .onnx）");
+                   "use_model=true 但 %s 后端没有模型路径，已退回 HSV 模式"
+                   "（CPU 填 model_path_cpu 指向切好的 .onnx；BPU 填 model_path_bpu 指向量化 .bin）",
+                   yq_dart_aim::backendName(mp.backend));
       return false;
     }
     if (!model_detector_.loadModel(mp)) {
       RCLCPP_ERROR(this->get_logger(),
-                   "模型加载失败: %s，已退回 HSV 模式"
-                   "（检查文件是否存在、格式是否与编译时选择的推理后端匹配）",
-                   mp.model_path.c_str());
+                   "模型加载失败: 后端=%s 路径=%s，已退回 HSV 模式"
+                   "（检查文件是否存在、格式是否与 infer_backend 匹配）",
+                   yq_dart_aim::backendName(mp.backend), mp.model_path.c_str());
       return false;
     }
-    RCLCPP_INFO(this->get_logger(), "模型模式已启用: %s (输入 %dx%d)",
-                mp.model_path.c_str(), mp.input_width, mp.input_height);
+    RCLCPP_INFO(this->get_logger(), "模型模式已启用: 后端=%s 路径=%s (输入 %dx%d)",
+                yq_dart_aim::backendName(mp.backend), mp.model_path.c_str(),
+                mp.input_width, mp.input_height);
     return true;
   }
 
@@ -248,6 +275,40 @@ private:
 
   static int clampTargetId(int v) {
     return std::max(0, std::min(yq_dart_aim::MAX_TARGET_ID, v));
+  }
+
+  // 模型相关参数改动后热重载。
+  // 注意：on_set_parameters 回调执行期间 get_parameter() 读到的还是旧值
+  // （新值要等回调返回后才提交），所以真正的重载交给一个 50ms 的一次性定时器，
+  // 由执行器在回调结束之后触发。
+  void scheduleModelReload(const char* what) {
+    model_reload_reason_ = what;
+    if (!model_reload_timer_) {
+      model_reload_timer_ = this->create_wall_timer(std::chrono::milliseconds(50), [this]() {
+        if (model_reload_timer_) model_reload_timer_->cancel();
+        const std::string reason = model_reload_reason_;
+        model_reload_reason_.clear();
+        reloadModelIfActive(reason.c_str());
+      });
+    } else {
+      model_reload_timer_->reset();
+    }
+  }
+
+  const char* currentModeName() const {
+    return (use_model_ && model_detector_.isReady()) ? "model" : "hsv";
+  }
+
+  void reloadModelIfActive(const char* what) {
+    if (!use_model_) {
+      RCLCPP_INFO(this->get_logger(), "%s 已更新（当前非模型模式，未重载）", what);
+      return;
+    }
+    model_detector_.unloadModel();
+    sg_filter_x_.reset();
+    last_result_seq_ = 0;
+    tryEnableModel();
+    RCLCPP_INFO(this->get_logger(), "模型重载(%s)结果: %s", what, currentModeName());
   }
 
   // ==================== 参数变更回调 ====================
@@ -312,11 +373,30 @@ private:
       } else if (p.get_name() == "max_area") {
         detect_params_.max_area = p.as_double();
       } else if (p.get_name() == "use_model") {
-        use_model_ = p.as_bool() ? tryEnableModel() : false;
+        use_model_ = p.as_bool();
         sg_filter_x_.reset();  // 切换模式时重置滤波器
-        RCLCPP_INFO(this->get_logger(), "当前模式: %s", use_model_ ? "模型" : "HSV");
+        last_result_seq_ = 0;
+        if (use_model_) {
+          tryEnableModel();
+        } else {
+          model_detector_.unloadModel();
+        }
+        RCLCPP_INFO(this->get_logger(), "当前模式: %s",
+                    use_model_ ? "模型" : "HSV");
+      } else if (p.get_name() == "infer_backend") {
+        yq_dart_aim::InferBackend parsed{};
+        if (!yq_dart_aim::parseInferBackend(p.as_string(), parsed)) {
+          result.successful = false;
+          result.reason = "infer_backend 只能是 CPU / BPU / DNN";
+          continue;
+        }
+        scheduleModelReload("infer_backend");
       } else if (p.get_name() == "conf_threshold") {
-        RCLCPP_INFO(this->get_logger(), "conf_threshold updated (reload model to apply)");
+        scheduleModelReload("conf_threshold");
+      } else if (p.get_name() == "model_path" ||
+                 p.get_name() == "model_path_cpu" || p.get_name() == "model_path_bpu" ||
+                 p.get_name() == "model_input_width" || p.get_name() == "model_input_height") {
+        scheduleModelReload(p.get_name().c_str());
       } else if (p.get_name() == "model_default_target") {
         model_default_target_ = clampTargetId(p.as_int());
         RCLCPP_INFO(this->get_logger(), "无串口提示时的兜底目标: %d (0=不瞄准, 1=前哨站, 2=基地)",
@@ -672,6 +752,9 @@ private:
   bool publish_compressed_mask_ = true;
   bool enable_record_ = false;
   int model_default_target_ = yq_dart_aim::defaults::MODEL_DEFAULT_TARGET;
+  yq_dart_aim::InferBackend infer_backend_ = yq_dart_aim::InferBackend::kCpu;
+  rclcpp::TimerBase::SharedPtr model_reload_timer_;
+  std::string model_reload_reason_;
   uint64_t last_result_seq_ = 0;
   float filtered_x_ = 0.0f;
 };

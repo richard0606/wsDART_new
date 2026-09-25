@@ -7,14 +7,23 @@
 
 namespace yq_dart_aim {
 
-// 推理后端统一接口
-//
-// 目前有两种实现：
-//   - BPU 后端（WITH_BPU 打开时）：RDK X5 上跑 .bin，见 model_detector_bpu.cpp
-//   - cv::dnn 后端（默认）：开发机上跑 .onnx，方便无板子时验证预处理/后处理
-//
-// 两个后端都只负责"输入预处理好的 blob -> 输出原始张量"，解码在 ModelDetector 里做，
-// 保证换后端后处理逻辑完全一致。
+// 推理后端
+// 编译期由 CMake 决定哪些后端可用（DART_ENABLE_BPU / ORT / DNN，默认自动探测），
+// 运行期由 infer_backend 参数在已编译进来的后端之间切换
+enum class InferBackend {
+    kCpu,  // ONNX Runtime，CPU 推理，跑切好的 .onnx
+    kBpu,  // hobot_dnn，RDK X5 BPU 加速，跑量化好的 .bin
+    kDnn,  // OpenCV DNN，跑 .onnx（备选，比 ONNX Runtime 慢）
+};
+
+// 该后端是否被编译进本程序（依赖没找到时为 false）
+bool backendAvailable(InferBackend backend);
+
+// 后端名字（用于日志）
+const char* backendName(InferBackend backend);
+
+// 解析 infer_backend 参数：cpu/ort -> kCpu，bpu/hobot_dnn -> kBpu，dnn/opencv -> kDnn
+bool parseInferBackend(const std::string& text, InferBackend& out);
 
 // 模型原始输出张量（尚未解码）
 //
@@ -27,18 +36,34 @@ struct RawOutput {
     int row_stride = 0;           // 相邻 anchor 之间跨多少个 float（BPU 对齐后可能 > c）
 };
 
-// 后端初始化，成功返回 true
+// 各后端的实际实现，由 model_backend_{bpu,ort,dnn}.cpp 提供。
+// 只有被 CMake 编进来的后端才有定义，调用前必须先用 backendAvailable() 判断。
+namespace impl {
+namespace bpu {
+bool bpuLoad(const std::string& model_path, int raw_channels);
+void bpuUnload();
+bool bpuInfer(const cv::Mat& bgr_image, RawOutput& raw);
+}  // namespace bpu
+
+namespace ort {
+bool ortLoad(const std::string& model_path, int raw_channels);
+void ortUnload();
+bool ortInfer(const cv::Mat& bgr_image, RawOutput& raw);
+}  // namespace ort
+
+namespace dnn {
+bool dnnLoad(const std::string& model_path, int raw_channels);
+void dnnUnload();
+bool dnnInfer(const cv::Mat& bgr_image, RawOutput& raw);
+}  // namespace dnn
+}  // namespace impl
+
+// 后端分发表：按后端分发到具体实现
+//
 // raw_channels: 原始输出最后一维的通道数（本模型族固定 28），
 //               用于在 (1,N,C) / (1,C,N) 两种布局之间消歧
-bool backendLoad(const std::string& model_path, int raw_channels);
-
-// 后端释放
-void backendUnload();
-
-// 执行一次推理。
-// bgr_image: 已经按模型输入宽高裁剪+缩放好的 BGR 图（CV_8UC3），
-//            由各后端自行转成模型需要的形式（RGB / NV12 / int8 featuremap 等）。
-// 成功时 raw 指向后端内部缓冲（生命周期到下一次 infer），返回 true。
-bool backendInfer(const cv::Mat& bgr_image, RawOutput& raw);
+bool backendLoad(InferBackend backend, const std::string& model_path, int raw_channels);
+void backendUnload(InferBackend backend);
+bool backendInfer(InferBackend backend, const cv::Mat& bgr_image, RawOutput& raw);
 
 }  // namespace yq_dart_aim

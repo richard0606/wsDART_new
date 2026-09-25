@@ -31,23 +31,42 @@ int64_t nowMs() {
 ModelDetector::ModelDetector() = default;
 
 ModelDetector::~ModelDetector() {
+    unloadModel();
+}
+
+void ModelDetector::unloadModel() {
     stop_.store(true);
     new_frame_ready_.store(true);  // 唤醒推理线程以便退出
     if (infer_thread_.joinable()) {
         infer_thread_.join();
     }
-    backendUnload();
+    backendUnload(params_.backend);
+    model_loaded_ = false;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        latest_frame_ = cv::Mat();
+        latest_results_.clear();
+    }
+    last_result_ms_.store(0);
+    infer_fail_count_.store(0);
 }
 
 bool ModelDetector::loadModel(const ModelParams& params) {
+    unloadModel();  // 支持运行时换后端/换模型：先彻底卸载上一个
+
     params_ = params;
 
     if (params_.model_path.empty()) {
         return false;
     }
+    if (!backendAvailable(params_.backend)) {
+        RCLCPP_ERROR(modelLogger(), "推理后端 %s 未编译进本程序（缺依赖或编译时被禁用）",
+                     backendName(params_.backend));
+        return false;
+    }
 
     try {
-        if (!backendLoad(params_.model_path, kRawChannels)) {
+        if (!backendLoad(params_.backend, params_.model_path, kRawChannels)) {
             model_loaded_ = false;
             return false;
         }
@@ -62,6 +81,8 @@ bool ModelDetector::loadModel(const ModelParams& params) {
     max_result_age_ms_.store(std::max(0, params_.max_result_age_ms));
     stop_.store(false);
     infer_thread_ = std::thread(&ModelDetector::inferenceLoop, this);
+    RCLCPP_INFO(modelLogger(), "推理后端 = %s, 模型 = %s", backendName(params_.backend),
+                params_.model_path.c_str());
     return true;
 }
 
@@ -230,7 +251,7 @@ void ModelDetector::inferenceLoop() {
             preprocess(frame, input_img, crop);
 
             RawOutput raw;
-            if (!backendInfer(input_img, raw)) {
+            if (!backendInfer(params_.backend, input_img, raw)) {
                 const uint32_t fails = infer_fail_count_.fetch_add(1) + 1;
                 if (fails == 1 || fails % 20 == 0) {
                     static rclcpp::Clock steady_clock(RCL_STEADY_TIME);

@@ -1,8 +1,9 @@
 // 推理后端：ONNX Runtime（CPU 加速方案）
 //
-// 与 BPU 后端二选一，通过 CMake 的 DART_INFER_BACKEND 选择：
-//     colcon build --cmake-args -DDART_INFER_BACKEND=ORT     （本文件）
-//     colcon build --cmake-args -DDART_INFER_BACKEND=BPU     （RDK X5）
+// 与 BPU 后端并列，编译期由 CMake 探测 onnxruntime 决定是否编进来（DART_ENABLE_ORT），
+// 运行期由 infer_backend 参数选择：
+//     infer_backend: CPU   -> 本文件（跑切好后的 .onnx）
+//     infer_backend: BPU   -> model_backend_bpu.cpp（跑 .bin，RDK X5 部署用）
 //
 // 为什么需要这个后端：ROS humble / RDK X5 自带的 OpenCV 4.5.4 的 ONNX importer
 // 不支持本模型的 ArgMax 节点，cv::dnn 直接加载失败（实测），所以 CPU 侧用
@@ -51,7 +52,10 @@ std::string shapeToString(const std::vector<int64_t>& s) {
 
 }  // namespace
 
-bool backendLoad(const std::string& model_path, int raw_channels) {
+namespace impl {
+namespace ort {
+
+bool ortLoad(const std::string& model_path, int raw_channels) {
     g_channels = raw_channels;
     try {
         g_env = std::make_unique<Ort::Env>(ORT_LOGGING_LEVEL_WARNING, "dart_aim_model");
@@ -79,7 +83,7 @@ bool backendLoad(const std::string& model_path, int raw_channels) {
 
         if (g_in_names.empty() || g_out_names.empty()) {
             RCLCPP_ERROR(logger(), "model has no input/output: %s", model_path.c_str());
-            backendUnload();
+            ortUnload();
             return false;
         }
 
@@ -116,7 +120,7 @@ bool backendLoad(const std::string& model_path, int raw_channels) {
     }
 }
 
-void backendUnload() {
+void ortUnload() {
     std::lock_guard<std::mutex> lock(g_mutex);
     g_session.reset();
     g_mem_info.reset();
@@ -129,7 +133,7 @@ void backendUnload() {
     g_loaded = false;
 }
 
-bool backendInfer(const cv::Mat& bgr_image, RawOutput& raw) {
+bool ortInfer(const cv::Mat& bgr_image, RawOutput& raw) {
     if (!g_loaded || bgr_image.empty()) return false;
 
     std::lock_guard<std::mutex> lock(g_mutex);
@@ -191,5 +195,8 @@ bool backendInfer(const cv::Mat& bgr_image, RawOutput& raw) {
         return false;
     }
 }
+
+}  // namespace ort
+}  // namespace impl
 
 }  // namespace yq_dart_aim
