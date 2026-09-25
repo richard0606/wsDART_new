@@ -9,9 +9,11 @@ dart_aim_node:
     h_min: 35
     image_topic: /image_raw
     max_area: 130.0
+    model_default_target: 2
     model_input_height: 576
     model_input_width: 768
     model_path: /root/dart_ws_on/src/yq_dart_aim/model/praysky_dart_576x768_cut.onnx
+    model_result_max_age_ms: 0
     morph_dilate_kernel_size: 5
     morph_kernel_size: 3
     offset_0_0: 35.0

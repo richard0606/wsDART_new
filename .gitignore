@@ -26,6 +26,8 @@ arm64_build/
 
 # ===================== 日志、运行缓存 =====================
 *.log
+# 看门狗持续覆写的 launch 输出，不入库
+screen.output
 *.txt.tmp
 runtime_log/
 tmp/

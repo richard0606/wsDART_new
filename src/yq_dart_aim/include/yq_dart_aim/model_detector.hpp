@@ -5,6 +5,8 @@
 #include <thread>
 #include <mutex>
 #include <atomic>
+#include <chrono>
+#include <cstdint>
 #include <opencv2/core.hpp>
 #include "common/types.hpp"
 #include "detector_base.hpp"
@@ -24,6 +26,7 @@ struct ModelParams {
     float conf_threshold = 0.25f;    // 置信度阈值
     int input_width = 768;           // 模型输入宽（576x768 型号）
     int input_height = 576;          // 模型输入高
+    int max_result_age_ms = 0;       // 结果有效期(ms)，0 = 不限制
 };
 
 // ==================== 类别表 ====================
@@ -64,6 +67,16 @@ public:
     // 加载模型（BPU 的 .bin 或开发机的 .onnx）
     bool loadModel(const ModelParams& params);
 
+    // 结果序号：每产生一批新结果 +1。异步推理下同一批结果会被多帧重复读取，
+    // 调用方据此判断"是不是新结果"（例如时序滤波只在有新结果时推入样本）
+    uint64_t resultSeq() const { return result_seq_.load(); }
+
+    // 距上一批新结果过去了多少毫秒，从未产生过结果时返回 -1
+    double resultAgeMs() const;
+
+    // 结果有效期（ms），0 = 不限制。超过有效期时 getResults() 返回空结果
+    void setMaxResultAgeMs(int ms);
+
     // 下位机目标号 -> 模型类别 id（-1 = 不瞄准）
     static int classIdForTarget(int enemy) { return model_classes::classIdForTarget(enemy); }
 
@@ -91,6 +104,11 @@ private:
     std::vector<TargetInfo> latest_results_;
 
     bool model_loaded_ = false;
+
+    std::atomic<uint64_t> result_seq_{0};
+    std::atomic<int64_t> last_result_ms_{0};
+    std::atomic<int> max_result_age_ms_{0};
+    std::atomic<uint32_t> infer_fail_count_{0};
 };
 
 }  // namespace yq_dart_aim

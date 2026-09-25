@@ -5,6 +5,7 @@
 #include <exception>
 
 #include <opencv2/imgproc.hpp>
+#include <rclcpp/rclcpp.hpp>
 
 namespace yq_dart_aim {
 
@@ -17,6 +18,14 @@ constexpr int kColorChannels = 4;
 constexpr int kKeypointChannels = 8;
 constexpr int kRawChannels =
     kBoxChannels + model_classes::kNumClasses + kColorChannels + kKeypointChannels;
+
+rclcpp::Logger modelLogger() { return rclcpp::get_logger("model_detector"); }
+
+int64_t nowMs() {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(
+               std::chrono::steady_clock::now().time_since_epoch())
+        .count();
+}
 }  // namespace
 
 ModelDetector::ModelDetector() = default;
@@ -50,6 +59,7 @@ bool ModelDetector::loadModel(const ModelParams& params) {
     }
 
     model_loaded_ = true;
+    max_result_age_ms_.store(std::max(0, params_.max_result_age_ms));
     stop_.store(false);
     infer_thread_ = std::thread(&ModelDetector::inferenceLoop, this);
     return true;
@@ -68,7 +78,30 @@ void ModelDetector::submit(const cv::Mat& image) {
 
 std::vector<TargetInfo> ModelDetector::getResults() {
     std::lock_guard<std::mutex> lock(mutex_);
+    const int max_age_ms = max_result_age_ms_.load();
+    if (max_age_ms > 0 && !latest_results_.empty()) {
+        const double age_ms = resultAgeMs();
+        if (age_ms > static_cast<double>(max_age_ms)) {
+            static rclcpp::Clock steady_clock(RCL_STEADY_TIME);
+            RCLCPP_WARN_THROTTLE(modelLogger(), steady_clock, 2000,
+                                 "模型结果过期: age=%.0fms > %dms，丢弃", age_ms, max_age_ms);
+            return {};
+        }
+    }
     return latest_results_;
+}
+
+double ModelDetector::resultAgeMs() const {
+    const int64_t last = last_result_ms_.load();
+    if (last == 0) return -1.0;
+    return static_cast<double>(nowMs() - last);
+}
+
+void ModelDetector::setMaxResultAgeMs(int ms) {
+    const int clamped = std::max(0, ms);
+    max_result_age_ms_.store(clamped);
+    const std::string text = (clamped > 0) ? (std::to_string(clamped) + " ms") : std::string("不限制");
+    RCLCPP_INFO(modelLogger(), "模型结果有效期 = %s", text.c_str());
 }
 
 // ==================== 预处理 ====================
@@ -198,12 +231,23 @@ void ModelDetector::inferenceLoop() {
 
             RawOutput raw;
             if (!backendInfer(input_img, raw)) {
+                const uint32_t fails = infer_fail_count_.fetch_add(1) + 1;
+                if (fails == 1 || fails % 20 == 0) {
+                    static rclcpp::Clock steady_clock(RCL_STEADY_TIME);
+                    RCLCPP_WARN_THROTTLE(modelLogger(), steady_clock, 5000,
+                                         "模型推理连续失败 %u 次", fails);
+                }
                 continue;  // 推理失败，保留上一次结果
             }
 
             auto results = decode(raw, crop, frame.size());
-            std::lock_guard<std::mutex> lock(mutex_);
-            latest_results_ = std::move(results);
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                latest_results_ = std::move(results);
+            }
+            last_result_ms_.store(nowMs());
+            result_seq_.fetch_add(1);
+            infer_fail_count_.store(0);
         } catch (const std::exception&) {
             // 推理异常，保留上一次结果
         }

@@ -9,6 +9,9 @@
 #include <rcl_interfaces/msg/set_parameters_result.hpp>
 
 #include <opencv2/opencv.hpp>
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
 #include <thread>
 #include <atomic>
 #include <mutex>
@@ -153,6 +156,8 @@ private:
     if (!this->has_parameter("conf_threshold")) this->declare_parameter("conf_threshold", 0.25);
     if (!this->has_parameter("model_input_width")) this->declare_parameter("model_input_width", 768);
     if (!this->has_parameter("model_input_height")) this->declare_parameter("model_input_height", 576);
+    if (!this->has_parameter("model_default_target")) this->declare_parameter("model_default_target", yq_dart_aim::defaults::MODEL_DEFAULT_TARGET);
+    if (!this->has_parameter("model_result_max_age_ms")) this->declare_parameter("model_result_max_age_ms", yq_dart_aim::defaults::MODEL_MAX_RESULT_AGE_MS);
 
     // 偏移查找表（默认值与 config/params.yaml 一致）
     if (!this->has_parameter("offset_0_0")) this->declare_parameter("offset_0_0", 35.0);
@@ -185,6 +190,7 @@ private:
     p.conf_threshold = static_cast<float>(this->get_parameter("conf_threshold").as_double());
     p.input_width = static_cast<int>(this->get_parameter("model_input_width").as_int());
     p.input_height = static_cast<int>(this->get_parameter("model_input_height").as_int());
+    p.max_result_age_ms = static_cast<int>(this->get_parameter("model_result_max_age_ms").as_int());
     return p;
   }
 
@@ -237,6 +243,11 @@ private:
     publish_debug_image_ = this->get_parameter("publish_debug_image").as_bool();
     publish_compressed_mask_ = this->get_parameter("publish_compressed_mask").as_bool();
     use_serial_ = this->get_parameter("use_serial").as_bool();
+    model_default_target_ = clampTargetId(this->get_parameter("model_default_target").as_int());
+  }
+
+  static int clampTargetId(int v) {
+    return std::max(0, std::min(yq_dart_aim::MAX_TARGET_ID, v));
   }
 
   // ==================== 参数变更回调 ====================
@@ -306,6 +317,12 @@ private:
         RCLCPP_INFO(this->get_logger(), "当前模式: %s", use_model_ ? "模型" : "HSV");
       } else if (p.get_name() == "conf_threshold") {
         RCLCPP_INFO(this->get_logger(), "conf_threshold updated (reload model to apply)");
+      } else if (p.get_name() == "model_default_target") {
+        model_default_target_ = clampTargetId(p.as_int());
+        RCLCPP_INFO(this->get_logger(), "无串口提示时的兜底目标: %d (0=不瞄准, 1=前哨站, 2=基地)",
+                    model_default_target_);
+      } else if (p.get_name() == "model_result_max_age_ms") {
+        model_detector_.setMaxResultAgeMs(p.as_int());
       }
       if (p.get_name().rfind("offset_", 0) == 0) {
         int t = 0, d = 0;
@@ -414,20 +431,31 @@ private:
     // ==================== 目标选择 ====================
     // 下位机的 enemy 字段指定打哪个目标：1=前哨站(s0_o6)、2=基地(s1_o7)、0=无目标
     // 模型类别 id 与 enemy 不是同一个编号体系，必须查表映射，不能直接比
+    // 下位机没给过任何有效包时（串口没接/没上电/被禁用），用兜底目标，
+    // 否则模型模式会因为拿不到 enemy 而永远不瞄准
     cv::Point2f target(-1, -1);
     if (use_model_ && model_detector_.isReady()) {
-      const int want_class = yq_dart_aim::ModelDetector::classIdForTarget(current_target_);
+      const bool serial_has_hint = serial_manager_.hasValidData();
+      const int want_target = serial_has_hint ? current_target_ : model_default_target_;
+      const int want_class = yq_dart_aim::ModelDetector::classIdForTarget(want_target);
       if (want_class >= 0) {
+        const uint64_t seq = model_detector_.resultSeq();
         for (const auto& t : targets) {
           if (t.class_id == want_class) {
-            float smoothed_x = sg_filter_x_.push(t.center.x);
-            target = cv::Point2f(smoothed_x, t.center.y);
+            // 异步推理下同一批结果会被多帧重复读到，时序滤波只在出现新结果时
+            // 推入样本，否则等效于把同一个坐标重复喂 6 次（2Hz 检测 @13fps 图像）
+            if (seq != last_result_seq_) {
+              filtered_x_ = sg_filter_x_.push(t.center.x);
+              last_result_seq_ = seq;
+            }
+            target = cv::Point2f(filtered_x_, t.center.y);
             break;
           }
         }
       }
       if (target.x < 0) {
         sg_filter_x_.reset();  // 目标丢失/被要求不瞄准，重置滤波器
+        last_result_seq_ = 0;
       }
     } else {
       target = target_detector_.selectTarget(targets, current_target_);
@@ -467,16 +495,21 @@ private:
     }
 
     // 转发串口调试数据
-    if (use_serial_) {
-      int target_val, dart_id;
-      float encoder_angle;
-      serial_manager_.getReceivedData(target_val, dart_id, encoder_angle);
+    // 目标状态与 use_serial_ 解耦：即使不发布调试话题，也要用下位机的目标提示；
+    // 从未收到过有效包时 current_target_ 保持 0，模型模式走兜底目标
+    int target_val = current_target_;
+    int dart_id = current_dart_id_;
+    float encoder_angle = 0.0f;
+    serial_manager_.getReceivedData(target_val, dart_id, encoder_angle);
+    if (serial_manager_.hasValidData()) {
       current_target_ = target_val;
       current_dart_id_ = dart_id;
+    }
 
+    if (use_serial_) {
       std_msgs::msg::Float32MultiArray serial_msg;
-      serial_msg.data = {static_cast<float>(target_val),
-                         static_cast<float>(dart_id),
+      serial_msg.data = {static_cast<float>(current_target_),
+                         static_cast<float>(current_dart_id_),
                          encoder_angle};
       serial_pub_->publish(serial_msg);
 
@@ -638,6 +671,9 @@ private:
   bool publish_debug_image_ = true;
   bool publish_compressed_mask_ = true;
   bool enable_record_ = false;
+  int model_default_target_ = yq_dart_aim::defaults::MODEL_DEFAULT_TARGET;
+  uint64_t last_result_seq_ = 0;
+  float filtered_x_ = 0.0f;
 };
 
 int main(int argc, char **argv) {
