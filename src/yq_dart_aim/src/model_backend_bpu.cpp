@@ -1,10 +1,13 @@
 // 推理后端：RDK X5 BPU（hobot_dnn / hb_dnn）
 //
-// 只在 -DWITH_BPU=ON 时编译（见 CMakeLists.txt）。
+// 编译期由 CMake 探测 libdnn 决定是否编进来（DART_ENABLE_BPU），
+// 运行期由 infer_backend 参数选择：
+//     infer_backend: BPU   -> 本文件（跑量化好的 .bin，板子部署用）
+//     infer_backend: CPU   -> model_backend_ort.cpp（跑 .onnx）
 //
-// ⚠️ 本文件尚未在 RDK X5 上编译/运行验证过（开发机没装 DDK）。首次上板请先看加载日志，
-//    它会打印输入/输出的 tensorType / validShape / alignedShape / stride / scale，
-//    据此核对下面这些假设（哪条不对改哪里，逻辑都集中在 backendInfer）：
+// ⚠️ 本文件的加载/推理路径尚未在 RDK X5 上实跑验证过（没有可用的 .bin 量化模型）。
+//    首次上板请先看加载日志，它会打印输入/输出的 tensorType / validShape / alignedShape /
+//    stride / scale，据此核对下面这些假设（哪条不对改哪里，逻辑都集中在 bpuInfer）：
 //
 //   1) 头文件路径假定为 <hobot/dnn/hb_dnn.h> + <hobot/dnn/hb_sys.h>
 //   2) 模型是「切掉后处理」的那 439 个节点，输出 (1, 9072, 28)：
@@ -131,7 +134,10 @@ inline float dequant(int32_t t, float scale, const void* base, size_t idx) {
 
 }  // namespace
 
-bool backendLoad(const std::string& model_path, int raw_channels) {
+namespace impl {
+namespace bpu {
+
+bool bpuLoad(const std::string& model_path, int raw_channels) {
     g_channels = raw_channels;
 
     const char* files[1] = {model_path.c_str()};
@@ -161,7 +167,7 @@ bool backendLoad(const std::string& model_path, int raw_channels) {
     hbDNNGetInputCount(&in_count, g_model);
     if (in_count != 1) {
         RCLCPP_ERROR(logger(), "expect 1 input, got %d", in_count);
-        backendUnload();
+        bpuUnload();
         return false;
     }
     hbDNNTensorProperties in_props{};
@@ -173,7 +179,7 @@ bool backendLoad(const std::string& model_path, int raw_channels) {
     g_in_type = in_props.tensorType;
     if (g_in_nd < 2) {
         RCLCPP_ERROR(logger(), "bad input dims: %d", g_in_nd);
-        backendUnload();
+        bpuUnload();
         return false;
     }
     g_in_h = in_props.validShape.dimensionSize[g_in_nd - 2];
@@ -186,7 +192,7 @@ bool backendLoad(const std::string& model_path, int raw_channels) {
 
     if (g_in_w <= 0 || g_in_h <= 0) {
         RCLCPP_ERROR(logger(), "bad input shape %dx%d", g_in_w, g_in_h);
-        backendUnload();
+        bpuUnload();
         return false;
     }
 
@@ -197,20 +203,20 @@ bool backendLoad(const std::string& model_path, int raw_channels) {
         if (hbSysAllocCachedMem(&g_input.sysMem[0], y_bytes) != 0 ||
             hbSysAllocCachedMem(&g_input.sysMem[1], uv_bytes) != 0) {
             RCLCPP_ERROR(logger(), "alloc NV12 input failed");
-            backendUnload();
+            bpuUnload();
             return false;
         }
     } else if (g_in_is_nv12) {
         if (hbSysAllocCachedMem(&g_input.sysMem[0], y_bytes + uv_bytes) != 0) {
             RCLCPP_ERROR(logger(), "alloc NV12 input failed");
-            backendUnload();
+            bpuUnload();
             return false;
         }
     } else {
         size_t total = static_cast<size_t>(g_in_w) * g_in_h * 3 * elemSize(g_in_type);
         if (hbSysAllocCachedMem(&g_input.sysMem[0], static_cast<uint32_t>(total)) != 0) {
             RCLCPP_ERROR(logger(), "alloc input failed (%zu bytes)", total);
-            backendUnload();
+            bpuUnload();
             return false;
         }
     }
@@ -221,7 +227,7 @@ bool backendLoad(const std::string& model_path, int raw_channels) {
     hbDNNGetOutputCount(&out_count, g_model);
     if (out_count != 1) {
         RCLCPP_ERROR(logger(), "expect 1 output, got %d", out_count);
-        backendUnload();
+        bpuUnload();
         return false;
     }
     g_outputs.resize(static_cast<size_t>(out_count));
@@ -237,7 +243,7 @@ bool backendLoad(const std::string& model_path, int raw_channels) {
         if (p.alignedByteSize > 0) bytes = static_cast<size_t>(p.alignedByteSize);
         if (hbSysAllocCachedMem(&g_outputs[i].sysMem[0], static_cast<uint32_t>(bytes)) != 0) {
             RCLCPP_ERROR(logger(), "alloc output failed (%zu bytes)", bytes);
-            backendUnload();
+            bpuUnload();
             return false;
         }
         g_outputs[i].properties = p;
@@ -249,7 +255,7 @@ bool backendLoad(const std::string& model_path, int raw_channels) {
     return true;
 }
 
-void backendUnload() {
+void bpuUnload() {
     std::lock_guard<std::mutex> lock(g_mutex);
     for (auto& out : g_outputs) {
         if (out.sysMem[0].virAddr != nullptr) hbSysFreeMem(&out.sysMem[0]);
@@ -265,7 +271,7 @@ void backendUnload() {
     g_loaded = false;
 }
 
-bool backendInfer(const cv::Mat& bgr_image, RawOutput& raw) {
+bool bpuInfer(const cv::Mat& bgr_image, RawOutput& raw) {
     if (!g_loaded || bgr_image.empty()) return false;
     if (bgr_image.cols != g_in_w || bgr_image.rows != g_in_h) {
         BPU_ERR_ONCE("input size mismatch: got %dx%d, model wants %dx%d",
@@ -390,5 +396,8 @@ bool backendInfer(const cv::Mat& bgr_image, RawOutput& raw) {
     raw.row_stride = g_channels;
     return true;
 }
+
+}  // namespace bpu
+}  // namespace impl
 
 }  // namespace yq_dart_aim

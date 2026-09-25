@@ -21,7 +21,10 @@ bool g_loaded = false;
 
 }  // namespace
 
-bool backendLoad(const std::string& model_path, int raw_channels) {
+namespace impl {
+namespace dnn {
+
+bool dnnLoad(const std::string& model_path, int raw_channels) {
     try {
         g_net = cv::dnn::readNetFromONNX(model_path);
         g_net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
@@ -35,14 +38,14 @@ bool backendLoad(const std::string& model_path, int raw_channels) {
     return true;
 }
 
-void backendUnload() {
+void dnnUnload() {
     std::lock_guard<std::mutex> lock(g_mutex);
     g_net = cv::dnn::Net();
     g_buf.clear();
     g_loaded = false;
 }
 
-bool backendInfer(const cv::Mat& bgr_image, RawOutput& raw) {
+bool dnnInfer(const cv::Mat& bgr_image, RawOutput& raw) {
     if (!g_loaded || bgr_image.empty()) return false;
 
     std::lock_guard<std::mutex> lock(g_mutex);
@@ -92,5 +95,8 @@ bool backendInfer(const cv::Mat& bgr_image, RawOutput& raw) {
     }
     return false;
 }
+
+}  // namespace dnn
+}  // namespace impl
 
 }  // namespace yq_dart_aim

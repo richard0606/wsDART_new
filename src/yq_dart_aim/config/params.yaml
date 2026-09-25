@@ -8,11 +8,14 @@ dart_aim_node:
     h_max: 80
     h_min: 35
     image_topic: /image_raw
+    infer_backend: CPU
     max_area: 130.0
     model_default_target: 2
     model_input_height: 576
     model_input_width: 768
-    model_path: /root/dart_ws_on/src/yq_dart_aim/model/praysky_dart_576x768_cut.onnx
+    model_path: ''
+    model_path_bpu: ''
+    model_path_cpu: /root/dart_ws_on/src/yq_dart_aim/model/praysky_dart_576x768_cut.onnx
     model_result_max_age_ms: 0
     morph_dilate_kernel_size: 5
     morph_kernel_size: 3

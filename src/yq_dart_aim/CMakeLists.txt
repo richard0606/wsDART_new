@@ -23,65 +23,110 @@ add_executable(dart_aim_node
   src/image_processor.cpp
   src/target_detector.cpp
   src/model_detector.cpp
+  src/model_backend.cpp
   src/coordinate_calculator.cpp
   src/serial_manager.cpp
 )
 
-# ==================== 推理后端（二选一）====================
-#   ORT (默认) : ONNX Runtime 加速，跑切好的 .onnx，CPU 方案
-#                需要 ONNX Runtime 的 C++ 头文件/库：-DORT_ROOT=/path/to/onnxruntime
-#   BPU        : RDK X5 BPU，跑 .bin（hobot_dnn），板子上用这个
-#   另有 DNN 可选：OpenCV DNN，仅当 OpenCV >= 5.x 时可用（4.5.4 不支持本模型的 ArgMax）
+# ==================== 推理后端（可多选，运行期用 infer_backend 参数切换）====================
+#   CPU(ORT) : ONNX Runtime，跑切好后的 .onnx
+#   BPU      : RDK X5 hobot_dnn，跑量化 .bin（板子部署用）
+#   DNN      : OpenCV DNN，跑 .onnx（备选，比 ORT 慢）
 #
-# 用法：
-#   colcon build --cmake-args -DDART_INFER_BACKEND=BPU              # RDK X5
-#   colcon build --cmake-args -DDART_INFER_BACKEND=ORT -DORT_ROOT=~/onnxruntime
-set(DART_INFER_BACKEND "ORT" CACHE STRING "推理后端: ORT | BPU | DNN")
-set_property(CACHE DART_INFER_BACKEND PROPERTY STRINGS ORT BPU DNN)
+# 依赖能找到就把后端编进程序（自动探测），也可以显式关闭：
+#   colcon build --cmake-args -DDART_ENABLE_BPU=OFF -DDART_ENABLE_ORT=OFF
+# 下面这条只决定 params.yaml 没给 infer_backend 时的默认值：
+#   colcon build --cmake-args -DDART_INFER_BACKEND=BPU
+set(DART_INFER_BACKEND "CPU" CACHE STRING "默认推理后端: CPU | BPU | DNN")
+set_property(CACHE DART_INFER_BACKEND PROPERTY STRINGS CPU BPU DNN)
+set(DART_ENABLE_BPU "AUTO" CACHE STRING "编译 BPU 后端: AUTO|ON|OFF")
+set(DART_ENABLE_ORT "AUTO" CACHE STRING "编译 ORT 后端: AUTO|ON|OFF")
+set(DART_ENABLE_DNN "AUTO" CACHE STRING "编译 DNN 后端: AUTO|ON|OFF")
+set(ORT_ROOT "" CACHE PATH "ONNX Runtime 根目录（含 include/ 与 lib/），留空则从系统路径找")
 
-if(DART_INFER_BACKEND STREQUAL "BPU")
-  target_sources(dart_aim_node PRIVATE src/model_backend_bpu.cpp)
-  target_compile_definitions(dart_aim_node PRIVATE WITH_BPU)
-  # hobot_dnn 头文件默认在 /usr/include/hobot/dnn（系统默认搜索路径内）。
-  # 若装在别处，取消注释并按实际路径修改：
-  # target_include_directories(dart_aim_node PRIVATE /usr/include/hobot/dnn)
-  target_link_libraries(dart_aim_node dnn)
-  message(STATUS "yq_dart_aim: 推理后端 = BPU (hobot_dnn, RDK X5)")
-elseif(DART_INFER_BACKEND STREQUAL "ORT")
-  target_sources(dart_aim_node PRIVATE src/model_backend_ort.cpp)
-  set(ORT_ROOT "" CACHE PATH "ONNX Runtime 根目录（含 include/ 与 lib/）")
-  if(ORT_ROOT)
-    # 用官方 release 包解压出来的目录
-    target_include_directories(dart_aim_node PRIVATE ${ORT_ROOT}/include)
-    target_link_directories(dart_aim_node PRIVATE ${ORT_ROOT}/lib)
-    # 把 ORT 库目录写进 RPATH，保证运行时（含 systemd 启动）能找到 libonnxruntime.so
-    set_target_properties(dart_aim_node PROPERTIES
-      BUILD_RPATH "${ORT_ROOT}/lib"
-      INSTALL_RPATH "${ORT_ROOT}/lib")
-    set(ORT_LIB onnxruntime)
+# ── BPU: hobot_dnn ──
+set(_bpu_ok OFF)
+if(NOT DART_ENABLE_BPU STREQUAL "OFF")
+  find_path(DART_BPU_INCLUDE_DIR hobot/dnn/hb_dnn.h
+    PATHS /usr/include /usr/local/include /usr/include/hobot /opt/ros/humble/include)
+  find_library(DART_BPU_LIBRARY NAMES dnn
+    PATHS /usr/lib /usr/local/lib /usr/lib/aarch64-linux-gnu /usr/hobot/lib)
+  if(DART_BPU_INCLUDE_DIR AND DART_BPU_LIBRARY)
+    set(_bpu_ok ON)
+  elseif(DART_ENABLE_BPU STREQUAL "ON")
+    message(FATAL_ERROR "DART_ENABLE_BPU=ON 但找不到 hobot_dnn（头文件 ${DART_BPU_INCLUDE_DIR} / 库 ${DART_BPU_LIBRARY}）")
   else()
-    # 退回系统安装路径
+    message(STATUS "yq_dart_aim: 未找到 hobot_dnn，跳过 BPU 后端")
+  endif()
+endif()
+if(_bpu_ok)
+  target_sources(dart_aim_node PRIVATE src/model_backend_bpu.cpp)
+  target_include_directories(dart_aim_node PRIVATE ${DART_BPU_INCLUDE_DIR})
+  target_link_libraries(dart_aim_node ${DART_BPU_LIBRARY})
+  target_compile_definitions(dart_aim_node PRIVATE DART_HAVE_BPU)
+  message(STATUS "yq_dart_aim: BPU 后端 = 启用 (${DART_BPU_LIBRARY})")
+endif()
+
+# ── CPU: ONNX Runtime ──
+set(_ort_ok OFF)
+if(NOT DART_ENABLE_ORT STREQUAL "OFF")
+  if(ORT_ROOT AND EXISTS "${ORT_ROOT}/include/onnxruntime_cxx_api.h")
+    set(ORT_LIB onnxruntime)
+    set(_ort_include "${ORT_ROOT}/include")
+    set(_ort_linkdir "${ORT_ROOT}/lib")
+  else()
     find_path(ORT_INCLUDE_DIR onnxruntime_cxx_api.h
       PATHS /usr/include /usr/local/include /usr/include/onnxruntime /usr/local/include/onnxruntime)
-    find_library(ORT_LIB onnxruntime PATHS /usr/lib /usr/local/lib /usr/lib/x86_64-linux-gnu /usr/lib/aarch64-linux-gnu)
-    if(NOT ORT_LIB OR NOT ORT_INCLUDE_DIR)
-      message(FATAL_ERROR
-        "找不到 ONNX Runtime（头文件 onnxruntime_cxx_api.h / 库 libonnxruntime.so）。\n"
-        "  方案一：下载官方 C++ release 包后指定路径：\n"
-        "      colcon build --cmake-args -DDART_INFER_BACKEND=ORT -DORT_ROOT=/path/to/onnxruntime\n"
-        "  方案二：改用 BPU 后端（RDK X5 上）：\n"
-        "      colcon build --cmake-args -DDART_INFER_BACKEND=BPU")
-    endif()
-    target_include_directories(dart_aim_node PRIVATE ${ORT_INCLUDE_DIR})
+    find_library(ORT_LIB onnxruntime
+      PATHS /usr/lib /usr/local/lib /usr/lib/x86_64-linux-gnu /usr/lib/aarch64-linux-gnu)
+    set(_ort_include ${ORT_INCLUDE_DIR})
+    set(_ort_linkdir "")
+  endif()
+  if(ORT_LIB AND _ort_include)
+    set(_ort_ok ON)
+  elseif(DART_ENABLE_ORT STREQUAL "ON")
+    message(FATAL_ERROR
+      "DART_ENABLE_ORT=ON 但找不到 ONNX Runtime（头文件 onnxruntime_cxx_api.h / 库 libonnxruntime.so）。\n"
+      "  指定路径：-DORT_ROOT=/path/to/onnxruntime-linux-aarch64\n"
+      "  或关掉：  -DDART_ENABLE_ORT=OFF")
+  else()
+    message(STATUS "yq_dart_aim: 未找到 ONNX Runtime，跳过 CPU(ORT) 后端")
+  endif()
+endif()
+if(_ort_ok)
+  target_sources(dart_aim_node PRIVATE src/model_backend_ort.cpp)
+  target_include_directories(dart_aim_node PRIVATE ${_ort_include})
+  if(_ort_linkdir)
+    target_link_directories(dart_aim_node PRIVATE ${_ort_linkdir})
+    # 把 ORT 库目录写进 RPATH，保证运行时（含 systemd 启动）能找到 libonnxruntime.so
+    set_target_properties(dart_aim_node PROPERTIES
+      BUILD_RPATH "${_ort_linkdir}"
+      INSTALL_RPATH "${_ort_linkdir}")
   endif()
   target_link_libraries(dart_aim_node ${ORT_LIB})
-  message(STATUS "yq_dart_aim: 推理后端 = ONNX Runtime")
-elseif(DART_INFER_BACKEND STREQUAL "DNN")
-  target_sources(dart_aim_node PRIVATE src/model_backend_dnn.cpp)
-  message(STATUS "yq_dart_aim: 推理后端 = cv::dnn（需 OpenCV >= 5.x）")
-else()
-  message(FATAL_ERROR "DART_INFER_BACKEND 只能是 ORT / BPU / DNN，当前=${DART_INFER_BACKEND}")
+  target_compile_definitions(dart_aim_node PRIVATE DART_HAVE_ORT)
+  message(STATUS "yq_dart_aim: CPU(ORT) 后端 = 启用 (${ORT_LIB})")
 endif()
+
+# ── DNN: OpenCV ──
+set(_dnn_ok OFF)
+if(NOT DART_ENABLE_DNN STREQUAL "OFF")
+  set(_dnn_ok ON)
+endif()
+if(_dnn_ok)
+  target_sources(dart_aim_node PRIVATE src/model_backend_dnn.cpp)
+  target_compile_definitions(dart_aim_node PRIVATE DART_HAVE_DNN)
+  message(STATUS "yq_dart_aim: DNN(OpenCV) 后端 = 启用")
+endif()
+
+if(NOT _bpu_ok AND NOT _ort_ok AND NOT _dnn_ok)
+  message(FATAL_ERROR "没有任何推理后端可用，dart_aim_node 无法编译")
+endif()
+
+# 编译期指定的默认后端（params.yaml 没写 infer_backend 时生效）
+target_compile_definitions(dart_aim_node PRIVATE
+  DART_DEFAULT_INFER_BACKEND="${DART_INFER_BACKEND}")
+message(STATUS "yq_dart_aim: 默认推理后端 = ${DART_INFER_BACKEND}")
 
 # include directories for the target
 target_include_directories(dart_aim_node PRIVATE
