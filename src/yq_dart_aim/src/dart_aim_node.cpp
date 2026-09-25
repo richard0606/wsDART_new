@@ -299,6 +299,40 @@ private:
     return (use_model_ && model_detector_.isReady()) ? "model" : "hsv";
   }
 
+  static std::string className(int class_id) {
+    if (class_id < 0 || class_id >= yq_dart_aim::model_classes::kNumClasses) return "none";
+    return yq_dart_aim::model_classes::kNames[class_id];
+  }
+
+  // 画一个带黑底的标签，保证在任何背景上都读得清
+  static void drawLabel(cv::Mat& img, const std::string& text, cv::Point org, cv::Scalar color) {
+    int baseline = 0;
+    const double scale = 0.6;
+    const int thickness = 2;
+    cv::Size sz = cv::getTextSize(text, cv::FONT_HERSHEY_SIMPLEX, scale, thickness, &baseline);
+    const int x = std::max(0, std::min(org.x, img.cols - sz.width - 6));
+    const int y = std::max(sz.height + 4, std::min(org.y, img.rows - 4));
+    cv::rectangle(img, cv::Rect(x - 3, y - sz.height - 4, sz.width + 6, sz.height + 7),
+                  cv::Scalar(0, 0, 0), cv::FILLED);
+    cv::putText(img, text, cv::Point(x, y), cv::FONT_HERSHEY_SIMPLEX, scale, color, thickness,
+                cv::LINE_AA);
+  }
+
+  // 模型原生检测结果可视化：框和标签都直接来自模型输出
+  // （box = 模型给的 xyxy，label = 模型的类别名 + 置信度），不做任何再加工
+  void drawModelDetections(cv::Mat& vis,
+                           const std::vector<yq_dart_aim::TargetInfo>& detections) const {
+    for (const auto& t : detections) {
+      const cv::Scalar color(0, 255, 0);
+      cv::rectangle(vis, t.bbox, color, 2);
+      cv::circle(vis, t.center, 3, cv::Scalar(0, 0, 255), -1);
+      char label[64];
+      snprintf(label, sizeof(label), "%s %.0f%%", className(t.class_id).c_str(),
+               t.confidence * 100.0f);
+      drawLabel(vis, label, cv::Point(t.bbox.x, t.bbox.y - 5), color);
+    }
+  }
+
   void reloadModelIfActive(const char* what) {
     if (!use_model_) {
       RCLCPP_INFO(this->get_logger(), "%s 已更新（当前非模型模式，未重载）", what);
@@ -485,19 +519,7 @@ private:
       // 模型检测可视化（提交给调试线程）
       if (publish_debug_image_) {
         cv::Mat model_vis = cropped.clone();
-        for (const auto& t : targets) {
-          cv::Scalar color(0, 255, 0);
-          cv::rectangle(model_vis, t.bbox, color, 2);
-          char label[64];
-          std::string cls_name =
-              (t.class_id >= 0 && t.class_id < yq_dart_aim::model_classes::kNumClasses)
-                  ? yq_dart_aim::model_classes::kNames[t.class_id]
-                  : "cls" + std::to_string(t.class_id);
-          snprintf(label, sizeof(label), "%s %.0f%%", cls_name.c_str(), t.confidence * 100);
-          cv::putText(model_vis, label, cv::Point(t.bbox.x, t.bbox.y - 5),
-                      cv::FONT_HERSHEY_SIMPLEX, 0.5, color, 1);
-          cv::circle(model_vis, t.center, 3, cv::Scalar(0, 0, 255), -1);
-        }
+        drawModelDetections(model_vis, targets);
         publishModelDebugImage(model_vis, msg->header);
       }
     } else {
