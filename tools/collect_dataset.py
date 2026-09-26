@@ -146,6 +146,9 @@ def main():
     ap.add_argument("--keep-dups", action="store_true", help="不跳过重复帧")
     ap.add_argument("--timeout", type=float, default=10.0, help="等第一帧的超时秒数")
     ap.add_argument("--no-window", action="store_true", help="强制不开预览窗口")
+    ap.add_argument("--label", default=None,
+                    help="这批图的类别标记（如 前哨站/红），只记进 meta.json。"
+                         "模型输出的类别在实物上会飘，物理身份以这个为准")
     args = ap.parse_args()
 
     out_dir = args.out or f"dataset_{datetime.datetime.now():%Y%m%d_%H%M%S}"
@@ -292,6 +295,7 @@ def main():
         "auto_interval": interval if auto else None,
         "started_at": datetime.datetime.fromtimestamp(t_start).isoformat(timespec="seconds"),
         "finished_at": datetime.datetime.now().isoformat(timespec="seconds"),
+        "label": args.label,
         "camera_config": "见 src/ros2_hik_camera/config/camera_params.yaml（曝光/增益/像素格式）",
     }
     with open(os.path.join(out_dir, "meta.json"), "w", encoding="utf-8") as f:

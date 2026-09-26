@@ -100,3 +100,8 @@ ros_logs/
 rosbag/
 *.bag
 /.ros
+
+# ===================== 标定/量化数据集（不入库）=====================
+calib_quant/
+calib_*/
+dataset_*/
