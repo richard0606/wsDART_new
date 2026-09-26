@@ -126,9 +126,18 @@ void ModelDetector::setMaxResultAgeMs(int ms) {
 }
 
 // ==================== 预处理 ====================
-// 按模型输入的宽高比做中心裁剪（不填充），再缩放：
-// 例如 1280x720 的裁剪图 + 768x576 的模型 -> 裁成 960x720 -> 缩放到 768x576
-// 相比 letterbox 省掉两侧灰边，输入像素 100% 是有效画面
+// 按模型输入的宽高比做中心裁剪（不填充），再缩放。
+//
+// 为什么不用上游 README 里的 letterbox：这是有意选的「用视野换精度」，不是遗漏。
+//   本机链路：相机 1280x872 -> 中心裁剪 1280x720 -> 4:3 裁剪 960x720 -> 缩放 768x576
+//   letterbox：1280x720 -> 等比缩到 768x432 -> 上下补灰到 768x576
+// 差异：
+//   - 中心裁剪缩放系数 0.8（目标更大更清楚，置信度更高），代价是左右各丢 160px，
+//     即只保留画面中间 75% 的宽度；目标偏到左右两侧会直接看不到
+//   - letterbox 保留 100% 宽度，但缩放只有 0.6，目标更小、置信度更低
+// 结论：中心区域精度优先，视野换精度。要改 Letterbox 前先想清楚这个取舍。
+//
+// 注意：有效瞄准区域是 960x720（不是整个 1280x872），标定偏移量按这个区域算。
 void ModelDetector::preprocess(const cv::Mat& frame, cv::Mat& out, cv::Rect& crop) const {
     const double want_aspect = static_cast<double>(params_.input_width) / params_.input_height;
     const double have_aspect = static_cast<double>(frame.cols) / frame.rows;
