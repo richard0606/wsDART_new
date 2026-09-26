@@ -12,9 +12,25 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <filesystem>
+#include <fstream>
+#include <future>
+#include <map>
+#include <string>
 #include <thread>
 #include <atomic>
 #include <mutex>
+
+using namespace std::chrono_literals;  // 300ms 这类字面量
+
+#include <rcl_interfaces/srv/get_parameters.hpp>
+#include <rcl_interfaces/srv/set_parameters.hpp>
+#include <rcl_interfaces/msg/parameter_value.hpp>
+#include <rcl_interfaces/msg/parameter.hpp>
+
+#include "yq_dart_aim/param_registry.hpp"
+#include "yq_dart_aim/param_tuner.hpp"
+#include "yq_dart_aim/yaml_writer.hpp"
 
 #include "yq_dart_aim/common/types.hpp"
 #include "yq_dart_aim/common/constants.hpp"
@@ -102,9 +118,352 @@ public:
 
     // 启动调试发布线程
     debug_thread_ = std::thread(&DartAimNode::debugPublishLoop, this);
+
+    // 串口调参服务（独立于下位机通信的第二个串口，给非技术人员用）
+    startParamTuner();
+  }
+
+  // ==================== 串口调参 ====================
+  void startParamTuner() {
+    const std::string port = this->get_parameter("tune_port").as_string();
+    const int baud = static_cast<int>(this->get_parameter("tune_baud").as_int());
+    if (port.empty()) {
+      RCLCPP_INFO(this->get_logger(), "串口调参未启用（tune_port 为空）");
+      return;
+    }
+    // 相机参数在 hik_camera 节点上，调它们要走 ROS 服务代理
+    cam_get_client_ = this->create_client<rcl_interfaces::srv::GetParameters>(
+        "/hik_camera/get_parameters");
+    cam_set_client_ = this->create_client<rcl_interfaces::srv::SetParameters>(
+        "/hik_camera/set_parameters");
+
+    const bool started = tuner_.start(
+        port, baud,
+        [this](const std::string& name, yq_dart_aim::ParamValue* out) {
+          return tunerGet(name, out);
+        },
+        [this](const std::string& name, const yq_dart_aim::ParamValue& v, std::string* err) {
+          return tunerSet(name, v, err);
+        },
+        [this]() { return tunerStatus(); },
+        [this](std::string* err) { return tunerSave(err); },
+        [this]() { return listPresets(); },
+        [this](const std::string& name, std::string* err) { return loadPreset(name, err); });
+
+    if (started) {
+      RCLCPP_INFO(this->get_logger(), "串口调参服务已启动: %s @ %d baud（PC 端用 tools/tune.py）",
+                  port.c_str(), baud);
+    } else {
+      RCLCPP_WARN(this->get_logger(), "串口调参启动失败: %s", port.c_str());
+    }
+  }
+
+  // ---- 参数读写（tuner 的回调）----
+  bool tunerGet(const std::string& name, yq_dart_aim::ParamValue* out) {
+    const yq_dart_aim::ParamMeta* meta = yq_dart_aim::findParam(name);
+    if (meta == nullptr) return false;
+
+    if (meta->owner == yq_dart_aim::ParamOwner::kHikCamera) {
+      return remoteGet("hik_camera", name, meta->type, out);
+    }
+    if (!this->has_parameter(name)) return false;
+    const rclcpp::Parameter p = this->get_parameter(name);
+    switch (p.get_type()) {
+      case rclcpp::ParameterType::PARAMETER_INTEGER:
+        out->type = yq_dart_aim::ParamValue::Type::kInt;
+        out->i = p.as_int();
+        return true;
+      case rclcpp::ParameterType::PARAMETER_DOUBLE:
+        out->type = yq_dart_aim::ParamValue::Type::kDouble;
+        out->d = p.as_double();
+        return true;
+      case rclcpp::ParameterType::PARAMETER_BOOL:
+        out->type = yq_dart_aim::ParamValue::Type::kBool;
+        out->b = p.as_bool();
+        return true;
+      case rclcpp::ParameterType::PARAMETER_STRING:
+        out->type = yq_dart_aim::ParamValue::Type::kString;
+        out->s = p.as_string();
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  bool tunerSet(const std::string& name, const yq_dart_aim::ParamValue& v, std::string* err) {
+    const yq_dart_aim::ParamMeta* meta = yq_dart_aim::findParam(name);
+    if (meta == nullptr) {
+      *err = "没有这个参数";
+      return false;
+    }
+    if (meta->owner == yq_dart_aim::ParamOwner::kHikCamera) {
+      return remoteSet("hik_camera", name, v, meta->type, err);
+    }
+    if (!this->has_parameter(name)) {
+      *err = "参数未声明";
+      return false;
+    }
+    rclcpp::Parameter p;
+    switch (v.type) {
+      case yq_dart_aim::ParamValue::Type::kInt:
+        p = rclcpp::Parameter(name, static_cast<int64_t>(v.i));
+        break;
+      case yq_dart_aim::ParamValue::Type::kDouble:
+        p = rclcpp::Parameter(name, v.d);
+        break;
+      case yq_dart_aim::ParamValue::Type::kBool:
+        p = rclcpp::Parameter(name, v.b);
+        break;
+      default:
+        p = rclcpp::Parameter(name, v.s);
+        break;
+    }
+    const auto result = this->set_parameter(p);
+    if (!result.successful) {
+      *err = result.reason.empty() ? "节点拒绝了该值" : result.reason;
+      return false;
+    }
+    return true;
+  }
+
+  // ---- 跨节点：hik_camera 参数 ----
+  bool remoteGet(const std::string& node, const std::string& name, yq_dart_aim::ParamType type,
+                 yq_dart_aim::ParamValue* out) {
+    if (!cam_get_client_ || !cam_get_client_->wait_for_service(300ms)) return false;
+    auto req = std::make_shared<rcl_interfaces::srv::GetParameters::Request>();
+    req->names.push_back(name);
+    auto fut = cam_get_client_->async_send_request(req);
+    if (fut.wait_for(500ms) != std::future_status::ready) return false;
+    auto resp = fut.get();
+    if (!resp || resp->values.empty()) return false;
+    const auto& pv = resp->values[0];
+    switch (type) {
+      case yq_dart_aim::ParamType::kInt:
+        if (pv.type != rclcpp::ParameterType::PARAMETER_INTEGER) return false;
+        out->type = yq_dart_aim::ParamValue::Type::kInt;
+        out->i = pv.integer_value;
+        return true;
+      case yq_dart_aim::ParamType::kDouble:
+        if (pv.type != rclcpp::ParameterType::PARAMETER_DOUBLE) return false;
+        out->type = yq_dart_aim::ParamValue::Type::kDouble;
+        out->d = pv.double_value;
+        return true;
+      case yq_dart_aim::ParamType::kBool:
+        if (pv.type != rclcpp::ParameterType::PARAMETER_BOOL) return false;
+        out->type = yq_dart_aim::ParamValue::Type::kBool;
+        out->b = pv.bool_value;
+        return true;
+      default:
+        if (pv.type != rclcpp::ParameterType::PARAMETER_STRING) return false;
+        out->type = yq_dart_aim::ParamValue::Type::kString;
+        out->s = pv.string_value;
+        return true;
+    }
+  }
+
+  bool remoteSet(const std::string& node, const std::string& name,
+                 const yq_dart_aim::ParamValue& v, yq_dart_aim::ParamType type,
+                 std::string* err) {
+    if (!cam_set_client_ || !cam_set_client_->wait_for_service(300ms)) {
+      *err = "相机节点(/hik_camera)不可达";
+      return false;
+    }
+    auto req = std::make_shared<rcl_interfaces::srv::SetParameters::Request>();
+    rcl_interfaces::msg::ParameterValue pv;
+    switch (type) {
+      case yq_dart_aim::ParamType::kInt:
+        pv.type = rclcpp::ParameterType::PARAMETER_INTEGER;
+        pv.integer_value = static_cast<int64_t>(v.i);
+        break;
+      case yq_dart_aim::ParamType::kDouble:
+        pv.type = rclcpp::ParameterType::PARAMETER_DOUBLE;
+        pv.double_value = v.d;
+        break;
+      case yq_dart_aim::ParamType::kBool:
+        pv.type = rclcpp::ParameterType::PARAMETER_BOOL;
+        pv.bool_value = v.b;
+        break;
+      default:
+        pv.type = rclcpp::ParameterType::PARAMETER_STRING;
+        pv.string_value = v.s;
+        break;
+    }
+    rcl_interfaces::msg::Parameter param;
+    param.name = name;
+    param.value = pv;
+    req->parameters.push_back(param);
+    auto fut = cam_set_client_->async_send_request(req);
+    if (fut.wait_for(500ms) != std::future_status::ready) {
+      *err = "相机节点响应超时";
+      return false;
+    }
+    auto resp = fut.get();
+    if (!resp || resp->results.empty()) {
+      *err = "相机节点无响应";
+      return false;
+    }
+    if (!resp->results[0].successful) {
+      *err = resp->results[0].reason.empty() ? "相机节点拒绝了该值" : resp->results[0].reason;
+      return false;
+    }
+    return true;
+  }
+
+  // ---- STATUS：给调参界面看的运行状态 ----
+  std::map<std::string, std::string> tunerStatus() {
+    std::map<std::string, std::string> m;
+    m["mode"] = currentModeName();
+    m["backend"] = yq_dart_aim::backendName(infer_backend_);
+    m["target_class"] = className(currentWantClass());
+    m["serial_connected"] = serial_manager_.hasValidData() ? "yes" : "no";
+    m["last_detection_ms"] = std::to_string(
+        static_cast<long long>(model_detector_.resultAgeMs()));
+    std::lock_guard<std::mutex> lock(status_mutex_);
+    char buf[32];
+    snprintf(buf, sizeof(buf), "%.1f", status_err_x_);
+    m["aim_err_x_px"] = buf;
+    m["aiming"] = status_aiming_ ? "yes" : "no";
+    return m;
+  }
+
+  // ---- SAVE：把当前值写回 yaml ----
+  bool tunerSave(std::string* err) {
+    const std::string root = "/root/dart_ws_on/src/yq_dart_aim/config/params.yaml";
+    const std::string cam = "/root/dart_ws_on/src/ros2_hik_camera/config/camera_params.yaml";
+
+    std::vector<std::pair<std::string, yq_dart_aim::YamlValue>> dart_items;
+    std::vector<std::pair<std::string, yq_dart_aim::YamlValue>> cam_items;
+    for (const auto& meta : yq_dart_aim::paramRegistry()) {
+      yq_dart_aim::ParamValue v;
+      if (!tunerGet(meta.name, &v)) continue;
+      yq_dart_aim::YamlValue yv;
+      switch (meta.type) {
+        case yq_dart_aim::ParamType::kInt:
+          yv.kind = yq_dart_aim::YamlValue::Kind::kInt;
+          yv.num = static_cast<double>(v.i);
+          break;
+        case yq_dart_aim::ParamType::kDouble:
+          yv.kind = yq_dart_aim::YamlValue::Kind::kDouble;
+          yv.num = v.d;
+          break;
+        case yq_dart_aim::ParamType::kBool:
+          yv.kind = yq_dart_aim::YamlValue::Kind::kBool;
+          yv.flag = v.b;
+          break;
+        default:
+          yv.kind = yq_dart_aim::YamlValue::Kind::kString;
+          yv.str = v.s;
+          break;
+      }
+      if (meta.owner == yq_dart_aim::ParamOwner::kHikCamera) {
+        cam_items.emplace_back(meta.name, yv);
+      } else {
+        dart_items.emplace_back(meta.name, yv);
+      }
+    }
+    std::string e1;
+    if (!yq_dart_aim::updateYamlFile(root, "dart_aim_node", dart_items, &e1)) {
+      *err = e1;
+      return false;
+    }
+    std::string e2;
+    if (!cam_items.empty() && !yq_dart_aim::updateYamlFile(cam, "hik_camera", cam_items, &e2)) {
+      *err = e2;
+      return false;
+    }
+    RCLCPP_INFO(this->get_logger(), "串口调参 SAVE: 已写回 %zu 项到 params.yaml, %zu 项到 camera_params.yaml",
+                dart_items.size(), cam_items.size());
+    return true;
+  }
+
+  // ---- 预设 ----
+  std::vector<std::string> listPresets() {
+    std::vector<std::string> out;
+    for (const auto& p : presetNames()) {
+      out.push_back(p.stem().string());
+    }
+    return out;
+  }
+
+  std::vector<std::filesystem::path> presetNames() const {
+    std::vector<std::filesystem::path> out;
+    for (const auto& entry : std::filesystem::directory_iterator(presetDir())) {
+      if (entry.path().extension() == ".yaml") out.push_back(entry.path());
+    }
+    std::sort(out.begin(), out.end());
+    return out;
+  }
+
+  std::filesystem::path presetDir() const {
+    return std::filesystem::path("/root/dart_ws_on/src/yq_dart_aim/config/presets");
+  }
+
+  bool loadPreset(const std::string& name, std::string* err) {
+    const std::filesystem::path path = presetDir() / (name + ".yaml");
+    if (!std::filesystem::exists(path)) {
+      *err = "预设不存在: " + name;
+      return false;
+    }
+    std::ifstream f(path);
+    std::vector<std::pair<std::string, yq_dart_aim::YamlValue>> items;
+    std::string line;
+    while (std::getline(f, line)) {
+      const std::string t = trim(line);
+      if (t.empty() || t[0] == '#' || t[0] == '_') continue;
+      const size_t colon = t.find(':');
+      if (colon == std::string::npos) continue;
+      const std::string key = trim(t.substr(0, colon));
+      const std::string val = trim(t.substr(colon + 1));
+      if (val.empty()) continue;
+      const yq_dart_aim::ParamMeta* meta = yq_dart_aim::findParam(key);
+      if (meta == nullptr) continue;  // 预设里的旧参数名直接忽略
+      yq_dart_aim::ParamValue v;
+      bool ok = false;
+      switch (meta->type) {
+        case yq_dart_aim::ParamType::kInt:
+          v.type = yq_dart_aim::ParamValue::Type::kInt;
+          v.i = std::strtoll(val.c_str(), nullptr, 10);
+          break;
+        case yq_dart_aim::ParamType::kDouble:
+          v.type = yq_dart_aim::ParamValue::Type::kDouble;
+          v.d = std::strtod(val.c_str(), nullptr);
+          ok = true;
+          break;
+        case yq_dart_aim::ParamType::kBool:
+          v.type = yq_dart_aim::ParamValue::Type::kBool;
+          v.b = (val == "true" || val == "1");
+          break;
+        default:
+          v.type = yq_dart_aim::ParamValue::Type::kString;
+          v.s = val;
+          break;
+      }
+      if (meta->type == yq_dart_aim::ParamType::kInt) ok = true;
+      if (meta->type == yq_dart_aim::ParamType::kBool) ok = true;
+      if (meta->type == yq_dart_aim::ParamType::kString) ok = true;
+      if (!ok) continue;
+      yq_dart_aim::YamlValue yv;
+      yv.kind = (meta->type == yq_dart_aim::ParamType::kInt)
+                    ? yq_dart_aim::YamlValue::Kind::kInt
+                    : (meta->type == yq_dart_aim::ParamType::kDouble)
+                          ? yq_dart_aim::YamlValue::Kind::kDouble
+                          : (meta->type == yq_dart_aim::ParamType::kBool)
+                                ? yq_dart_aim::YamlValue::Kind::kBool
+                                : yq_dart_aim::YamlValue::Kind::kString;
+      yv.num = (meta->type == yq_dart_aim::ParamType::kInt) ? static_cast<double>(v.i) : v.d;
+      yv.flag = v.b;
+      yv.str = v.s;
+      items.emplace_back(key, yv);
+      std::string e;
+      tunerSet(key, v, &e);
+    }
+    RCLCPP_INFO(this->get_logger(), "串口调参: 已加载预设 %s（%zu 项，注意尚未落盘，需 SAVE）",
+                name.c_str(), items.size());
+    return true;
   }
 
   ~DartAimNode() override {
+    tuner_.stop();
     // 停止调试发布线程
     stop_debug_.store(true);
     new_debug_frame_.store(true);  // 唤醒线程
@@ -137,6 +496,10 @@ private:
     if (!this->has_parameter("publish_debug_image")) this->declare_parameter("publish_debug_image", yq_dart_aim::defaults::PUBLISH_DEBUG_IMAGE);
     if (!this->has_parameter("publish_compressed_mask")) this->declare_parameter("publish_compressed_mask", yq_dart_aim::defaults::PUBLISH_COMPRESSED_MASK);
     if (!this->has_parameter("enable_record")) this->declare_parameter("enable_record", yq_dart_aim::defaults::ENABLE_RECORD);
+
+    // 串口调参（PC 端用 tools/tune.py；端口为空则关闭）
+    if (!this->has_parameter("tune_port")) this->declare_parameter("tune_port", yq_dart_aim::defaults::TUNE_PORT);
+    if (!this->has_parameter("tune_baud")) this->declare_parameter("tune_baud", yq_dart_aim::defaults::TUNE_BAUD);
 
     // 图像话题
     if (!this->has_parameter("image_topic")) this->declare_parameter("image_topic", std::string("/image_raw"));
@@ -297,6 +660,20 @@ private:
 
   const char* currentModeName() const {
     return (use_model_ && model_detector_.isReady()) ? "model" : "hsv";
+  }
+
+  // 当前"要打"的模型类别 id（-1 = 不瞄准）
+  int currentWantClass() const {
+    const bool serial_has_hint = serial_manager_.hasValidData();
+    return yq_dart_aim::ModelDetector::classIdForTarget(
+        serial_has_hint ? current_target_ : model_default_target_);
+  }
+
+  static std::string trim(const std::string& s) {
+    size_t b = s.find_first_not_of(" \t\r\n");
+    if (b == std::string::npos) return "";
+    size_t e = s.find_last_not_of(" \t\r\n");
+    return s.substr(b, e - b + 1);
   }
 
   static std::string className(int class_id) {
@@ -590,10 +967,19 @@ private:
       pt.x = aim_result.scaled_err_x; pt.y = aim_result.scaled_err_y; pt.z = 0;
       debug_pub_->publish(pt);
 
+      {
+        std::lock_guard<std::mutex> sl(status_mutex_);
+        status_err_x_ = aim_result.err_x;
+        status_aiming_ = aimed;
+      }
+
       serial_manager_.send(send_err, aim_info);
     } else {
       aim_counter_ = 0;
       serial_manager_.send(0.0f, 0.0f);
+      std::lock_guard<std::mutex> sl(status_mutex_);
+      status_err_x_ = 0.0;
+      status_aiming_ = false;
     }
 
     // 转发串口调试数据
@@ -779,6 +1165,16 @@ private:
   std::string model_reload_reason_;
   uint64_t last_result_seq_ = 0;
   float filtered_x_ = 0.0f;
+
+  // 串口调参
+  yq_dart_aim::ParamTuner tuner_;
+  rclcpp::Client<rcl_interfaces::srv::GetParameters>::SharedPtr cam_get_client_;
+  rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr cam_set_client_;
+
+  // 给 STATUS 用的运行状态快照
+  std::mutex status_mutex_;
+  double status_err_x_ = 0.0;
+  bool status_aiming_ = false;
 };
 
 int main(int argc, char **argv) {

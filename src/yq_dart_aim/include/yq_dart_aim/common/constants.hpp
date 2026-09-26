@@ -65,6 +65,10 @@ namespace defaults {
     // 模型结果有效期(ms)，0=不限制（ORT 单帧 500ms 左右，限制反而会误杀）
     constexpr int MODEL_MAX_RESULT_AGE_MS = 0;
 
+    // 串口调参通道（独立于下位机 MCU 的第二个串口；留空=关闭）
+    constexpr const char* TUNE_PORT = "/dev/ttyACM1";
+    constexpr int TUNE_BAUD = 115200;
+
     // 模型模式的二级开关：推理后端（CPU=ONNX Runtime / BPU=hobot_dnn / DNN=OpenCV）
     constexpr const char* INFER_BACKEND = "CPU";}
 
