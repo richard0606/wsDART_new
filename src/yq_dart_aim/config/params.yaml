@@ -37,6 +37,10 @@ dart_aim_node:
     publish_debug_image: true
     s_max: 255
     s_min: 75
+    # 串口调参通道（PC 用 tools/tune.py 连这个口；留空=关闭）
+    # 约定第二个 USB-TTL 专用于调参，不与下位机 MCU 混用
+    tune_port: /dev/ttyACM1
+    tune_baud: 115200
     usart_port: /dev/ttyACM0
     use_model: true
     use_serial: true

@@ -13,6 +13,18 @@ ros2 launch yq_dart_aim start.launch.py
 ros2 launch yq_dart_aim start.launch.py debug:=false
 ```
 
+## 调参（串口，不用浏览器）
+
+PC 上插一根 USB-TTL 到板子的**第二个串口**（约定 `/dev/ttyACM1`，和下位机 MCU 的
+`/dev/ttyACM0` 分开），然后：
+
+```bash
+pip install pyserial
+python3 tools/tune.py          # 中文菜单，非技术人员也能用
+```
+
+改完记得选「5) 保存到板子」，否则重启丢失。完整说明见 `docs/串口调参指南.md`。
+
 ## 编译
 
 ```bash

@@ -26,6 +26,9 @@ add_executable(dart_aim_node
   src/model_backend.cpp
   src/coordinate_calculator.cpp
   src/serial_manager.cpp
+  src/param_registry.cpp
+  src/param_tuner.cpp
+  src/yaml_writer.cpp
 )
 
 # ==================== 推理后端（可多选，运行期用 infer_backend 参数切换）====================
@@ -150,12 +153,6 @@ target_link_libraries(dart_aim_node ${OpenCV_LIBS} opencv_dnn)
 install(TARGETS
   dart_aim_node
   DESTINATION lib/${PROJECT_NAME}
-)
-
-# 安装 web_tuner Python 包（安装到 share 目录，launch 文件可直接引用）
-install(DIRECTORY web_tuner
-  DESTINATION share/${PROJECT_NAME}
-  PATTERN "__pycache__" EXCLUDE
 )
 
 install(DIRECTORY launch config
