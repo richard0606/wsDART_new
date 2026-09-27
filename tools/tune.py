@@ -2,8 +2,8 @@
 """调参工具 —— PC 端（串口或 USB 网络都行）
 
 两种通道，二选一（自动探测）：
-  A) USB 网络（推荐，无需额外硬件）：板子 Type-C 口连 PC，板子出现 192.168.55.2，
-     PC 拿到 192.168.55.1 那张网卡后，本工具走 TCP 连板子
+  A) USB 网络（推荐，无需额外硬件）：板子 Type-C 口连 PC，板子固定 192.168.128.10，
+     PC 新网卡配成 192.168.128.1 后，本工具走 TCP 连板子
   B) 串口：插一根 USB-TTL 到 /dev/ttyACM1（或 /dev/ttyS1 板载串口）
 
 用法不需要记命令，直接跑就是菜单：
@@ -38,6 +38,10 @@ import os
 import socket
 import sys
 import time
+
+# 板子侧 USB 网卡地址由板子的 netplan 决定（/etc/netplan/*.yaml），别改这里
+DEFAULT_BOARD_IP = "192.168.128.10"
+DEFAULT_PC_IP = "192.168.128.1"
 
 # ---------------------------------------------------------------- 串口封装
 class Link:
@@ -469,7 +473,7 @@ def try_ping(link) -> bool:
 
 def connect_net_if_available() -> object | None:
     """先试 USB 网络（推荐通道），通了就用它"""
-    host = os.environ.get("DART_TUNE_HOST", "192.168.55.2")
+    host = os.environ.get("DART_TUNE_HOST", DEFAULT_BOARD_IP)
     port = int(os.environ.get("DART_TUNE_TCP_PORT", "8766"))
     link = NetLink(host, port)
     if link.open() and try_ping(link):
@@ -484,7 +488,7 @@ def connect(link, port) -> bool:
         return link.open() and try_ping(link)
     if port is None:
         print("没找到串口设备，也没连上 USB 网络。请确认：")
-        print("  方案A(网络): Type-C 连 PC，PC 拿到 192.168.55.x 网卡")
+        print(f"  方案A(网络): Type-C 连 PC，PC 新网卡配成 {DEFAULT_PC_IP}/24")
         print("  方案B(串口): USB-TTL 插好，板子上出现 /dev/ttyACM1 或 /dev/ttyS1")
         return False
     link.port = port
@@ -556,7 +560,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="飞镖视觉 串口调参（菜单式）")
     ap.add_argument("--port", default=None,
                     help="串口设备；不填则先试 USB 网络，再自动找串口")
-    ap.add_argument("--net", default=None, help="直接走网络，如 192.168.55.2")
+    ap.add_argument("--net", default=None, help="直接走网络，如 192.168.128.10")
     ap.add_argument("--baud", type=int, default=115200)
     ap.add_argument("action", nargs="?",
                     choices=["list", "get", "set", "save", "presets", "load", "status", "watch"],
