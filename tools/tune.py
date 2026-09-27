@@ -4,13 +4,15 @@
 两种通道，二选一（自动探测）：
   A) USB 网络（推荐，无需额外硬件）：板子 Type-C 口连 PC，板子固定 192.168.128.10，
      PC 新网卡配成 192.168.128.1 后，本工具走 TCP 连板子
-  B) 串口：插一根 USB-TTL 到 /dev/ttyACM1（或 /dev/ttyS1 板载串口）
+  B) 串口（备用）：插一根 USB-TTL 到 /dev/ttyACM1（或 /dev/ttyS1 板载串口），
+     这种方式在 PC 上需要 pip install pyserial
 
 用法不需要记命令，直接跑就是菜单：
 
     python3 tools/tune.py
 
-会自动找串口（优先 /dev/ttyACM1，其次第一个 ttyACM*），连上后出中文菜单：
+会自动挑通道：先试 USB 网络（板子默认），不通再找串口（Linux 优先
+/dev/ttyACM1；Windows 按 COM 编号从小到大）。连上后出中文菜单：
 
     1) 查看全部参数      4) 加载预设
     2) 修改参数          5) 保存到板子（重启保留）
@@ -584,16 +586,20 @@ def main() -> int:
         if not connect(link, port):
             return 1
     else:
-        # 没指定：先试自动找到的串口，找不到再试 USB 网络
-        port = autodetect_port()
-        if port is not None:
+        # 没指定：先试 USB 网络（板子默认通道），再退回串口。
+        # 反过来有个隐患：PC 上若插了别的 USB-ACM 设备（开发板、调试器），
+        # 串口会被误认成调参口，菜单连半天连不上。
+        link = connect_net_if_available()
+        if link is None:
+            port = autodetect_port()
+            if port is None:
+                print("既连不上 USB 网络（板子 192.168.128.10:8766），也没找到串口。")
+                print("  确认 Type-C 线插好、PC 网卡配成 192.168.128.1/24（网关留空）。")
+                return 1
             link = Link(port, args.baud)
             if not connect(link, port):
-                link = None
-        if link is None:
-            link = connect_net_if_available()
-            if link is None:
                 return 1
+        else:
             port = None  # 走网络，没有串口设备名
 
     try:
