@@ -24,15 +24,16 @@ PC 上跑 `python3 tools/tune.py`，出中文菜单，非技术人员也能用�
 | 板载串口 | USB-TTL 接排针 UART | `tune_port: /dev/ttyS1` |
 
 走网络通道时连板子的 **Type-C/OTG 口**（不是接相机的 USB-A 口），PC 上把新网卡的地址
-填成 `192.168.128.1 / 255.255.255.0`，然后：
+填成 `192.168.128.1 / 255.255.255.0`（网关留空），然后：
 
 ```bash
-python3 tools/tune.py              # 自动挑通道：先串口，再网络
-python3 tools/tune.py --net 192.168.128.10   # 明确走网络
-python3 tools/tune.py --port COM5          # 明确走串口
+python3 tools/tune.py                     # 自动挑通道：先网络，再串口
+python3 tools/tune.py --net 192.168.128.10  # 明确走网络
+python3 tools/tune.py --port COM5           # 明确走串口（需 pyserial）
 ```
 
-串口通道需要 `pip install pyserial`，纯网络通道不需要。
+**PC 上只需要 `tools/tune.py` 这一个文件**，走网络通道零依赖（Python 3.8+ 自带 `socket` 即可，
+不用 `pip install` 任何东西）。只有改用串口通道才需要 `pip install pyserial`。
 
 调参通道和下位机 MCU 的 `/dev/ttyACM0` 是分开的；万一两个参数填成同一设备，程序会拒绝
 启动调参，绝不会污染 MCU 视觉协议。
