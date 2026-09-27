@@ -13,15 +13,29 @@ ros2 launch yq_dart_aim start.launch.py
 ros2 launch yq_dart_aim start.launch.py debug:=false
 ```
 
-## 调参（串口，不用浏览器）
+## 调参（不用浏览器）
 
-PC 上插一根 USB-TTL 到板子的**第二个串口**（约定 `/dev/ttyACM1`，和下位机 MCU 的
-`/dev/ttyACM0` 分开），然后：
+PC 上跑 `python3 tools/tune.py`，出中文菜单，非技术人员也能用。硬件有三种接法，任选一种：
+
+| 通道 | 需要什么 | `params.yaml` 里设 |
+|------|---------|-------------------|
+| **USB 网络**（推荐） | 一根 Type-C **数据线** | `tune_port: tcp:8766` |
+| USB-TTL 串口 | USB-TTL + 三根线 | `tune_port: /dev/ttyACM1` |
+| 板载串口 | USB-TTL 接排针 UART | `tune_port: /dev/ttyS1` |
+
+走网络通道时连板子的 **Type-C/OTG 口**（不是接相机的 USB-A 口），PC 上把新网卡的地址
+填成 `192.168.55.1 / 255.255.255.0`，然后：
 
 ```bash
-pip install pyserial
-python3 tools/tune.py          # 中文菜单，非技术人员也能用
+python3 tools/tune.py              # 自动挑通道：先串口，再网络
+python3 tools/tune.py --net 192.168.55.2   # 明确走网络
+python3 tools/tune.py --port COM5          # 明确走串口
 ```
+
+串口通道需要 `pip install pyserial`，纯网络通道不需要。
+
+调参通道和下位机 MCU 的 `/dev/ttyACM0` 是分开的；万一两个参数填成同一设备，程序会拒绝
+启动调参，绝不会污染 MCU 视觉协议。
 
 改完记得选「5) 保存到板子」，否则重启丢失。完整说明见 `docs/串口调参指南.md`。
 
