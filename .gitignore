@@ -105,3 +105,6 @@ rosbag/
 calib_quant/
 calib_*/
 dataset_*/
+
+# 调参 SAVE 自动生成的备份
+*.yaml.bak

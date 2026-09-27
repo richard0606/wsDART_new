@@ -131,6 +131,18 @@ public:
       RCLCPP_INFO(this->get_logger(), "串口调参未启用（tune_port 为空）");
       return;
     }
+    // 防呆：调参通道绝不能和下位机 MCU 用同一个串口。
+    // 万一配错（两个设备路径写法不同但指向同一个设备），宁可不开调参，
+    // 也不能往 MCU 视觉协议链路上发 ASCII/JSON。
+    const std::string mcu_port = this->get_parameter("usart_port").as_string();
+    if (!mcu_port.empty() && sameDevice(port, mcu_port)) {
+      RCLCPP_ERROR(this->get_logger(),
+                   "tune_port(%s) 和下位机 usart_port(%s) 是同一个设备，"
+                   "为避免污染 MCU 视觉协议，调参服务未启动。请给调参换个口"
+                   "（USB-TTL: /dev/ttyACM1；板载串口: /dev/ttyS1；或用 tcp:8766 走网络）",
+                   port.c_str(), mcu_port.c_str());
+      return;
+    }
     // 相机参数在 hik_camera 节点上，调它们要走 ROS 服务代理
     cam_get_client_ = this->create_client<rcl_interfaces::srv::GetParameters>(
         "/hik_camera/get_parameters");
@@ -674,6 +686,46 @@ private:
     if (b == std::string::npos) return "";
     size_t e = s.find_last_not_of(" \t\r\n");
     return s.substr(b, e - b + 1);
+  }
+
+  // 判断 tune_port 和 usart_port 是否可能是同一个设备（宁可多拦，不要误开 MCU 口）
+  //
+  // 真实情况很杂：软链接指向、/dev 下的别名、还没插上导致 realpath 失败……，
+  // 所以这里用"保守判定"：字面相同、解析后相同、或 base 名相同（都算同一设备），
+  // 另外只要 tune_port 看起来是个串口设备（/dev/tty*）且 usart_port 也是，就额外比对
+  // 是否指向同一 tty 前缀。宁可误报（拒绝启动调参）也不要漏报（污染 MCU 链路）。
+  static bool sameDevice(const std::string& a, const std::string& b) {
+    if (a == b) return true;
+    char ra[PATH_MAX] = {0};
+    char rb[PATH_MAX] = {0};
+    const bool oka = realpath(a.c_str(), ra) != nullptr;
+    const bool okb = realpath(b.c_str(), rb) != nullptr;
+    if (oka && okb) return std::string(ra) == std::string(rb);
+
+    auto base = [](const std::string& p) {
+      const size_t slash = p.find_last_of('/');
+      return (slash == std::string::npos) ? p : p.substr(slash + 1);
+    };
+    // realpath 至少一边失败：先看 base 名
+    if (base(a) == base(b)) return true;
+
+    // 一边解析不出来时，如果它是软链接，看链接字面目标是不是另一个设备
+    auto linkTarget = [](const std::string& p, std::string* out) {
+      char buf[PATH_MAX] = {0};
+      const ssize_t n = readlink(p.c_str(), buf, sizeof(buf) - 1);
+      if (n <= 0) return false;
+      *out = std::string(buf, static_cast<size_t>(n));
+      return true;
+    };
+    std::string target;
+    if (!oka && linkTarget(a, &target)) {
+      // /tmp/fake_tune -> /dev/ttyACM0，target 的 base 名和 b 的 base 名一致
+      if (base(target) == base(b)) return true;
+    }
+    if (!okb && linkTarget(b, &target)) {
+      if (base(target) == base(a)) return true;
+    }
+    return false;
   }
 
   static std::string className(int class_id) {

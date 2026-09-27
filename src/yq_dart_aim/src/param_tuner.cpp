@@ -6,11 +6,16 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <fcntl.h>
 #include <sstream>
 #include <termios.h>
 #include <unistd.h>
 #include <chrono>
+#include <arpa/inet.h>
+#include <fcntl.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+
+#include <rclcpp/rclcpp.hpp>
 
 #include "yq_dart_aim/param_registry.hpp"
 
@@ -122,6 +127,13 @@ ParamValue ParamValue::fromString(const std::string& text, Type hint, bool* ok) 
     return v;
 }
 
+namespace {
+void setNonBlocking(int fd) {
+    const int flags = fcntl(fd, F_GETFL, 0);
+    if (flags >= 0) fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+}
+}  // namespace
+
 // ================================================================ baud
 int baudToConstant(int baud) {
     switch (baud) {
@@ -148,6 +160,18 @@ bool ParamTuner::start(const std::string& port, int baud, Getter getter, Setter 
     if (port.empty()) return false;
     port_ = port;
     baud_ = baud;
+    // "tcp:8766" / ":8766" -> TCP 模式；否则当串口设备路径
+    const size_t colon = port.find(':');
+    const std::string head = port.substr(0, colon);
+    if (colon != std::string::npos && (head == "tcp" || head.empty())) {
+        tcp_port_ = std::atoi(port.c_str() + colon + 1);
+        if (tcp_port_ <= 0 || tcp_port_ > 65535) {
+            RCLCPP_ERROR(rclcpp::get_logger("param_tuner"), "非法的 TCP 端口: %s", port.c_str());
+            return false;
+        }
+    } else {
+        device_ = port;
+    }
     getter_ = std::move(getter);
     setter_ = std::move(setter);
     status_ = std::move(status);
@@ -169,8 +193,30 @@ void ParamTuner::stop() {
 }
 
 bool ParamTuner::openPort() {
+    // ── TCP 模式：tune_port 写成 tcp:PORT 或 :PORT ──
+    if (tcp_port_ > 0) {
+        if (tcp_listen_ >= 0) return true;
+        const int lfd = socket(AF_INET, SOCK_STREAM, 0);
+        if (lfd < 0) return false;
+        int yes = 1;
+        setsockopt(lfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+        struct sockaddr_in addr{};
+        addr.sin_family = AF_INET;
+        addr.sin_addr.s_addr = htonl(INADDR_ANY);
+        addr.sin_port = htons(static_cast<uint16_t>(tcp_port_));
+        if (bind(lfd, reinterpret_cast<struct sockaddr*>(&addr), sizeof(addr)) != 0 ||
+            listen(lfd, 4) != 0) {
+            ::close(lfd);
+            return false;
+        }
+        setNonBlocking(lfd);
+        tcp_listen_ = lfd;
+        return true;
+    }
+
+    // ── 串口模式 ──
     if (fd_ >= 0) return true;
-    const int fd = ::open(port_.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
+    const int fd = ::open(device_.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
     if (fd < 0) return false;
 
     struct termios tty{};
@@ -202,45 +248,98 @@ void ParamTuner::closePort() {
         ::close(fd_);
         fd_ = -1;
     }
+    if (tcp_listen_ >= 0) {
+        ::close(tcp_listen_);
+        tcp_listen_ = -1;
+    }
+    rx_buf_.clear();
+}
+
+void ParamTuner::feed(const char* data, size_t n) {
+    rx_buf_.append(data, n);
+    size_t pos;
+    while ((pos = rx_buf_.find('\n')) != std::string::npos) {
+        std::string line = rx_buf_.substr(0, pos);
+        rx_buf_.erase(0, pos + 1);
+        if (!line.empty() && line.back() == '\r') line.pop_back();
+        if (line.empty()) continue;
+        const std::string r = handleLine(line);
+        if (!r.empty()) reply(r + "\n");
+    }
+    if (rx_buf_.size() > 4096) rx_buf_.clear();  // 防止半截命令堆积
+}
+
+void ParamTuner::reply(const std::string& payload) {
+    if (tcp_port_ > 0) {
+        if (fd_ < 0) return;
+        ssize_t written = 0;
+        while (written < static_cast<ssize_t>(payload.size())) {
+            const ssize_t w = ::write(fd_, payload.data() + written, payload.size() - written);
+            if (w <= 0) break;
+            written += w;
+        }
+        return;
+    }
+    if (fd_ < 0) return;
+    ssize_t written = 0;
+    while (written < static_cast<ssize_t>(payload.size())) {
+        const ssize_t w = ::write(fd_, payload.data() + written, payload.size() - written);
+        if (w <= 0) break;
+        written += w;
+    }
 }
 
 void ParamTuner::loop() {
+    char buf[4096];
     while (!quit_.load()) {
         if (!openPort()) {
-            // 设备可能还没插上，每秒重试
+            // 设备/端口可能还没就绪，每秒重试
             std::this_thread::sleep_for(std::chrono::seconds(1));
             continue;
         }
-        std::string rx;
-        char buf[512];
-        while (!quit_.load()) {
-            const ssize_t n = ::read(fd_, buf, sizeof(buf));
-            if (n > 0) {
-                rx.append(buf, static_cast<size_t>(n));
-                size_t pos;
-                while ((pos = rx.find('\n')) != std::string::npos) {
-                    std::string line = rx.substr(0, pos);
-                    rx.erase(0, pos + 1);
-                    if (!line.empty() && line.back() == '\r') line.pop_back();
-                    if (line.empty()) continue;
-                    const std::string reply = handleLine(line);
-                    if (!reply.empty()) {
-                        const std::string payload = reply + "\n";
-                        ssize_t written = 0;
-                        while (written < static_cast<ssize_t>(payload.size())) {
-                            const ssize_t w = ::write(fd_, payload.data() + written,
-                                                      payload.size() - written);
-                            if (w <= 0) break;
-                            written += w;
-                        }
-                    }
-                }
-                if (rx.size() > 4096) rx.clear();  // 防止半截命令堆积
-            } else {
-                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+        if (tcp_port_ > 0) {
+            // 接受连接：只保留最后一个客户端（调参场景一次只有一个）
+            bool has_client = false;
+            struct sockaddr_in peer{};
+            socklen_t plen = sizeof(peer);
+            const int cfd = accept(tcp_listen_, reinterpret_cast<struct sockaddr*>(&peer), &plen);
+            if (cfd >= 0) {
+                if (fd_ >= 0) ::close(fd_);
+                fd_ = cfd;
+                setNonBlocking(fd_);
+                RCLCPP_INFO(rclcpp::get_logger("param_tuner"),
+                            "调参客户端已连接: %s:%d", inet_ntoa(peer.sin_addr),
+                            ntohs(peer.sin_port));
+            } else if (fd_ < 0) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(50));
             }
+
+            if (fd_ >= 0) {
+                has_client = true;
+                const ssize_t n = ::read(fd_, buf, sizeof(buf));
+                if (n > 0) {
+                    feed(buf, static_cast<size_t>(n));
+                } else if (n == 0) {
+                    // 对端断开
+                    RCLCPP_INFO(rclcpp::get_logger("param_tuner"), "调参客户端已断开");
+                    ::close(fd_);
+                    fd_ = -1;
+                } else {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+                }
+            }
+            if (!has_client) std::this_thread::sleep_for(std::chrono::milliseconds(20));
+            continue;
         }
-        closePort();
+
+        // 串口模式
+        const ssize_t n = ::read(fd_, buf, sizeof(buf));
+        if (n > 0) {
+            feed(buf, static_cast<size_t>(n));
+        } else {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
     }
 }
 

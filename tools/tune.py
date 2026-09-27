@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""串口调参工具 —— PC 端
+"""调参工具 —— PC 端（串口或 USB 网络都行）
+
+两种通道，二选一（自动探测）：
+  A) USB 网络（推荐，无需额外硬件）：板子 Type-C 口连 PC，板子出现 192.168.55.2，
+     PC 拿到 192.168.55.1 那张网卡后，本工具走 TCP 连板子
+  B) 串口：插一根 USB-TTL 到 /dev/ttyACM1（或 /dev/ttyS1 板载串口）
 
 用法不需要记命令，直接跑就是菜单：
 
@@ -30,6 +35,7 @@ import argparse
 import glob
 import json
 import os
+import socket
 import sys
 import time
 
@@ -152,12 +158,120 @@ class Link:
         return None
 
 
+class NetLink:
+    """USB 网络通道：和板子上的 ParamTuner 通过 TCP 通信
+
+    板子侧需要在 dart_aim_node 里把 tune_port 设为 "tcp:8766" 之类的地址，
+    或者用本仓库 tools/tune_tcp_server.py 起一个 TCP->串口 转发。
+
+    简单起见：板子侧 ParamTuner 监听 TCP，PC 直连。
+    """
+
+    def __init__(self, host: str, port: int, timeout: float = 1.0):
+        self.host = host
+        self.port = port
+        self.timeout = timeout
+        self.sock = None
+        self._rx = b""
+
+    def open(self):
+        if self.sock is not None:
+            return True          # 已经连上了，不要重复建连接（否则泄漏旧 socket）
+        try:
+            self.sock = socket.create_connection((self.host, self.port), timeout=self.timeout)
+            self.sock.settimeout(self.timeout)
+            return True
+        except OSError as e:
+            print(f"连接 {self.host}:{self.port} 失败: {e}", file=sys.stderr)
+            self.sock = None
+            return False
+
+    def close(self):
+        if self.sock is not None:
+            try:
+                self.sock.close()
+            except Exception:
+                pass
+            self.sock = None
+        self._rx = b""      # 清掉残留半包，避免重连后读到上次的字节
+
+    def cmd(self, line: str, timeout: float = 1.0) -> dict | None:
+        if self.sock is None:
+            return None
+        try:
+            self.sock.sendall((line + "\n").encode())
+        except OSError:
+            return None
+        deadline = time.time() + timeout
+        while time.time() < deadline:
+            while b"\n" in self._rx:
+                raw, _, self._rx = self._rx.partition(b"\n")
+                text = raw.decode("utf-8", "replace").strip()
+                if not text:
+                    continue
+                try:
+                    return json.loads(text)
+                except json.JSONDecodeError:
+                    continue
+            try:
+                self.sock.settimeout(max(0.05, deadline - time.time()))
+                chunk = self.sock.recv(4096)
+                if not chunk:
+                    return None
+                self._rx += chunk
+            except (socket.timeout, TimeoutError):
+                continue
+            except OSError:
+                return None
+        return None
+
+
+def list_ports() -> list[str]:
+    """列出当前系统上可用的串口（Linux /dev/tty*、Windows COM*）"""
+    if os.name == "nt":
+        found = []
+        try:
+            import serial.tools.list_ports as lp
+            found = [p.device for p in lp.comports()]
+        except Exception:
+            # 没装 pyserial 时退回注册表
+            try:
+                import winreg
+                key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"HARDWARE\DEVICEMAP\SERIALCOMM")
+                i = 0
+                while True:
+                    try:
+                        val, _ = winreg.EnumValue(key, i)
+                    except OSError:
+                        break
+                    if val.upper().startswith("COM"):
+                        found.append(val)
+                    i += 1
+            except Exception:
+                pass
+        return found
+    return sorted(glob.glob("/dev/ttyACM*") + glob.glob("/dev/ttyUSB*"))
+
+
 def autodetect_port() -> str | None:
-    """优先 ttyACM1（约定的调参口），否则第一个 ttyACM*"""
+    """自动挑一个调参口。
+
+    约定优先 /dev/ttyACM1（第二个 USB-TTL，和 MCU 的 ttyACM0 分开）。
+    Windows 上按 COM 编号从小到大试（板子枚举出来通常是 COM3 往后）。
+    """
+    if os.name == "nt":
+        # COM 要按数字排，字符串排序会把 COM10 排到 COM3 前面
+        def comnum(p: str) -> int:
+            try:
+                return int(p[3:])
+            except ValueError:
+                return 10**6
+        ports = sorted(list_ports(), key=comnum)
+        return ports[0] if ports else None
     if os.path.exists("/dev/ttyACM1"):
         return "/dev/ttyACM1"
-    devs = sorted(glob.glob("/dev/ttyACM*"))
-    return devs[0] if devs else None
+    ports = list_ports()
+    return ports[0] if ports else None
 
 
 # ---------------------------------------------------------------- 显示
@@ -333,7 +447,9 @@ class TunerUI:
                 self.save()
             elif c == "6":
                 self.link.close()
-                if not connect(self.link, self.port_wanted):
+                ok = (connect(self.link, None) if self.net
+                      else connect(self.link, self.port_wanted))
+                if not ok:
                     print("重连失败，仍在菜单中")
             elif c == "q":
                 if self.dirty:
@@ -346,18 +462,36 @@ class TunerUI:
                 print("请输入 1-6 或 q")
 
 
-def connect(link: Link, port: str | None) -> bool:
+def try_ping(link) -> bool:
+    r = link.cmd("PING", timeout=2.0)
+    return bool(r and r.get("ok"))
+
+
+def connect_net_if_available() -> object | None:
+    """先试 USB 网络（推荐通道），通了就用它"""
+    host = os.environ.get("DART_TUNE_HOST", "192.168.55.2")
+    port = int(os.environ.get("DART_TUNE_TCP_PORT", "8766"))
+    link = NetLink(host, port)
+    if link.open() and try_ping(link):
+        print(f"✓ 已通过 USB 网络连接 {host}:{port}")
+        return link
+    link.close()
+    return None
+
+
+def connect(link, port) -> bool:
+    if isinstance(link, NetLink):
+        return link.open() and try_ping(link)
     if port is None:
-        print("没找到串口设备。请确认：")
-        print("  1) USB-TTL 已插好（板子上应出现 /dev/ttyACM1）")
-        print("  2) 板子上的参数 tune_port 与实际端口一致")
+        print("没找到串口设备，也没连上 USB 网络。请确认：")
+        print("  方案A(网络): Type-C 连 PC，PC 拿到 192.168.55.x 网卡")
+        print("  方案B(串口): USB-TTL 插好，板子上出现 /dev/ttyACM1 或 /dev/ttyS1")
         return False
     link.port = port
     if not link.open():
         return False
-    r = link.cmd("PING", timeout=2.0)
-    if r and r.get("ok"):
-        print(f"✓ 已连接 {port}")
+    if try_ping(link):
+        print(f"✓ 已连接串口 {port}")
         return True
     print(f"串口打开了但板子没响应（{port}）。检查是否插错口/波特率，或板子服务是否在跑。")
     link.close()
@@ -420,7 +554,9 @@ def cmdline_mode(link: Link, args) -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="飞镖视觉 串口调参（菜单式）")
-    ap.add_argument("--port", default=None, help="串口设备，默认自动找 /dev/ttyACM1")
+    ap.add_argument("--port", default=None,
+                    help="串口设备；不填则先试 USB 网络，再自动找串口")
+    ap.add_argument("--net", default=None, help="直接走网络，如 192.168.55.2")
     ap.add_argument("--baud", type=int, default=115200)
     ap.add_argument("action", nargs="?",
                     choices=["list", "get", "set", "save", "presets", "load", "status", "watch"],
@@ -429,15 +565,38 @@ def main() -> int:
     ap.add_argument("value", nargs="?", help="要设置的值")
     args = ap.parse_args()
 
-    port = args.port or autodetect_port()
-    link = Link(port or "", args.baud)
-    if not connect(link, port):
-        return 1
+    link = None
+    port = None  # 串口模式下的设备名；网络模式为 None
+    if args.net or os.environ.get("DART_TUNE_NET"):
+        # 明确要走网络
+        host = args.net or os.environ["DART_TUNE_NET"]
+        link = NetLink(host, int(os.environ.get("DART_TUNE_TCP_PORT", "8766")))
+        if not connect(link, host):
+            return 1
+    elif args.port is not None:
+        # 明确指定了串口：不再去试网络（免得白等超时）
+        port = args.port
+        link = Link(port, args.baud)
+        if not connect(link, port):
+            return 1
+    else:
+        # 没指定：先试自动找到的串口，找不到再试 USB 网络
+        port = autodetect_port()
+        if port is not None:
+            link = Link(port, args.baud)
+            if not connect(link, port):
+                link = None
+        if link is None:
+            link = connect_net_if_available()
+            if link is None:
+                return 1
+            port = None  # 走网络，没有串口设备名
 
     try:
         if args.action is None:
             ui = TunerUI(link)
             ui.port_wanted = port
+            ui.net = isinstance(link, NetLink)
             ui.refresh_values()
             ui.menu_loop()
             return 0

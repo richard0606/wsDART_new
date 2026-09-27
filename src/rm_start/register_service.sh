@@ -24,6 +24,15 @@ fi
 install -m 755 "$SCRIPT_DIR/rm_clean_up.sh" /usr/sbin/rm_clean_up.sh
 install -m 755 "$SCRIPT_DIR/rm_watch_dog.sh" /usr/sbin/rm_watch_dog.sh
 
+# USB 网络调参通道（RNDIS/ECM over Type-C），独立服务，开机自启
+if [ -f "$SCRIPT_DIR/dart-usb-network.service" ]; then
+  install -m 644 "$SCRIPT_DIR/dart-usb-network.service" /etc/systemd/system/dart-usb-network.service
+  systemctl daemon-reload
+  systemctl enable dart-usb-network.service >/dev/null 2>&1 || true
+  systemctl restart dart-usb-network.service >/dev/null 2>&1 || true
+  echo "USB 网络调参通道已注册 (dart-usb-network.service)"
+fi
+
 # 动态创建 systemd service 文件内容
 SERVICE_CONTENT=$(cat << EOF
 [Unit]
