@@ -1,0 +1,13 @@
+[Unit]
+Description=Dart Vision USB Network (RNDIS/ECM over Type-C)
+After=network.target
+Wants=network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/root/dart_ws_on/tools/setup_usb_network.sh up
+ExecStop=/root/dart_ws_on/tools/setup_usb_network.sh down
+
+[Install]
+WantedBy=multi-user.target

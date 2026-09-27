@@ -59,6 +59,10 @@ public:
     ~ParamTuner();
 
     // port 为空表示不启用；否则启动监听线程（设备不存在时每秒重试）
+    //
+    // port 支持两种写法：
+    //   串口设备路径，如 /dev/ttyACM1、/dev/ttyS1
+    //   "tcp:PORT" 或 ":PORT"，在所有网卡上监听 TCP（配合 USB 网络调参用）
     bool start(const std::string& port, int baud,
                Getter getter, Setter setter, StatusProvider status,
                Saver saver, PresetLister list_presets, PresetLoader load_preset);
@@ -75,6 +79,9 @@ private:
     void loop();
     bool openPort();
     void closePort();
+    // 处理已收到的字节流（串口和 TCP 共用）
+    void feed(const char* data, size_t n);
+    void reply(const std::string& payload);
     std::string cmdHelp() const;
     std::string cmdList() const;
     std::string cmdGet(const std::string& name) const;
@@ -83,9 +90,13 @@ private:
     std::string cmdPresets() const;
     std::string cmdLoad(const std::string& name);
 
-    std::string port_;
+    std::string port_;      // 原始配置值
+    std::string device_;    // 实际设备路径（串口模式）
+    int tcp_port_ = 0;       // >0 表示 TCP 模式
     int baud_ = 115200;
     int fd_ = -1;
+    int tcp_listen_ = -1;   // TCP 监听 fd
+    std::string rx_buf_;    // 行缓冲（跨多次读）
     std::atomic<bool> running_{false};
     std::atomic<bool> quit_{false};
     std::thread thread_;
