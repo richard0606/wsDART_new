@@ -3,6 +3,9 @@
 > 适用：`dart_aim_node` 的**模型识别模式**走 RDK X5 的 BPU 加速。
 > 模型来源：`AT_NN_Detector`（PraySky 的 YOLO26n-Pose 装甲板检测，AGPL-3.0）。
 > 本文覆盖：**从 ONNX 到板子上跑起来**的完整流程 + 所有已知坑。
+>
+> 📌 **实战经验版（推荐先看）**：`docs/量化部署经验总结.md` —— 汇总了最终方案选型、
+> 三层验证法、板端实测数据与完整踩坑清单；本文是工具链操作的详细版。
 
 ---
 
@@ -39,6 +42,13 @@ box 已经是解码好的 xyxy，关键点也已解码。剩下这段后处理�
 ```
 
 > 这个拆分已经实测验证过：CPU 后处理的输出与模型内置后处理**逐位一致（误差 0）**。
+
+> **2026-10-16 更新（当前部署的模型）**：现用 `praysky_coord_576x768.bin`（CoordAtt 版）。
+> 它由 `praysky_coord_noe2e_0331_576x768.onnx`（496 节点）切出，切点 `/Transpose_output_0`，
+> 输出同样是 `(1, 9072, 28)`。与上面的 c2psa 不同：coord 完整模型内置的是 **NMS**
+> （`NonMaxSuppression` / `NonZero`，地平线运行时不支持，同样必须切掉），
+> 且 coord 主干里没有落 CPU 的 Softmax（全 BPU、单 subgraph）。
+> 板端后处理现状见 §6.2.15（已加同类框 IoU NMS）。
 
 ---
 
@@ -204,7 +214,10 @@ python3 tools/collect_dataset.py --out ~/calib --interval 0.5
 
 **精度验证**（量化后一定要做）：用同一张图，比对 `.bin` 与 `.onnx` 的输出。若类别/框明显变差，就回去调 int16 节点配置。
 
-### 3.7 checker 实测结果（2026-09-22，本机已跑通）
+### 3.7 checker 实测结果（2026-09-22，旧 C2PSA cut 的记录）
+
+> 换成 CoordAtt 版后「2 个 Softmax 落 CPU」的问题已不存在：coord 版为**全 BPU、
+> 单 subgraph**（详见 `model/README.md`）。下面这段作为历史记录保留。
 
 环境：`openexplorer/ai_toolchain_ubuntu_20_x5_cpu:v1.2.8`（hbdk 3.49.15 / horizon_nn 1.1.0 / hb_mapper 1.24.3）
 
@@ -243,8 +256,10 @@ docker run --rm -v ~/horizon_work:/work -w /work \
    转换仍然成功（生成的是 hybrid 模型），但**这两处在推理时会走 CPU + 数据在 BPU/CPU 之间来回搬**，
    板子上实测帧率时如果明显偏低，优先怀疑这里。想进一步验证可以看 `.hb_check/` 里导出的子图可视化。
 
-2. **输出张量是 int16**（`Concat_5` / 最后的 `Transpose` 都是 int16）
-   → 与 `model_backend_bpu.cpp` 里按 `scale` 反量化的实现一致（S16 分支），无需改代码。
+2. ~~输出张量是 int16~~ **实测最终 `.bin` 输出是 F32**（工具链在输出前已插入反量化，
+   scale=1，形状是 4 维 `[1,9072,28,1]`）。`model_backend_bpu.cpp` 已适配 4D 输出的解析
+   （2026-10-16 修复，原先只认最后两维会解析成 n=1）；按 scale 反量化的分支保留，
+   用于兼容 S16 输出的模型。
 
 ---
 
@@ -279,10 +294,11 @@ colcon build
 ```yaml
 use_model: true
 infer_backend: BPU
-model_path_bpu: /root/dart_ws_on/src/yq_dart_aim/model/praysky_dart_576x768.bin
+model_path_bpu: /root/dart_ws_on/src/yq_dart_aim/model/praysky_coord_576x768.bin
 model_input_width: 768
 model_input_height: 576
 conf_threshold: 0.25      # 先 0.25，误检多就往上调
+model_nms_threshold: 0.7  # 同类框 IoU NMS，0.7 = 与模型内置 NMS 一致
 ```
 
 > ⚠️ `params.yaml` 是唯一权威参数来源。`dart_aim_node` 代码里的默认值只是兜底，
@@ -294,13 +310,16 @@ conf_threshold: 0.25      # 先 0.25，误检多就往上调
 ros2 launch yq_dart_aim start.launch.py
 ```
 
-BPU 后端加载时会打印（`[model_backend_bpu]`）：
+BPU 后端加载时会打印（`[model_backend_bpu]`），下面是 2026-10-16 在板上的实测输出：
 
 ```
-input type=IMG_NV12 valid=[1,3,576,768] aligned=[...] stride=[...] scale=...
-output type=S16 valid=[1,9072,28] aligned=[...] stride=[...] scale=...
+input  type=IMG_NV12 quanti=0 valid=[1,3,576,768] aligned=[1,3,576,768] stride=[0,0,0,0]  scale=1.000000
+output type=F32      quanti=0 valid=[1,9072,28,1] aligned=[1,9072,28,1] stride=[1016064,112,4,4] scale=1.000000
 BPU model loaded: 768x576 nv12
 ```
+
+注意：输出是 **4 维 `[1,9072,28,1]` 且为 F32**（trailing 1 维要忽略、无需反量化）；
+输入 NV12 的 stride 读出来是全 0（运行时按紧凑布局处理，backend 里 `y_stride<=0` 时回退到宽度）。
 
 **这段日志是设计好的自检输出**——`model_backend_bpu.cpp` 最早是在没有板子的机器上写的，
 API 名称全靠推断，所以打印张量信息便于核对。
@@ -325,12 +344,19 @@ API 名称全靠推断，所以打印张量信息便于核对。
 | 输入类型 | `IMG_NV12*`（yaml 配 nv12 时）或 `S8/F32`（featuremap） | 两种都已实现；对不上就查 hb_mapper 的 `input_type_rt` |
 | 输入形状 | `[1,3,576,768]` | 与 `model_input_*` 或 .bin 不一致 |
 | 输出形状 | `[1,9072,28]` | 切点或模型版本变了 |
-| 输出类型 + scale | 量化类型（如 `S16`）+ scale 非 0 | 代码按 `scale` 反量化；scale 为 0 要查 |
+| 输出类型 + scale | 实测是 **F32**（4 维 `[1,9072,28,1]`，scale=1，无需反量化） | 形状/类型对不上就查切点或模型版本 |
 | 推理调用 | 不出现 `hbDNNInfer failed` | 出现了就对 `g_outputs` 的分配方式 |
 
-> ⚠️ **当前状态**：2026-09-22 板子上实际运行的是 **ORT 后端**（`model_path` 指向
-> 切好的 `.onnx`，见 `screen.output`）；BPU 后端已完成接口对齐并编译通过，
-> **是否已在板上实际推理验证，请与维护者确认**。
+> ✅ **当前状态（2026-10-16）**：BPU 后端已上板实跑（`infer_backend: BPU`，
+> `model_path_bpu` 指向 `praysky_coord_576x768.bin`）。验证结论：
+>
+> - **全链路一致**：把校验集图片注入 `/image_raw` 走真实节点链路（cropCenter →
+>   letterbox → NV12 → BPU → 解码+NMS），类别/框/置信度与 PC 离线 ONNX 逐项对齐
+>   （例：s0_o6 float 0.780 ↔ 板端画面标注 78%）。
+> - **性能**：`bpuInfer` 全流程（含 BGR→NV12 转换）实测约 **22 ms/帧**（p50 21.8ms），
+>   对比 ORT CPU 约 0.5 s/帧提速 20 倍以上；`dart_aim_node` CPU 占用约 3.8 核 → 约 1.5 核。
+> - **量化精度**：清晰目标顶多掉 0.03~0.08 置信度、类别稳定；边界目标（0.3~0.6 级）
+>   存在置信度下滑甚至类别翻转，必要时提高 `conf_threshold` 或改用 mix(int16) 重新量化。
 
 ---
 
@@ -367,37 +393,65 @@ ros2 topic hz /image_raw
    foxglove 里那个 panel 卡住是正常的。
 3. **模型模式的预处理与 HSV 完全独立**：模型模式不跑 HSV 阈值/灰度那条链路；反过来
    `h_*`/`s_*`/`v_*`/形态学/`max_area` 这些参数在模型模式下**不生效**。
-4. **裁剪会丢画面左右各 160px**。1280×720 的裁剪图按 4:3 中心裁成 960×720 再缩到 768×576。
-   如果靶子可能出现在画面左右边缘，要改成 letterbox（代码里改 `preprocess`）。
-5. **相机启动时那条 `Failed to set PixelFormat` 是正常的**（CU013 不支持 BGR8 输出格式）。
-   代码会保留相机默认格式，再由 SDK 内部转成 BGR8 发布，话题 `encoding` 仍是 `bgr8`，
-   下游不受影响。想要日志干净就把 `camera_params.yaml` 的 `pixel_format` 改回 `RGB8`。
-6. **曝光时间直接决定帧率上限**：当前 `exposure_time: 50000`（= 50ms）→ 相机最多 **20fps**。
+4. **模型预处理 = letterbox**（2026-10-16 起；此前用的是 4:3 中心裁剪，会丢画面左右各 160px）。
+   1280×720 等比缩到 768×432、上下补灰(114)到 768×576，与训练和 `.bin` 量化标定分布一致。
+   实测 letterbox 在边界样本上置信度明显更高（例：outpost_c2 某帧 float 0.77 vs 裁剪 0.42；
+   量化后 0.39 vs 0.22，后者已掉出 0.25 阈值）。坐标反解用 `LetterboxMap`（减 pad 除 scale），
+   检测结果仍映射回裁剪图坐标系，偏移表不受影响。
+5. **相机启动时那几条 `PixelFormat` 报错是正常的，且无法消除**。这台相机
+   （Hikrobot MV-CU013-A0UC）**只支持 Bayer 输出，不支持 BGR8/RGB8 直出**：
+   `MV_CC_GetPixelFormat` 返回的支持列表里只有 5 个 Bayer/Mono 格式；
+   GenICam XML 里 BGR8 的可用条件绑定在 `ADCBitDepth != 0`，而该寄存器是只读的
+   （`MV_CC_WriteMemory` 返回 `MV_E_NO_PERMISSION`），所以**相机 ISP 做不了去马赛克+上色**，
+   这一步只能在主机上做。代码已用 OpenCV 双线性去马赛克替代了慢 5 倍的 SDK 转换。
+   若配置 `pixel_format: RGB8` 想让日志干净，注意 OpenCV 去马赛克只能产出 **BGR**，
+   此时话题 `encoding` 会被如实改成 `bgr8`（不改字节顺序），下游按 encoding 解释即可。
+6. **裁剪已下放到相机（ROI）**。`camera_params.yaml` 里的 `roi_height: 720` 让相机
+   只输出下游要用的那 720 行，不再是「相机吐全幅、主机再裁」。
+   ⚠️ **`roi_offset_y` 固定为 76，不要改回 -1（自动居中）**：相机节点读 Height 上限
+   是在复位 Offset 之前做的，上限值取决于相机上次断电前的状态，用 -1 会让 ROI 窗口
+   每次重启在 @76 / @152 / 回退全幅之间跳变（2026-10-16 实锤，历史日志里有完整证据）。
+   76 = 标定时代「原软裁剪」的等价窗口（sensor 行 76..796），实测逐像素一致，
+   **标定偏移表和模型输入都不用重做**；改这个窗口 = 必须重新场地标定偏移。
+   实测收益：相机节点 CPU 25%→19%（单核），去马赛克 4.47ms→3.06ms，帧率 113→134fps。
+   改 `crop_height` 时要同步改 `roi_height`，否则会多传或少传用不到的行。
+7. **曝光时间直接决定帧率上限**：当前 `exposure_time: 50000`（= 50ms）→ 相机最多 **20fps**。
    模型推理再叠加几十~几百毫秒，实际出图率会更低。如果瞄准环需要更高帧率，先从这里下手。
-7. **`use_model=true` 打不开模型时会明确报错并退回 HSV**（不会静默用错模式）：
+8. **调试图不要开、限多少 fps**。JPEG 编码 1280×720 实测约 20ms/帧，跟着相机满帧率发的话
+   单这一项就要占掉两个多核，图像回调会被拖垮。现在调试图已挪到独立线程并限速
+   （`debug_max_fps`，默认 10fps）；调试完可以直接 `publish_debug_image:=false` 关掉。
+9. **`use_model=true` 打不开模型时会明确报错并退回 HSV**（不会静默用错模式）：
    - `model_path` 为空 → `ERROR: use_model=true 但 model_path 为空…`
    - 加载失败 → `ERROR: 模型加载失败: <路径>…`
    日志里看到这类 ERROR 就说明当前跑的是 HSV。
-8. **`.bin` 不要提交进 git**（`.gitignore` 已忽略 `*.bin`），板子上单独放。
-9. **模型是 AGPL-3.0**，本仓库是公开仓库，别把 `.onnx`/`.bin` 提交进去。
+10. **`.bin` 不要提交进 git**（`.gitignore` 已忽略 `*.bin`），板子上单独放。
+11. **模型是 AGPL-3.0**，本仓库是公开仓库，别把 `.onnx`/`.bin` 提交进去。
 
 ### 6.2 与其它模块的联动
 
-10. **偏移量表要按现场重新标定**（`offset_0_*` / `offset_1_*` / `offset_2_*`）。
+12. **偏移量表要按现场重新标定**（`offset_0_*` / `offset_1_*` / `offset_2_*`）。
    注意代码已经修正过"偏移被叠加两次"的 bug，**现在的补偿量只有修复前的一半**，
    旧值一律不要用。标定方法：打一发 → 看弹着点偏多少 → 该目标该飞镖的 offset 加减对应像素。
-11. **`crop_width` / `crop_height` 与偏移表绑定**（HSV 路径的图像中心与裁剪图尺寸有关）。
+13. **`crop_width` / `crop_height` 与偏移表绑定**（HSV 路径的图像中心与裁剪图尺寸有关）。
    模型路径的坐标已经映射回同一个裁剪图坐标系，所以改裁剪尺寸时 **HSV 的偏移要重标，模型路径不用**。
-12. **串口数据校验**：下位机发来的 `enemy` 只能是 0/1/2、`cur` 只能是 0~3。
+14. **串口数据校验**：下位机发来的 `enemy` 只能是 0/1/2、`cur` 只能是 0~3。
     收到越界值（比如 9、-3）时，代码**丢弃这个包并保留上一次的有效值**，同时打 WARN 日志。
     这样单帧脏数据不会让瞄准跳到一个不存在目标上。
-13. **模型内置 TopK，不需要 NMS**。所以 `nms_threshold` 参数已被删除，
-    后处理里也没有 NMS 环节（候选框之间不会互相抑制，靠 `conf_threshold` 过滤）。
+15. **后处理含同类框 IoU NMS**（2026-10-16 起）：coord 完整模型内置的是 **NMS**
+    （`NonMaxSuppression`，iou_threshold=0.7，输入是**框**不是关键点），板端 cut 后
+    用**框**做**同类内** NMS，阈值参数 `model_nms_threshold`（默认 0.7），
+    NMS 前候选池上限 300（对齐 prompt 文档的 top-k）。
+    ⚠️ 别改回"用 4 关键点四边形做 IoU"：实况帧实测量化模型的关键点在邻近 anchor 之间
+    抖动很大（角点 451↔464、232↔244 这样跳），同一目标的候选框 IoU 稳定在 0.78~1.0，
+    但关键点四边形包围框 IoU 在 0.47~1.0 乱跳——会出现两个同类别框（实况调试图上
+    真出现过：两条 s0_o6 0.853、框 IoU=1.0 却因关键点 IoU=0.6 没被压掉）。
+    实测 cut+后处理的 top1 与模型内置 NMS 逐位一致。
+    （旧 c2psa 模型内置的是 TopK 而非 NMS，没有这个环节，已随模型更换更新。）
 
 ### 6.3 模型本身的已知限制（作者原话）
 
-14. **不识别"基地小装甲"**（RM2026 新增的目标，训练集未覆盖）。
-15. **量化版本下 Outpost 偶有异常**（w8a16 时），作者判断是数据集脏数据，不影响拟合。
+16. **不识别"基地小装甲"**（RM2026 新增的目标，训练集未覆盖）。
+17. **量化版本下 Outpost 偶有异常**（w8a16 时），作者判断是数据集脏数据，不影响拟合。
 16. 模型覆盖：所有参赛环境的目标（轨道哨兵、5 号小装甲步兵、3/4/5 号大装甲步兵等）。
 
 ---
@@ -411,7 +465,7 @@ ros2 topic hz /image_raw
 | 启动日志 `模型加载失败` | `.bin` 路径错 / 格式不匹配 / 后端选错 | 检查 `model_path_bpu` 与 `infer_backend` 是否都是 BPU |
 | 日志 `input size mismatch` | 模型输入尺寸与 `model_input_width/height` 不一致 | 改 yaml 里的 `model_input_*` 与模型对齐 |
 | `hbDNNInfer failed` | 输出缓冲分配方式与工具链版本不符 | 按第 4.4 节第 5 条核对 |
-| 识别框位置整体偏移 | 裁剪/缩放假设与模型训练时不一致 | 确认是"中心裁剪 4:3"而不是 letterbox；两者坐标映射不同 |
+| 识别框位置整体偏移 | 预处理与坐标反解不配对 | 模型模式现在 = letterbox + `LetterboxMap` 反解，改预处理必须同步改反解 |
 | 检测不到目标 | `conf_threshold` 过高 / 量化掉点 / 光照 | 先降到 0.1 看有没有框 → 有框说明是阈值问题；没框就回去查量化 |
 | 帧率太低 | CPU 后处理或 BPU 负载 | `ros2 topic hz` 量；BPU 单核 `core_num: 1` 可试 2 |
 | `/dart_debug/mask_compressed` 不刷新 | 模型模式不产生 mask | 正常现象，看 `/model_debug/image_compressed` |

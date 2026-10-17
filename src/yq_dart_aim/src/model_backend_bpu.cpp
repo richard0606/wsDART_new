@@ -352,39 +352,64 @@ bool bpuInfer(const cv::Mat& bgr_image, RawOutput& raw) {
     hbDNNReleaseTask(task);
 
     // ── 反量化成连续 (N, C) float ──
+    //
+    // 实测本 .bin 的运行时输出形状是 4 维 [1, 9072, 28, 1]，且已被编译成 F32
+    // （工具链在输出处插了反量化，scale=1）。所以不能只看「最后两维」，
+    // 这里通用化：剔除 size==1 的维，剩下两个有效维就是 (N, C)（顺序不限）。
     hbDNNTensor& out = outputs[0];
     hbSysFlushMem(&out.sysMem[0], HB_SYS_MEM_CACHE_INVALIDATE);
     const int ond = out.properties.validShape.numDimensions;
     if (ond < 2) return false;
 
-    const int last = out.properties.validShape.dimensionSize[ond - 1];
-    const int second_last = out.properties.validShape.dimensionSize[ond - 2];
-    int n = 0;
-    bool transposed = false;
-    if (last == g_channels) {
-        n = second_last;  // (..., N, C)
-    } else if (second_last == g_channels) {
-        n = last;         // (..., C, N)
-        transposed = true;
-    } else {
-        BPU_ERR_ONCE("unexpected output shape: last=%d second_last=%d (want C=%d)",
-                     last, second_last, g_channels);
+    int sig[4] = {-1, -1, -1, -1};
+    int nsig = 0;
+    for (int d = 0; d < ond && nsig < 4; ++d) {
+        if (out.properties.validShape.dimensionSize[d] != 1) sig[nsig++] = d;
+    }
+    int row_dim = -1;
+    int col_dim = -1;
+    if (nsig >= 2) {
+        if (out.properties.validShape.dimensionSize[sig[nsig - 1]] == g_channels) {
+            col_dim = sig[nsig - 1];  // (..., N, C)：通道在最后的有效维
+            row_dim = sig[nsig - 2];
+        } else if (out.properties.validShape.dimensionSize[sig[nsig - 2]] == g_channels) {
+            col_dim = sig[nsig - 2];  // (..., C, N)：通道在倒数第二有效维
+            row_dim = sig[nsig - 1];
+        }
+    }
+    if (row_dim < 0 || col_dim < 0) {
+        std::string shape;
+        for (int d = 0; d < ond; ++d) {
+            shape += std::to_string(out.properties.validShape.dimensionSize[d]);
+            if (d + 1 < ond) shape += ",";
+        }
+        BPU_ERR_ONCE("unexpected output shape: [%s] (want a dim == C=%d)", shape.c_str(),
+                     g_channels);
         return false;
     }
 
     const size_t es = elemSize(out.properties.tensorType);
-    const int stride_last = static_cast<int>(out.properties.stride[ond - 1] / es);
-    const int stride_row = static_cast<int>(out.properties.stride[ond - 2] / es);
+    // stride 单位是字节；个别张量 stride 为 0（未填），此时按紧凑布局回退推算
+    auto strideElems = [&](int dim) -> size_t {
+        const int s = out.properties.stride[dim];
+        if (s > 0) return static_cast<size_t>(s) / es;
+        size_t acc = 1;
+        for (int d = dim + 1; d < ond; ++d) {
+            acc *= static_cast<size_t>(out.properties.validShape.dimensionSize[d]);
+        }
+        return acc;
+    };
+    const size_t stride_row = strideElems(row_dim);
+    const size_t stride_col = strideElems(col_dim);
     const float scale = (out.properties.scale.scaleData != nullptr)
                             ? out.properties.scale.scaleData[0] : 1.0f;
     const void* base = out.sysMem[0].virAddr;
 
+    const int n = out.properties.validShape.dimensionSize[row_dim];
     g_out_buf.resize(static_cast<size_t>(n) * g_channels);
     for (int a = 0; a < n; ++a) {
         for (int k = 0; k < g_channels; ++k) {
-            const size_t idx = transposed
-                ? static_cast<size_t>(k) * stride_row + static_cast<size_t>(a) * stride_last
-                : static_cast<size_t>(a) * stride_row + static_cast<size_t>(k) * stride_last;
+            const size_t idx = static_cast<size_t>(a) * stride_row + static_cast<size_t>(k) * stride_col;
             g_out_buf[static_cast<size_t>(a) * g_channels + k] =
                 dequant(out.properties.tensorType, scale, base, idx);
         }

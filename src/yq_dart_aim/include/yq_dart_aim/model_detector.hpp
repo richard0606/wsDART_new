@@ -25,9 +25,18 @@ struct ModelParams {
     std::string model_path;          // CPU/ORT/DNN: 切好的 .onnx；BPU: 量化 .bin
     InferBackend backend = InferBackend::kCpu;  // 运行期推理后端
     float conf_threshold = 0.25f;    // 置信度阈值
+    float nms_threshold = 0.7f;      // 同类框 IoU 的 NMS 阈值（与模型内置 NMS 的 0.7 对齐）
     int input_width = 768;           // 模型输入宽（576x768 型号）
     int input_height = 576;          // 模型输入高
     int max_result_age_ms = 0;       // 结果有效期(ms)，0 = 不限制
+};
+
+// Letterbox 几何参数：把模型输入域坐标反解回 frame 坐标
+//     x_frame = (x_model - pad_x) / scale
+struct LetterboxMap {
+    float scale = 1.0f;  // frame -> 模型输入的等比缩放系数
+    float pad_x = 0.0f;  // 水平补边（模型输入域像素，灰色 pad=114）
+    float pad_y = 0.0f;  // 垂直补边
 };
 
 // ==================== 类别表 ====================
@@ -90,12 +99,13 @@ public:
 
     // ── 以下两个是纯函数，公开出来便于离线单测（不依赖后端与线程）──
 
-    // 预处理：按模型输入宽高比做中心裁剪（不填充）-> resize 到模型输入尺寸
-    // crop 返回裁剪区域在原图中的位置，供解码时把坐标映射回去
-    void preprocess(const cv::Mat& frame, cv::Mat& out, cv::Rect& crop) const;
+    // 预处理：letterbox（等比缩放 + 灰色 pad=114）到模型输入尺寸，与模型训练/
+    // 量化标定的分布一致；map 返回缩放与补边参数，供解码时把坐标反解回 frame
+    void preprocess(const cv::Mat& frame, cv::Mat& out, LetterboxMap& map) const;
 
-    // 解码：对 (N,28) 原始张量做 argmax/TopK-30/组装，坐标映射回 frame_size 坐标系
-    std::vector<TargetInfo> decode(const RawOutput& raw, const cv::Rect& crop,
+    // 解码：对 (N,28) 原始张量做 argmax/阈值/TopK-300/同类框 IoU NMS，
+    // 坐标按 map 反映射回 frame_size 坐标系
+    std::vector<TargetInfo> decode(const RawOutput& raw, const LetterboxMap& map,
                                    const cv::Size& frame_size) const;
 
 private:

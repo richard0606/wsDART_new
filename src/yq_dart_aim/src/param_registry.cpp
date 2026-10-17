@@ -73,6 +73,8 @@ const std::vector<ParamMeta> kParams = {
      "开=模型识别，关=传统HSV", DART},
     {"conf_threshold", ParamType::kDouble, 0.01, 1.0, "置信度阈值", "model",
      "调低检更多但可能误检", DART},
+    {"model_nms_threshold", ParamType::kDouble, 0.1, 1.0, "同类框NMS阈值(IoU)", "model",
+     "同类装甲板框重叠超过该值被抑制；0.7=与模型内置NMS一致", DART},
     {"model_input_width", ParamType::kInt, 64, 2048, "模型输入宽", "model",
      "必须与模型一致", DART},
     {"model_input_height", ParamType::kInt, 64, 2048, "模型输入高", "model",

@@ -48,6 +48,52 @@ source /opt/ros/humble/setup.bash
 colcon build
 ```
 
+## 图像处理放在哪：相机侧 vs 主机侧
+
+先说结论：**这台相机（MV-CU013-A0UC）的 ISP 做不了去马赛克/上色**，但裁剪可以下放，
+另外调试图像曾经是 CPU 上的最大浪费。三条实测结论：
+
+| 处理 | 在哪做 | 说明 |
+|------|--------|------|
+| 裁剪（ROI） | **相机** | `roi_height: 720`，相机只传下游要用的行 |
+| 去马赛克 Bayer→BGR | 主机 | 相机不支持 BGR8 直出，只能在主机做（已用 OpenCV 替代更慢的 SDK 转换） |
+| JPEG 调试图 | 主机独立线程 | 限速 `debug_max_fps`（默认 10fps），不在图像回调里做 |
+
+**为什么相机 ISP 不可用**（实测，不是猜测）：
+
+- `MV_CC_GetPixelFormat` 的支持列表里只有 5 个 Bayer/Mono 格式，**没有 BGR8/RGB8**。
+- GenICam XML 里 BGR8 的可用条件是 `Is_Just_Bayer8_Ava = (INQ && ADCBitDepth==0) ? 0 : 1`，
+  即只要 ADC 位深不是 0 就该解锁。
+- 但 `ADCBitDepth` 寄存器是**只读**的：`MV_CC_SetEnumValue` 返回 `MV_E_GC_ACCESS`，
+  直接写寄存器 `0x30720` 返回 `MV_E_NO_PERMISSION`。所以解锁不了。
+- 传感器确实是彩色的（实测 Bayer 2×2 单元极差 6.1，明显高于噪声 3.0），不是单色机型。
+
+**ROI 下放的实测收益**（`camera_params.yaml` 里 `roi_height: 720`）：
+
+| 指标 | 相机吐全幅 1280×1024 | 相机 ROI 1280×720 |
+|------|---------------------|-------------------|
+| 相机节点 CPU | 25.0% 单核 | **19.0% 单核** |
+| 单帧去马赛克 | 4.47 ms | **3.06 ms** |
+| USB 传输量 | 1.31 MB/帧 | **0.92 MB/帧** |
+
+**ROI 固定窗口**（`camera_params.yaml` 里 `roi_height: 720` 且 `roi_offset_y: 76`）：
+相机只输出下游实际要用的行。**`roi_offset_y` 不要改回 -1**——相机节点读 Height 上限在
+复位 Offset 之前，上限值取决于相机上次断电前的状态，用 -1 会让窗口每次重启在
+@76 / @152 / 回退全幅之间跳变；76 = 标定时代原软裁剪的等价窗口（sensor 行 76..796），
+实测与原来的「主机软裁剪」**逐像素一致**，所以**标定好的偏移表和模型输入都不用重做**。
+改 `crop_height` 时记得同步改 `roi_height`。
+
+> ⚠️ 调 `crop_height` 而忘了改 `roi_height`，相机会传下位用不到的行（白费 USB）或反过来裁少了。
+
+**改 Bayer 码前先跑验证**：OpenCV 与 GenICam 的 Bayer 命名规则**不一致**，
+名字相同不代表排列相同，按名字硬对应会让红蓝颠倒（HSV 阈值直接失效）。
+本项目实测出来的对应表见 `hik_camera_node.cpp` 的 `opencvConvFor()`，
+验证工具：
+
+```bash
+bash src/ros2_hik_camera/tools/probe_bayer_map.sh
+```
+
 ### 模型推理后端（运行期切换）
 
 模型识别有两条路径，由 `params.yaml` 的 `infer_backend` 在**运行期**切换，不用重新编译：
@@ -60,9 +106,10 @@ colcon build
 
 ```yaml
 use_model: true          # 一级开关：模型模式（false = 传统 HSV）
-infer_backend: CPU       # 二级开关：选 BPU 还是 CPU
+infer_backend: BPU       # 二级开关：选 BPU 还是 CPU
 model_path_cpu: /root/dart_ws_on/src/yq_dart_aim/model/praysky_dart_576x768_cut.onnx
-model_path_bpu: ''       # 量化模型放好后填 .bin 路径
+model_path_bpu: /root/dart_ws_on/src/yq_dart_aim/model/praysky_coord_576x768.bin
+model_nms_threshold: 0.7 # 同类框 IoU NMS（0.7 = 与模型内置 NMS 一致）
 ```
 
 运行时切换（会自动卸载旧后端、热加载新模型，失败明确报错并退回 HSV）：
@@ -94,6 +141,9 @@ yq_dart_aim: CPU(ORT) 后端 = 启用 (/usr/local/lib/libonnxruntime.so)
 
 > BPU 需要量化好的 `.bin`（生成流程见 `docs/BPU部署指南.md`）；CPU 需要切掉后处理的 `.onnx`（同文档第 2 步）。
 > CPU 路径在 RDK X5 上单帧约 0.5 秒，只能用来验证流程，不能实时运行。
+> **BPU 路径 2026-10-16 已上板实跑**：单帧约 22ms（含 BGR→NV12 转换），模型为 CoordAtt 版
+> `praysky_coord_576x768.bin`；模型模式预处理同步改为 letterbox（与训练/标定分布一致）。
+> 完整的量化部署经验（选型、验证方法、踩坑、实测数据）见 `docs/量化部署经验总结.md`。
 
 ## 生产部署（systemd 开机自启）
 
