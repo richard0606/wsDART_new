@@ -5,12 +5,50 @@
 #include <unistd.h>
 #include <poll.h>
 #include <dirent.h>
+#include <limits.h>
+#include <climits>
 #include <cerrno>
+#include <cstdlib>
 #include <cstring>
 #include <algorithm>
 #include <cstdio>
 
 namespace yq_dart_aim {
+
+namespace {
+// 两个路径是否指向同一个设备。宁可误判成"是"（少开一个口）也不要误判成"不是"
+// （把调参口当下位机口用，往里写二进制协议）。
+// 比较顺序：字面相同 -> realpath 相同 -> 软链接目标 -> base 名相同。
+bool sameDevicePath(const std::string& a, const std::string& b) {
+    if (a.empty() || b.empty()) return false;
+    if (a == b) return true;
+
+    char ra[PATH_MAX] = {0};
+    char rb[PATH_MAX] = {0};
+    const bool oka = realpath(a.c_str(), ra) != nullptr;
+    const bool okb = realpath(b.c_str(), rb) != nullptr;
+    if (oka && okb) return std::string(ra) == std::string(rb);
+
+    auto base = [](const std::string& p) {
+        const size_t slash = p.find_last_of('/');
+        return (slash == std::string::npos) ? p : p.substr(slash + 1);
+    };
+    if (base(a) == base(b)) return true;
+
+    // realpath 至少一边失败（设备没插上）：如果是软链接，比链接目标
+    auto linkTarget = [](const std::string& p, std::string* out) {
+        char buf[PATH_MAX] = {0};
+        const ssize_t n = readlink(p.c_str(), buf, sizeof(buf) - 1);
+        if (n <= 0) return false;
+        *out = std::string(buf, static_cast<size_t>(n));
+        return true;
+    };
+    std::string target;
+    if (!oka && linkTarget(a, &target) && base(target) == base(b)) return true;
+    if (!okb && linkTarget(b, &target) && base(target) == base(a)) return true;
+    return false;
+}
+}  // namespace
 
 static speed_t baudToSpeed(int baud) {
     switch (baud) {
@@ -81,6 +119,11 @@ void SerialManager::setEnabled(bool enabled) {
 
 bool SerialManager::isEnabled() const {
     return enabled_.load();
+}
+
+void SerialManager::setExcludedPort(const std::string& path) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    excluded_port_ = path;
 }
 
 void SerialManager::startMonitoring() {
@@ -264,6 +307,12 @@ bool SerialManager::openPort(const std::string& path) {
     auto it = serial_ports_.find(path);
     if (it != serial_ports_.end() && it->second.fd >= 0) return true;
 
+    // 调参口绝不能当下位机口用（详见 setExcludedPort 的说明）。
+    // 软链接/别名也要比，否则 /dev/serial/by-id/... 仍会绕过字面比较。
+    if (!excluded_port_.empty() && sameDevicePath(path, excluded_port_)) {
+        return false;
+    }
+
     int fd = open(path.c_str(), O_RDWR | O_NOCTTY | O_SYNC);
     if (fd < 0) return false;
 
@@ -323,28 +372,31 @@ void SerialManager::parseData(SerialPortState& port, const std::string& port_nam
     // 接收包格式: 0xAA + VisionSend_s(12字节) + checksum(1字节) + 0x55
     constexpr size_t packet_len = 1 + sizeof(VisionSendPacket) + 1 + 1;
     size_t ri = 0;
-    size_t buf_size = port.rx_buffer.size();
 
-    while (ri + packet_len <= buf_size) {
-        // 查找包头 0xAA
-        size_t header_idx = SIZE_MAX;
-        for (size_t i = ri; i < ri + packet_len && i < buf_size; ++i) {
-            if (port.rx_buffer[i] == SERIAL_HEADER) {
-                header_idx = i;
-                break;
+    while (true) {
+        const size_t buf_size = port.rx_buffer.size();
+        if (buf_size < packet_len) break;   // 攒不够一整包，等下次
+
+        // 在剩余数据里找包头 0xAA（要搜整个缓冲区，不只是首个 packet_len 字节：
+        // 垃圾数据可能很长，只看窗口会漏掉窗口之后的包头）
+        const auto header = std::find(port.rx_buffer.begin() + ri, port.rx_buffer.end(),
+                                      SERIAL_HEADER);
+        if (header == port.rx_buffer.end()) {
+            // 整个缓冲区都没有包头：前面这些字节不可能是包的一部分。
+            // 只保留最后 packet_len-1 个字节（它们可能是被切断的包头）。
+            // 必须丢弃，否则对端不按协议发数据时 rx_buffer 会无限增长（内存泄漏）。
+            if (port.rx_buffer.size() > packet_len - 1) {
+                port.rx_buffer.erase(port.rx_buffer.begin(),
+                                     port.rx_buffer.end() - (packet_len - 1));
             }
+            return;
         }
+        const size_t header_idx = static_cast<size_t>(header - port.rx_buffer.begin());
 
-        if (header_idx == SIZE_MAX) break;
+        // 跳过包头前的垃圾字节：直接推进 ri，最后统一 erase
+        if (header_idx > ri) ri = header_idx;
 
-        // 跳过包头前的无效字节
-        if (header_idx > ri) {
-            size_t compact_sz = buf_size - header_idx;
-            memmove(&port.rx_buffer[ri], &port.rx_buffer[header_idx], compact_sz);
-            buf_size = ri + compact_sz;
-        }
-
-        if (ri + packet_len > buf_size) break;
+        if (port.rx_buffer.size() - ri < packet_len) break;   // 包被切断，等下次
 
         // 校验
         uint8_t checksum = 0;

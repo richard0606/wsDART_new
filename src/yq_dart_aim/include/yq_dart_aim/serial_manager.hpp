@@ -59,6 +59,12 @@ public:
     void startMonitoring();
     void stopMonitoring();
 
+    // 排除掉不属于下位机的设备（自动重连扫描时要跳过）。
+    // 调参用的 USB-TTL 也是 /dev/ttyACM*，如果被当成下位机口打开，
+    // send() 就会把 16 字节的二进制视觉协议写进调参通道，
+    // 而 tune.py 在那边按行读 ASCII —— 两边都会花掉。
+    void setExcludedPort(const std::string& path);
+
     // 获取串口调试信息发布器的 hex 字符串
     std::string getLastRxHex() const;
 
@@ -87,6 +93,8 @@ private:
 
     std::string configured_port_;
     int baud_rate_ = 115200;
+    // 自动重连时要跳过的设备（调参口），见 setExcludedPort
+    std::string excluded_port_;
 
     // 日志回调
     LogCallback log_callback_;
