@@ -5,6 +5,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 
 
 def generate_launch_description():
@@ -18,6 +19,10 @@ def generate_launch_description():
                               default_value=params_file),
         DeclareLaunchArgument(name='camera_info_url',
                               default_value=camera_info_url),
+        # 注意：相机侧声明的是 bool 参数。LaunchConfiguration 默认产出字符串，
+        # 直接透传会让节点启动时抛 InvalidParameterTypeException
+        # （'false' of type 'STRING', expecting type 'BOOL'），必须用
+        # ParameterValue(..., value_type=bool) 显式转成布尔。
         DeclareLaunchArgument(name='use_sensor_data_qos',
                               default_value='false'),
 
@@ -28,7 +33,8 @@ def generate_launch_description():
             emulate_tty=True,
             parameters=[LaunchConfiguration('params_file'), {
                 'camera_info_url': LaunchConfiguration('camera_info_url'),
-                'use_sensor_data_qos': LaunchConfiguration('use_sensor_data_qos'),
+                'use_sensor_data_qos': ParameterValue(
+                    LaunchConfiguration('use_sensor_data_qos'), value_type=bool),
             }],
         )
     ])

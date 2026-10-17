@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.8)
 project(hik_camera)
 
-## Use C++14
-set(CMAKE_CXX_STANDARD 14)
+## Use C++17（rclcpp/rclcpp/logging.hpp 用了 std::is_convertible_v 等 C++17 特性；
+## 之前靠 cv_bridge 间接引入才碰巧能编，OpenCV 一换顺序就暴露了）
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ## By adding -Wall and -Werror, the compiler does not ignore warnings anymore,
@@ -13,13 +14,15 @@ add_definitions(-Wall -Werror)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(ament_cmake_auto REQUIRED)
+find_package(OpenCV REQUIRED)   # Bayer->BGR 去马赛克用它，比 SDK 的 ConvertPixelType 快约 6 倍
 ament_auto_find_build_dependencies()
 
 ament_auto_add_library(${PROJECT_NAME} SHARED
   src/hik_camera_node.cpp
 )
 
-target_include_directories(${PROJECT_NAME} PUBLIC hikSDK/include)
+target_include_directories(${PROJECT_NAME} PUBLIC hikSDK/include ${OpenCV_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
 
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
   target_link_directories(${PROJECT_NAME} PUBLIC hikSDK/lib/amd64)

@@ -2,7 +2,10 @@
   ros__parameters:
     camera_name: narrow_stereo
 
-    exposure_time: 50000
+    # 曝光时间(微秒)：50ms=相机上限20fps；10ms=相机上限约100fps
+    # 当前 BPU 模型上限 ~45fps（单帧22ms），所以 10ms 曝光下瓶颈在模型侧。
+    # 注意：10ms 比原来暗 2.3 档，环境光不足时要适当加 gain。
+    exposure_time: 10000
     gain: 8.0
     use_sensor_data_qos: true
 
@@ -10,7 +13,31 @@
     # 0 = 使用相机支持的最大分辨率（与相机型号无关，推荐先留 0）
     image_width: 0
     image_height: 0
-    # RGB8 / BGR8
+    # ── 把裁剪交给相机（ROI）──
+    # 下游 dart_aim_node 只用中心 1280x720。以前相机吐全幅，
+    # 主机再裁 —— 等于白传无用行、还在 CPU 上对全幅做去马赛克。
+    # 填上以后相机只输出要用的那 720 行：USB 传输 -30%、去马赛克 -30%（实测
+    # 4.47ms -> 3.06ms 单线程），帧率还从 113fps 涨到 134fps。
+    #
+    # ⚠️ roi_offset_y 必须显式给 76，不要用 -1（自动居中）：
+    #   相机节点读 Height 上限是在复位 Offset 之前做的，而上限值取决于
+    #   相机断电前的状态，导致 -1 时窗口每次重启在 @76/@152/回退全幅之间跳变。
+    #   76 是标定时代「原软裁剪」的等价窗口（sensor 行 76..796），
+    #   固定它才能保证偏移表和瞄准中心不漂。改这个值 = 重新场地标定偏移。
+    roi_width: 1280
+    roi_height: 720
+    roi_offset_x: -1
+    roi_offset_y: 76
+
     # BGR8：dart_aim_node 直接零拷贝共享，省掉每帧一次 RGB->BGR 转换拷贝（约 2.7MB/帧）
     # 输出话题的 encoding 会跟着变成 bgr8，foxglove 按 encoding 渲染，颜色正常
     pixel_format: BGR8
+    demosaic_backend: opencv
+    demosaic_threads: 1
+    # 关掉 image_transport 的 compressed 插件：每帧 JPEG 编码单帧约 20ms，
+    # 而本项目只有 foxglove 可视化可能用到，dart_aim_node 只订阅 /image_raw。
+    # 插件名必须带 image_transport/ 前缀（见 image_transport/default_plugins.xml，
+    # 声明的是 image_transport/raw_pub）。写 "raw" 或 "image_transport/raw_pub"
+    # 都会让节点启动即抛 image_transport::Exception 直接 abort。
+    image_raw.enable_pub_plugins:
+      - image_transport/raw
