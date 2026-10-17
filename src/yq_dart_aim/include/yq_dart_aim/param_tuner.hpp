@@ -4,6 +4,7 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <thread>
 #include <vector>
@@ -72,6 +73,25 @@ public:
     bool running() const { return running_.load(); }
     std::string port() const { return port_; }
 
+    // ── 线程模型 ──
+    // 串口/TCP 的读写在 ParamTuner 自己的 I/O 线程上做，但**命令绝不在那个线程上执行**。
+    // 原因：getter/setter 会去碰 rclcpp（get_parameter/set_parameter、创建定时器与订阅），
+    // 这些都不是线程安全的；rclcpp 只保证「在执行器线程内」调用才安全。
+    // 在 I/O 线程里直接调会和图像回调、参数回调并发踩同一份状态（UB）。
+    //
+    // 所以这里拆成两段：
+    //   I/O 线程：收字节 -> 切出整行 -> 塞进 pending_cmds_ 队列
+    //   执行器线程：定时取走命令执行 -> 把应答塞进 replies_ 队列
+    //   I/O 线程：把 replies_ 队列写回串口/TCP
+    //
+    // 节点侧用下面两个接口驱动这个回路（见 dart_aim_node.cpp 的 drainTunerQueue）。
+
+    // 从 I/O 线程取一条待执行命令（队列空返回 false）。只能由执行器线程调用。
+    bool popPendingCmd(std::string* line);
+
+    // 执行器线程处理完命令后把应答交回 I/O 线程去发送
+    void pushReply(std::string reply);
+
     // 供测试：直接喂一行命令，返回应答（不经过串口）
     std::string handleLine(const std::string& line);
 
@@ -79,9 +99,10 @@ private:
     void loop();
     bool openPort();
     void closePort();
-    // 处理已收到的字节流（串口和 TCP 共用）
+    // 处理已收到的字节流：只负责切行并入队，不执行命令（见上面的线程模型说明）
     void feed(const char* data, size_t n);
-    void reply(const std::string& payload);
+    // 把待发送的应答写回串口/TCP（由 I/O 线程调用）
+    void flushReplies();
     std::string cmdHelp() const;
     std::string cmdList() const;
     std::string cmdGet(const std::string& name) const;
@@ -97,6 +118,12 @@ private:
     int fd_ = -1;
     int tcp_listen_ = -1;   // TCP 监听 fd
     std::string rx_buf_;    // 行缓冲（跨多次读）
+
+    // I/O 线程 <-> 执行器线程之间传递命令与应答
+    std::vector<std::string> pending_cmds_;
+    std::vector<std::string> replies_;
+    std::mutex queue_mutex_;
+
     std::atomic<bool> running_{false};
     std::atomic<bool> quit_{false};
     std::thread thread_;

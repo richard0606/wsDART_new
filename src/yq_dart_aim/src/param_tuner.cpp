@@ -263,29 +263,50 @@ void ParamTuner::feed(const char* data, size_t n) {
         rx_buf_.erase(0, pos + 1);
         if (!line.empty() && line.back() == '\r') line.pop_back();
         if (line.empty()) continue;
-        const std::string r = handleLine(line);
-        if (!r.empty()) reply(r + "\n");
+        // 只入队，不在这里执行 —— 见 param_tuner.hpp 的线程模型说明
+        std::lock_guard<std::mutex> lock(queue_mutex_);
+        pending_cmds_.push_back(line);
     }
     if (rx_buf_.size() > 4096) rx_buf_.clear();  // 防止半截命令堆积
 }
 
-void ParamTuner::reply(const std::string& payload) {
-    if (tcp_port_ > 0) {
-        if (fd_ < 0) return;
-        ssize_t written = 0;
-        while (written < static_cast<ssize_t>(payload.size())) {
-            const ssize_t w = ::write(fd_, payload.data() + written, payload.size() - written);
-            if (w <= 0) break;
-            written += w;
-        }
-        return;
+bool ParamTuner::popPendingCmd(std::string* line) {
+    std::lock_guard<std::mutex> lock(queue_mutex_);
+    if (pending_cmds_.empty()) return false;
+    *line = pending_cmds_.front();
+    pending_cmds_.erase(pending_cmds_.begin());
+    return true;
+}
+
+void ParamTuner::pushReply(std::string reply) {
+    if (reply.empty()) return;
+    std::lock_guard<std::mutex> lock(queue_mutex_);
+    replies_.push_back(std::move(reply));
+}
+
+// 把待发送的应答写回串口/TCP。必须在 I/O 线程调用（它直接操作 fd_）。
+void ParamTuner::flushReplies() {
+    std::vector<std::string> out;
+    {
+        std::lock_guard<std::mutex> lock(queue_mutex_);
+        if (replies_.empty()) return;
+        out.swap(replies_);
     }
     if (fd_ < 0) return;
-    ssize_t written = 0;
-    while (written < static_cast<ssize_t>(payload.size())) {
-        const ssize_t w = ::write(fd_, payload.data() + written, payload.size() - written);
-        if (w <= 0) break;
-        written += w;
+    for (const auto& payload : out) {
+        std::string buf = payload;
+        buf.push_back('\n');
+        size_t written = 0;
+        while (written < buf.size()) {
+            const ssize_t w = ::write(fd_, buf.data() + written, buf.size() - written);
+            if (w <= 0) {
+                // 非阻塞 socket/串口：EAGAIN 说明对端没跟上，这帧应答只能丢，
+                // 总不能为了发一条状态把整个 I/O 循环卡死
+                if (errno == EAGAIN || errno == EWOULDBLOCK) break;
+                break;
+            }
+            written += static_cast<size_t>(w);
+        }
     }
 }
 
@@ -328,6 +349,8 @@ void ParamTuner::loop() {
                 } else {
                     std::this_thread::sleep_for(std::chrono::milliseconds(5));
                 }
+                // 命令由执行器线程处理完才会出现在这里
+                flushReplies();
             }
             if (!has_client) std::this_thread::sleep_for(std::chrono::milliseconds(20));
             continue;
@@ -340,6 +363,7 @@ void ParamTuner::loop() {
         } else {
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
+        flushReplies();
     }
 }
 

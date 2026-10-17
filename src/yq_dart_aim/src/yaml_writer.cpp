@@ -57,11 +57,25 @@ std::string formatValue(const YamlValue& v) {
             return need_quote ? "\"" + s + "\"" : s;
         }
         case YamlValue::Kind::kDouble:
-        default:
-            // 用 %.9g 保留原样精度；整数值的 double 写成 35（而不是 35.000000），
-            // 需要 .0 的场合（如 max_area: 130.0）由调用方用 kDouble + 显式小数保证
+        default: {
+            // 必须保证结果里带小数点，否则 YAML 会把它解析成整数。
+            //
+            // 实测（rclpy 复现）：max_area 本来声明成 double 参数，
+            // 若写回成 "max_area: 130"，下次启动 declare_parameter 会直接抛
+            // InvalidParameterTypeException：
+            //     Trying to set parameter 'max_area' to '130' of type 'INTEGER',
+            //     expecting type 'DOUBLE'
+            // 也就是说调参界面里点一次「保存」，节点下次就起不来了 ——
+            // 所有整数值的 double 参数（max_area/p_err/offset_* 等）都会中招。
+            //
+            // 所以 %.9g 之后如果结果里没有 '.'/'e'/'n'(nan)/'i'(inf)，补一个 ".0"。
             snprintf(buf, sizeof(buf), "%.9g", v.num);
-            return buf;
+            const std::string s = buf;
+            if (s.find_first_of(".eEni") == std::string::npos) {
+                return s + ".0";
+            }
+            return s;
+        }
     }
 }
 
@@ -128,8 +142,7 @@ std::vector<std::string> listYamlKeys(const std::string& yaml_path,
 
 // 把 values 里的 key 替换成新值；返回命中的下标，未命中的留 npos
 size_t replaceKeyIn(std::vector<std::string>& lines, const std::string& section_prefix,
-                    const std::string& section, const std::string& key,
-                    const std::string& formatted) {
+                    const std::string& key, const std::string& formatted) {
     bool in_section = false;
     for (size_t li = 0; li < lines.size(); ++li) {
         const std::string& raw = lines[li];
@@ -175,7 +188,7 @@ bool updateYamlFile(const std::string& yaml_path, const std::string& section,
     std::vector<std::string> missing;
     for (const auto& kv : values) {
         const std::string formatted = formatValue(kv.second);
-        if (replaceKeyIn(lines, section_prefix, section, kv.first, formatted) ==
+        if (replaceKeyIn(lines, section_prefix, kv.first, formatted) ==
             std::string::npos) {
             missing.push_back(kv.first + ": " + formatted);
         }
