@@ -81,6 +81,11 @@ public:
       this->get_parameter("usart_port").as_string(),
       this->get_parameter("bound_rate").as_int()
     );
+    // 调参口也要从下位机的自动重连扫描里排除：
+    // 否则 MCU 没插上时，scanAvailableACMPorts() 会把 USB-TTL(/dev/ttyACM1)
+    // 当成下位机口打开，然后 send() 往里写二进制视觉协议 ——
+    // 调参通道按行读 ASCII，会被二进制包打乱（node 里已有防呆，这里补上第二道）。
+    serial_manager_.setExcludedPort(this->get_parameter("tune_port").as_string());
     serial_manager_.setLogCallback([this](yq_dart_aim::LogLevel level, const std::string& message) {
       switch (level) {
         case yq_dart_aim::LogLevel::DEBUG:
@@ -165,8 +170,23 @@ public:
     if (started) {
       RCLCPP_INFO(this->get_logger(), "串口调参服务已启动: %s @ %d baud（PC 端用 tools/tune.py）",
                   port.c_str(), baud);
+      // 命令必须在执行器线程里跑：tunerGet/tunerSet 会碰 rclcpp 的参数接口，
+      // 而串口 I/O 在 ParamTuner 自己的线程上。若在那边直接执行，
+      // 就会和图像回调、参数回调并发读写同一份状态（未定义行为）。
+      tuner_timer_ = this->create_wall_timer(std::chrono::milliseconds(10),
+                                             [this]() { drainTunerQueue(); });
     } else {
       RCLCPP_WARN(this->get_logger(), "串口调参启动失败: %s", port.c_str());
+    }
+  }
+
+  // 从 I/O 线程取出待执行的调参命令，在执行器线程里处理，再把应答交回去
+  void drainTunerQueue() {
+    if (!tuner_timer_) return;
+    std::string line;
+    // 每轮最多处理若干条，避免连续灌命令时把这一轮定时器占满、饿死图像回调
+    for (int i = 0; i < 8 && tuner_.popPendingCmd(&line); ++i) {
+      tuner_.pushReply(tuner_.handleLine(line));
     }
   }
 
@@ -176,7 +196,7 @@ public:
     if (meta == nullptr) return false;
 
     if (meta->owner == yq_dart_aim::ParamOwner::kHikCamera) {
-      return remoteGet("hik_camera", name, meta->type, out);
+      return remoteGet(name, meta->type, out);
     }
     if (!this->has_parameter(name)) return false;
     const rclcpp::Parameter p = this->get_parameter(name);
@@ -209,7 +229,7 @@ public:
       return false;
     }
     if (meta->owner == yq_dart_aim::ParamOwner::kHikCamera) {
-      return remoteSet("hik_camera", name, v, meta->type, err);
+      return remoteSet(name, v, meta->type, err);
     }
     if (!this->has_parameter(name)) {
       *err = "参数未声明";
@@ -239,7 +259,9 @@ public:
   }
 
   // ---- 跨节点：hik_camera 参数 ----
-  bool remoteGet(const std::string& node, const std::string& name, yq_dart_aim::ParamType type,
+  // 相机节点名固定为 hik_camera（下面的 client 创建时就绑定了），
+  // 所以不再传 node 参数进来 —— 留着反而会让人以为能传别的节点。
+  bool remoteGet(const std::string& name, yq_dart_aim::ParamType type,
                  yq_dart_aim::ParamValue* out) {
     if (!cam_get_client_ || !cam_get_client_->wait_for_service(300ms)) return false;
     auto req = std::make_shared<rcl_interfaces::srv::GetParameters::Request>();
@@ -273,9 +295,8 @@ public:
     }
   }
 
-  bool remoteSet(const std::string& node, const std::string& name,
-                 const yq_dart_aim::ParamValue& v, yq_dart_aim::ParamType type,
-                 std::string* err) {
+  bool remoteSet(const std::string& name, const yq_dart_aim::ParamValue& v,
+                 yq_dart_aim::ParamType type, std::string* err) {
     if (!cam_set_client_ || !cam_set_client_->wait_for_service(300ms)) {
       *err = "相机节点(/hik_camera)不可达";
       return false;
@@ -508,6 +529,9 @@ private:
     if (!this->has_parameter("publish_debug_image")) this->declare_parameter("publish_debug_image", yq_dart_aim::defaults::PUBLISH_DEBUG_IMAGE);
     if (!this->has_parameter("publish_compressed_mask")) this->declare_parameter("publish_compressed_mask", yq_dart_aim::defaults::PUBLISH_COMPRESSED_MASK);
     if (!this->has_parameter("enable_record")) this->declare_parameter("enable_record", yq_dart_aim::defaults::ENABLE_RECORD);
+    // 调试图限速。JPEG 编码 1280x720 实测约 20ms/帧，跟着相机满帧率发的话
+    // 单这一项就要占掉两个多核，图像回调会被拖垮、连带动慢瞄准。
+    if (!this->has_parameter("debug_max_fps")) this->declare_parameter("debug_max_fps", 10);
 
     // 串口调参（PC 端用 tools/tune.py；端口为空则关闭）
     if (!this->has_parameter("tune_port")) this->declare_parameter("tune_port", yq_dart_aim::defaults::TUNE_PORT);
@@ -534,6 +558,7 @@ private:
     if (!this->has_parameter("model_path_cpu")) this->declare_parameter("model_path_cpu", std::string(""));
     if (!this->has_parameter("model_path_bpu")) this->declare_parameter("model_path_bpu", std::string(""));
     if (!this->has_parameter("conf_threshold")) this->declare_parameter("conf_threshold", 0.25);
+    if (!this->has_parameter("model_nms_threshold")) this->declare_parameter("model_nms_threshold", 0.7);
     if (!this->has_parameter("model_input_width")) this->declare_parameter("model_input_width", 768);
     if (!this->has_parameter("model_input_height")) this->declare_parameter("model_input_height", 576);
     if (!this->has_parameter("model_default_target")) this->declare_parameter("model_default_target", yq_dart_aim::defaults::MODEL_DEFAULT_TARGET);
@@ -580,6 +605,7 @@ private:
         break;
     }
     p.conf_threshold = static_cast<float>(this->get_parameter("conf_threshold").as_double());
+    p.nms_threshold = static_cast<float>(this->get_parameter("model_nms_threshold").as_double());
     p.input_width = static_cast<int>(this->get_parameter("model_input_width").as_int());
     p.input_height = static_cast<int>(this->get_parameter("model_input_height").as_int());
     p.max_result_age_ms = static_cast<int>(this->get_parameter("model_result_max_age_ms").as_int());
@@ -644,6 +670,8 @@ private:
     // 调试选项
     publish_debug_image_ = this->get_parameter("publish_debug_image").as_bool();
     publish_compressed_mask_ = this->get_parameter("publish_compressed_mask").as_bool();
+    debug_max_fps_ = std::max(1, static_cast<int>(this->get_parameter("debug_max_fps").as_int()));
+    last_debug_time_ = 0.0;
     use_serial_ = this->get_parameter("use_serial").as_bool();
     model_default_target_ = clampTargetId(this->get_parameter("model_default_target").as_int());
   }
@@ -817,6 +845,9 @@ private:
         calc_params_.offset_y = p.as_double();
       } else if (p.get_name() == "publish_debug_image") {
         publish_debug_image_ = p.as_bool();
+      } else if (p.get_name() == "debug_max_fps") {
+        debug_max_fps_ = std::max(1, static_cast<int>(p.as_int()));
+        RCLCPP_INFO(this->get_logger(), "调试图限速: %d fps", debug_max_fps_);
       } else if (p.get_name() == "publish_compressed_mask") {
         publish_compressed_mask_ = p.as_bool();
       } else if (p.get_name() == "enable_record") {
@@ -854,8 +885,8 @@ private:
           continue;
         }
         scheduleModelReload("infer_backend");
-      } else if (p.get_name() == "conf_threshold") {
-        scheduleModelReload("conf_threshold");
+      } else if (p.get_name() == "conf_threshold" || p.get_name() == "model_nms_threshold") {
+        scheduleModelReload(p.get_name().c_str());
       } else if (p.get_name() == "model_path" ||
                  p.get_name() == "model_path_cpu" || p.get_name() == "model_path_bpu" ||
                  p.get_name() == "model_input_width" || p.get_name() == "model_input_height") {
@@ -910,18 +941,28 @@ private:
     RCLCPP_INFO(this->get_logger(), "录制话题已关闭 (/debug_record/*)");
   }
 
-  // ==================== 图像订阅 ====================
-  void createImageSubscription(const std::string &topic) {
-    image_sub_.reset();
-    image_sub_ = this->create_subscription<sensor_msgs::msg::Image>(
-      topic, 10, std::bind(&DartAimNode::imageCallback, this, _1)
-    );
-  }
+// ==================== 图像订阅 ====================
+    void createImageSubscription(const std::string &topic) {
+        image_sub_.reset();
+        // QoS 必须和发布端匹配，否则一帧都收不到（而且是静默的，没有任何报错）。
+        // hik_camera 侧 use_sensor_data_qos=true 时发布端是 BEST_EFFORT；
+        // 而 create_subscription(topic, 10, ...) 默认是 RELIABLE，
+        // RELIABLE 订阅端与 BEST_EFFORT 发布端不兼容 -> 图像话题永远不通。
+        // 这里统一用 SensorDataQoS（KEEP_LAST + BEST_EFFORT），与 image_transport 的
+        // 默认图像管线一致，且能同时兼容发布端的两种设置。
+        // 深度取 1：图像来得比处理快时宁可丢旧的也不要堆积，积压只会让瞄准变迟钝。
+        rclcpp::QoS qos(rclcpp::SensorDataQoS().keep_last(1));
+        image_sub_ = this->create_subscription<sensor_msgs::msg::Image>(
+            topic, qos, std::bind(&DartAimNode::imageCallback, this, _1)
+        );
+    }
 
   // ==================== 图像回调（核心处理流程） ====================
   void imageCallback(const sensor_msgs::msg::Image::SharedPtr msg) {
     // 保持 cv_bridge 共享指针存活，确保 ROI 视图数据有效
     auto cv_image = cv_bridge::toCvShare(msg, "bgr8");
+
+    const rclcpp::Time now = msg->header.stamp;
 
     // 裁剪中心区域（ROI 视图，零拷贝）
     cv::Mat cropped = image_processor_.cropCenter(
@@ -940,16 +981,30 @@ private:
     std::vector<yq_dart_aim::TargetInfo> targets;
     cv::Mat mask;  // 仅 HSV 模式产生；模型模式为空
 
+    // 调试图限速**每帧只能判一次**：debugDue() 会推进 last_debug_time_，
+    // 在同一帧里判两次的话第二次必然是 false，会导致调试图永远发不出去。
+    const bool debug_this_frame = publish_debug_image_ && debugDue(now);
+
     if (use_model_ && model_detector_.isReady()) {
       // 模型模式：异步提交裁剪图，获取最新结果
       model_detector_.submit(cropped);
       targets = model_detector_.getResults();
 
       // 模型检测可视化（提交给调试线程）
-      if (publish_debug_image_) {
+      //
+      // 注意：这里不能直接调 publishModelDebugImage。JPEG 编码 1280x720 实测
+      // 约 20ms/帧，放在图像回调里同步做，等于每帧白烧 20ms CPU：
+      // 相机 113fps 时需要 2.2 秒算力/秒（占 2.2 个核），物理上根本跑不满，
+      // 回调被拖住还会连带拖慢瞄准。所以和普通调试图一样丢给调试线程去做，
+      // 并且调试线程再限一次速率（见 debugPublishLoop）。
+      if (debug_this_frame) {
         cv::Mat model_vis = cropped.clone();
         drawModelDetections(model_vis, targets);
-        publishModelDebugImage(model_vis, msg->header);
+        {
+          std::lock_guard<std::mutex> lock(debug_mutex_);
+          debug_model_img_ = std::move(model_vis);
+          debug_model_header_ = msg->header;
+        }
       }
     } else {
       // HSV 模式：裁剪图 -> 二值化 -> 形态学，灰度图用于亚像素加权质心
@@ -1062,7 +1117,9 @@ private:
     }
 
     // 提交调试图像到调试线程（非阻塞）
-    if (publish_debug_image_) {
+    // 限速：只是给人看的可视化，不需要跟满相机帧率。相机能到 134fps，
+    // 每帧都 clone + JPEG 编码纯属浪费（clone 2.7MB + 编码约 20ms）。
+    if (debug_this_frame) {
       cv::Mat debug_vis = cropped.clone();
       // 画调试图标注（十字瞄准线 + 目标点）
       if (target.x >= 0) {
@@ -1075,6 +1132,15 @@ private:
       debug_header_ = msg->header;
       new_debug_frame_.store(true);
     }
+  }
+
+  // 调试图限速：最多 debug_max_fps_ 帧/秒
+  bool debugDue(const rclcpp::Time& now) {
+    const double period = 1.0 / static_cast<double>(std::max(1, debug_max_fps_));
+    const double t = now.seconds();
+    if (last_debug_time_ > 0.0 && (t - last_debug_time_) < period) return false;
+    last_debug_time_ = t;
+    return true;
   }
 
   // ==================== 调试图像发布 ====================
@@ -1145,17 +1211,23 @@ private:
       }
       if (stop_debug_.load()) break;
 
-      cv::Mat img, mask;
-      std_msgs::msg::Header header;
+      cv::Mat img, mask, model_img;
+      std_msgs::msg::Header header, model_header;
       {
         std::lock_guard<std::mutex> lock(debug_mutex_);
         img = std::move(debug_img_);
         mask = std::move(debug_mask_);
         header = debug_header_;
+        model_img = std::move(debug_model_img_);
+        model_header = debug_model_header_;
         new_debug_frame_.store(false);
       }
       if (!img.empty()) {
         publishDebugImages(img, mask, header);
+      }
+      // 模型调试图的 JPEG 编码也放在这里做，不占用图像回调的时间
+      if (!model_img.empty()) {
+        publishModelDebugImage(model_img, model_header);
       }
     }
   }
@@ -1177,6 +1249,12 @@ private:
   cv::Mat debug_img_;
   cv::Mat debug_mask_;
   std_msgs::msg::Header debug_header_;
+  // 模型调试图（模型模式用，与 debug_img_ 走同一个限速与编码线程）
+  cv::Mat debug_model_img_;
+  std_msgs::msg::Header debug_model_header_;
+  // 调试图限速：相机能到 134fps，但调试图只是给人看的
+  int debug_max_fps_ = 10;
+  double last_debug_time_ = 0.0;
 
   // ROS 接口
   rclcpp::Publisher<geometry_msgs::msg::Point>::SharedPtr debug_pub_;
@@ -1220,6 +1298,7 @@ private:
 
   // 串口调参
   yq_dart_aim::ParamTuner tuner_;
+  rclcpp::TimerBase::SharedPtr tuner_timer_;
   rclcpp::Client<rcl_interfaces::srv::GetParameters>::SharedPtr cam_get_client_;
   rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedPtr cam_set_client_;
 
