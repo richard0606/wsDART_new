@@ -14,6 +14,8 @@
 // 放在前面会和 rclcpp 的头互相干扰（报 "expected unqualified-id before 'namespace'"）
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <sensor_msgs/msg/compressed_image.hpp>
 
     namespace hik_camera {
         // 像素格式值翻译成人能读的名字。
@@ -149,10 +151,47 @@
                             use_opencv_demosaic_ ? "opencv" : "sdk", cv::getNumThreads());
             }
             camera_pub_ = image_transport::create_camera_publisher(this, "image_raw", qos);
+            // 同时发布 JPEG：1280x720 raw 每帧 2.76MB，经 Fast DDS 实测
+            // 只有 2~6fps 能送达订阅端；JPEG 约 100KB，可以跟满相机帧率。
+            compressed_pub_ = this->create_publisher<sensor_msgs::msg::CompressedImage>(
+                "image_raw/jpeg", rclcpp::QoS(rclcpp::SensorDataQoS().keep_last(1)));
 
             // 显式设置分辨率与像素格式（必须在 StartGrabbing 之前）
             configureImageFormat();
             declareParameters();
+
+            // 限制相机出图帧率：1280x720 BGR 每帧 2.76MB，默认 67fps 就是 185MB/s 的
+            // DDS 流量，而检测链路只处理得动 ~30fps，多余帧只会增加延迟和带宽争抢。
+            {
+                if (MV_OK != MV_CC_SetBoolValue(camera_handle_, "AcquisitionFrameRateEnable", true)) {
+                    RCLCPP_WARN(this->get_logger(), "Failed to enable frame rate control (相机不支持则退回节点侧降频)");
+                }
+                if (MV_OK != MV_CC_SetFloatValue(camera_handle_, "AcquisitionFrameRate", 30.0)) {
+                    RCLCPP_WARN(this->get_logger(), "Failed to set AcquisitionFrameRate to 30");
+                } else {
+                    RCLCPP_INFO(this->get_logger(), "相机出图帧率限制: 30 fps");
+                }
+            }
+
+            // 打印相机侧的真实采集参数，便于诊断帧率异常（自动曝光/限速/带宽）
+            {
+                MVCC_FLOATVALUE fv{};
+                if (MV_OK == MV_CC_GetFloatValue(camera_handle_, "ExposureTime", &fv)) {
+                    RCLCPP_INFO(this->get_logger(), "相机实际曝光: %.1f us (range %.1f~%.1f)",
+                                fv.fCurValue, fv.fMin, fv.fMax);
+                }
+                if (MV_OK == MV_CC_GetFloatValue(camera_handle_, "AcquisitionFrameRate", &fv)) {
+                    RCLCPP_INFO(this->get_logger(), "相机帧率设置: %.2f fps (range %.2f~%.2f)",
+                                fv.fCurValue, fv.fMin, fv.fMax);
+                }
+                if (MV_OK == MV_CC_GetFloatValue(camera_handle_, "ResultingFrameRate", &fv)) {
+                    RCLCPP_INFO(this->get_logger(), "相机实际出图: %.2f fps", fv.fCurValue);
+                }
+                MVCC_INTVALUE_EX iv{};
+                if (MV_OK == MV_CC_GetIntValueEx(camera_handle_, "AcquisitionFrameRateEnable", &iv)) {
+                    RCLCPP_INFO(this->get_logger(), "帧率限制开关: %lld", (long long)iv.nCurValue);
+                }
+            }
 
             if (MV_OK != MV_CC_StartGrabbing(camera_handle_)) {
                 RCLCPP_FATAL(this->get_logger(), "MV_CC_StartGrabbing failed");
@@ -190,6 +229,18 @@
                 while (rclcpp::ok()) {
                     nRet = MV_CC_GetImageBuffer(camera_handle_, &out_frame, 1000);
                     if (MV_OK == nRet) {
+                        // 发布降频：相机能跑 67fps，但 1280x720 BGR 每帧 2.76MB，
+                        // 下游只处理得动 ~30fps，全发只会让 DDS 背压、增加延迟。
+                        // 未到发布时刻直接释放缓冲，连 Bayer->BGR 转换都省掉。
+                        static auto last_pub_t = std::chrono::steady_clock::time_point{};
+                        const auto now_pub = std::chrono::steady_clock::now();
+                        if (last_pub_t.time_since_epoch().count() != 0 &&
+                            now_pub - last_pub_t < std::chrono::milliseconds(33)) {
+                            MV_CC_FreeImageBuffer(camera_handle_, &out_frame);
+                            continue;
+                        }
+                        last_pub_t = now_pub;
+
                         // set image dimensions and allocate buffer BEFORE conversion
                         image_msg_.height = out_frame.stFrameInfo.nHeight;
                         image_msg_.width = out_frame.stFrameInfo.nWidth;
@@ -306,6 +357,36 @@
 
                         camera_info_msg_.header = image_msg_.header;
                         camera_pub_.publish(image_msg_, camera_info_msg_);
+
+                        // 发布 JPEG（dart_aim 订阅这个；Foxglove 也可以直接看）
+                        if (compressed_pub_) {
+                            cv::Mat bgr(image_msg_.height, image_msg_.width, CV_8UC3,
+                                        image_msg_.data.data(), image_msg_.step);
+                            std::vector<unsigned char> jbuf;
+                            const std::vector<int> jparams = {cv::IMWRITE_JPEG_QUALITY, 90};
+                            if (cv::imencode(".jpg", bgr, jbuf, jparams)) {
+                                sensor_msgs::msg::CompressedImage cmsg;
+                                cmsg.header = image_msg_.header;
+                                cmsg.format = "jpeg";
+                                cmsg.data = std::move(jbuf);
+                                compressed_pub_->publish(cmsg);
+                            }
+                        }
+
+                        // 统计实际发布循环频率：与相机内部的 ResultingFrameRate 对照，
+                        // 若明显更低说明 publish（DDS 背压）或取帧阻塞。
+                        {
+                            static auto stat_t = std::chrono::steady_clock::now();
+                            static int stat_n = 0;
+                            ++stat_n;
+                            const auto now_t = std::chrono::steady_clock::now();
+                            if (now_t - stat_t >= std::chrono::seconds(10)) {
+                                RCLCPP_INFO(this->get_logger(), "相机发布循环: %.1f fps",
+                                            stat_n / 10.0);
+                                stat_n = 0;
+                                stat_t = now_t;
+                            }
+                        }
 
                         MV_CC_FreeImageBuffer(camera_handle_, &out_frame);
                         fail_conut_ = 0;
@@ -522,6 +603,12 @@
                     RCLCPP_WARN(this->get_logger(), "Failed to read ExposureTime range");
                 }
                 double exposure_time = this->declare_parameter("exposure_time", 5000, desc);
+                // 先关闭自动曝光：自动模式会随环境光拉长曝光（暗光下可到几十毫秒），
+                // 帧率随之掉到 10~15fps，而且亮度漂移会让 HSV/模型检测不稳定。
+                if (MV_OK != MV_CC_SetEnumValue(camera_handle_, "ExposureAuto",
+                                                MV_EXPOSURE_AUTO_MODE_OFF)) {
+                    RCLCPP_WARN(this->get_logger(), "Failed to disable ExposureAuto");
+                }
                 if (MV_OK != MV_CC_SetFloatValue(camera_handle_, "ExposureTime", exposure_time)) {
                     RCLCPP_ERROR(this->get_logger(), "Failed to set ExposureTime: %f", exposure_time);
                 }
@@ -542,6 +629,10 @@
                     RCLCPP_WARN(this->get_logger(), "Failed to read Gain range");
                 }
                 double gain = this->declare_parameter("gain", f_value.fCurValue, desc);
+                // 同样关闭自动增益，保证成像稳定、帧率不受环境光影响
+                if (MV_OK != MV_CC_SetEnumValue(camera_handle_, "GainAuto", MV_GAIN_MODE_OFF)) {
+                    RCLCPP_WARN(this->get_logger(), "Failed to disable GainAuto");
+                }
                 if (MV_OK != MV_CC_SetFloatValue(camera_handle_, "Gain", gain)) {
                     RCLCPP_ERROR(this->get_logger(), "Failed to set Gain: %f", gain);
                 }
@@ -580,6 +671,7 @@
         sensor_msgs::msg::Image image_msg_;
 
         image_transport::CameraPublisher camera_pub_;
+        rclcpp::Publisher<sensor_msgs::msg::CompressedImage>::SharedPtr compressed_pub_;
 
         int nRet = MV_OK;
         void *camera_handle_ = nullptr;  // 必须初始化：构造中途失败时析构函数会判空
