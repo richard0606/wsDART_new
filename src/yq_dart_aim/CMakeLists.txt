@@ -32,19 +32,22 @@ add_executable(dart_aim_node
 )
 
 # ==================== 推理后端（可多选，运行期用 infer_backend 参数切换）====================
-#   CPU(ORT) : ONNX Runtime，跑切好后的 .onnx
+#   CPU(ORT) : ONNX Runtime，跑切好的 .onnx
 #   BPU      : RDK X5 hobot_dnn，跑量化 .bin（板子部署用）
+#   OpenVINO : Intel CPU/iGPU，跑同一份 .onnx（x86 部署用）
 #   DNN      : OpenCV DNN，跑 .onnx（备选，比 ORT 慢）
 #
 # 依赖能找到就把后端编进程序（自动探测），也可以显式关闭：
 #   colcon build --cmake-args -DDART_ENABLE_BPU=OFF -DDART_ENABLE_ORT=OFF
-# 下面这条只决定 params.yaml 没给 infer_backend 时的默认值：
+# 下面这条决定 params.yaml 写 auto 时的首选后端；AUTO（默认）表示按平台自动选：
+#   BPU -> OpenVINO -> ORT -> DNN
 #   colcon build --cmake-args -DDART_INFER_BACKEND=BPU
-set(DART_INFER_BACKEND "CPU" CACHE STRING "默认推理后端: CPU | BPU | DNN")
-set_property(CACHE DART_INFER_BACKEND PROPERTY STRINGS CPU BPU DNN)
+set(DART_INFER_BACKEND "AUTO" CACHE STRING "默认推理后端: AUTO | CPU | BPU | OPENVINO | DNN")
+set_property(CACHE DART_INFER_BACKEND PROPERTY STRINGS AUTO CPU BPU OPENVINO DNN)
 set(DART_ENABLE_BPU "AUTO" CACHE STRING "编译 BPU 后端: AUTO|ON|OFF")
 set(DART_ENABLE_ORT "AUTO" CACHE STRING "编译 ORT 后端: AUTO|ON|OFF")
 set(DART_ENABLE_DNN "AUTO" CACHE STRING "编译 DNN 后端: AUTO|ON|OFF")
+set(DART_ENABLE_OPENVINO "AUTO" CACHE STRING "编译 OpenVINO 后端: AUTO|ON|OFF")
 set(ORT_ROOT "" CACHE PATH "ONNX Runtime 根目录（含 include/ 与 lib/），留空则从系统路径找")
 
 # ── BPU: hobot_dnn ──
@@ -122,7 +125,28 @@ if(_dnn_ok)
   message(STATUS "yq_dart_aim: DNN(OpenCV) 后端 = 启用")
 endif()
 
-if(NOT _bpu_ok AND NOT _ort_ok AND NOT _dnn_ok)
+# ── OpenVINO: Intel CPU / iGPU ──
+set(_ov_ok OFF)
+if(NOT DART_ENABLE_OPENVINO STREQUAL "OFF")
+  find_package(OpenVINO QUIET)
+  if(OpenVINO_FOUND)
+    set(_ov_ok ON)
+  elseif(DART_ENABLE_OPENVINO STREQUAL "ON")
+    message(FATAL_ERROR
+      "DART_ENABLE_OPENVINO=ON 但找不到 OpenVINO。\n"
+      "  Ubuntu 可 apt install openvino，或安装官方 runtime 后设置 OpenVINO_DIR")
+  else()
+    message(STATUS "yq_dart_aim: 未找到 OpenVINO，跳过 OpenVINO 后端")
+  endif()
+endif()
+if(_ov_ok)
+  target_sources(dart_aim_node PRIVATE src/model_backend_openvino.cpp)
+  target_link_libraries(dart_aim_node openvino::runtime)
+  target_compile_definitions(dart_aim_node PRIVATE DART_HAVE_OPENVINO)
+  message(STATUS "yq_dart_aim: OpenVINO 后端 = 启用 (${OpenVINO_VERSION})")
+endif()
+
+if(NOT _bpu_ok AND NOT _ort_ok AND NOT _dnn_ok AND NOT _ov_ok)
   message(FATAL_ERROR "没有任何推理后端可用，dart_aim_node 无法编译")
 endif()
 
@@ -155,7 +179,7 @@ install(TARGETS
   DESTINATION lib/${PROJECT_NAME}
 )
 
-install(DIRECTORY launch config
+install(DIRECTORY launch config model
   DESTINATION share/${PROJECT_NAME}
 )
 
