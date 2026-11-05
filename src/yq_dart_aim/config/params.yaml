@@ -8,16 +8,25 @@ dart_aim_node:
     h_max: 80
     h_min: 35
     image_topic: /image_raw
-    infer_backend: BPU
+    # 相机端直出的 JPEG；留空则退回订阅 raw /image_raw（2.76MB/帧，DDS 吞吐很低）
+    image_topic_compressed: /image_raw/jpeg
+    # auto = 按平台自动选：编译期默认可用就用它，否则 BPU -> OpenVINO -> ORT -> DNN 回退
+    # 也可显式写 CPU / BPU / OpenVINO / DNN；launch 参数 infer_backend 可覆盖本值
+    infer_backend: auto
     max_area: 130.0
     model_default_target: 2
     model_input_height: 576
     model_input_width: 768
     model_nms_threshold: 0.7
     model_path: ''
-    model_path_bpu: /root/dart_ws_on/src/yq_dart_aim/model/praysky_coord_576x768.bin
-    model_path_cpu: /root/dart_ws_on/src/yq_dart_aim/model/praysky_dart_576x768_cut.onnx
+    # 相对路径按 <包 share>/model/ 解析；绝对路径原样使用。
+    # CPU(ORT) 与 OpenVINO 共用同一份 cut .onnx，BPU 用 RDK X5 量化 .bin
+    model_path_bpu: praysky_coord_576x768.bin
+    model_path_cpu: praysky_coord_576x768_cut.onnx
     model_result_max_age_ms: 0
+    # 调试图发布上限（/dart_debug、/model_debug 的 compressed 话题）
+    # 桌面端 NUC 上资源充足，按主回调上限放开
+    debug_max_fps: 60
     morph_dilate_kernel_size: 5
     morph_kernel_size: 3
     offset_0_0: 35.0

@@ -11,9 +11,10 @@ namespace yq_dart_aim {
 // 编译期由 CMake 决定哪些后端可用（DART_ENABLE_BPU / ORT / DNN，默认自动探测），
 // 运行期由 infer_backend 参数在已编译进来的后端之间切换
 enum class InferBackend {
-    kCpu,  // ONNX Runtime，CPU 推理，跑切好的 .onnx
-    kBpu,  // hobot_dnn，RDK X5 BPU 加速，跑量化好的 .bin
-    kDnn,  // OpenCV DNN，跑 .onnx（备选，比 ONNX Runtime 慢）
+    kCpu,       // ONNX Runtime，CPU 推理，跑切好的 .onnx
+    kBpu,       // hobot_dnn，RDK X5 BPU 加速，跑量化好的 .bin
+    kDnn,       // OpenCV DNN，跑 .onnx（备选，比 ONNX Runtime 慢）
+    kOpenvino,  // OpenVINO，Intel CPU/iGPU 加速，跑切好的 .onnx
 };
 
 // 该后端是否被编译进本程序（依赖没找到时为 false）
@@ -22,8 +23,16 @@ bool backendAvailable(InferBackend backend);
 // 后端名字（用于日志）
 const char* backendName(InferBackend backend);
 
-// 解析 infer_backend 参数：cpu/ort -> kCpu，bpu/hobot_dnn -> kBpu，dnn/opencv -> kDnn
+// 解析 infer_backend 参数：cpu/ort -> kCpu，bpu/hobot_dnn -> kBpu，
+// dnn/opencv -> kDnn，openvino/ov -> kOpenvino
 bool parseInferBackend(const std::string& text, InferBackend& out);
+
+// 按平台自动选后端：编译期默认可用就用它，否则按 BPU -> OpenVINO -> ORT -> DNN 回退
+bool chooseDefaultBackend(InferBackend& out);
+
+// 空字符串 / auto / default 走自动选择，其余同 parseInferBackend。
+// 这是节点读取 infer_backend 参数时用的入口（params.yaml 里写 auto 即可跨平台通用）。
+bool parseInferBackendOrAuto(const std::string& text, InferBackend& out);
 
 // 模型原始输出张量（尚未解码）
 //
@@ -56,6 +65,13 @@ bool dnnLoad(const std::string& model_path, int raw_channels);
 void dnnUnload();
 bool dnnInfer(const cv::Mat& bgr_image, RawOutput& raw);
 }  // namespace dnn
+
+// 注意：命名空间特意不叫 openvino，避免与全局 ::openvino（OpenVINO 库自身）冲突
+namespace ov_impl {
+bool ovLoad(const std::string& model_path, int raw_channels);
+void ovUnload();
+bool ovInfer(const cv::Mat& bgr_image, RawOutput& raw);
+}  // namespace ov_impl
 }  // namespace impl
 
 // 后端分发表：按后端分发到具体实现

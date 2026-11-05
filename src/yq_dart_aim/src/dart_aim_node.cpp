@@ -1,4 +1,5 @@
 #include <rclcpp/rclcpp.hpp>
+#include <ament_index_cpp/get_package_share_directory.hpp>
 #include <sensor_msgs/msg/image.hpp>
 #include <sensor_msgs/msg/compressed_image.hpp>
 #include <cv_bridge/cv_bridge.h>
@@ -539,6 +540,8 @@ private:
 
     // 图像话题
     if (!this->has_parameter("image_topic")) this->declare_parameter("image_topic", std::string("/image_raw"));
+    // 相机端直出的 JPEG 话题；留空则退回订阅 raw /image_raw
+    if (!this->has_parameter("image_topic_compressed")) this->declare_parameter("image_topic_compressed", std::string("/image_raw/jpeg"));
 
     // 图像裁剪
     if (!this->has_parameter("crop_width")) this->declare_parameter("crop_width", yq_dart_aim::defaults::CROP_WIDTH);
@@ -589,6 +592,21 @@ private:
   }
 
   // ==================== 模型参数 ====================
+  // 相对模型路径统一按 <包 share>/model/ 解析：
+  //   params.yaml 里直接写 praysky_coord_576x768_cut.onnx 即可，
+  //   RDK X5 与 x86 共用一套配置，不再写死 /root/dart_ws_on 这类绝对路径。
+  static std::string resolveModelPath(const std::string& path) {
+    if (path.empty() || path.front() == '/') {
+      return path;
+    }
+    try {
+      const std::string share = ament_index_cpp::get_package_share_directory("yq_dart_aim");
+      return (std::filesystem::path(share) / "model" / path).string();
+    } catch (const std::exception&) {
+      return path;
+    }
+  }
+
   yq_dart_aim::ModelParams buildModelParams() const {
     yq_dart_aim::ModelParams p;
     p.backend = infer_backend_;
@@ -604,6 +622,7 @@ private:
         p.model_path = cpu_path.empty() ? common_path : cpu_path;
         break;
     }
+    p.model_path = resolveModelPath(p.model_path);
     p.conf_threshold = static_cast<float>(this->get_parameter("conf_threshold").as_double());
     p.nms_threshold = static_cast<float>(this->get_parameter("model_nms_threshold").as_double());
     p.input_width = static_cast<int>(this->get_parameter("model_input_width").as_int());
@@ -619,9 +638,9 @@ private:
     }
     if (!this->has_parameter("infer_backend")) return false;
     const std::string backend_text = this->get_parameter("infer_backend").as_string();
-    if (!yq_dart_aim::parseInferBackend(backend_text, infer_backend_)) {
+    if (!yq_dart_aim::parseInferBackendOrAuto(backend_text, infer_backend_)) {
       RCLCPP_ERROR(this->get_logger(),
-                   "infer_backend='%s' 无法识别（可用: CPU / BPU / DNN）",
+                   "infer_backend='%s' 无法识别或没有可用后端（可用: auto / CPU / BPU / OpenVINO / DNN）",
                    backend_text.c_str());
       return false;
     }
@@ -629,7 +648,7 @@ private:
     if (mp.model_path.empty()) {
       RCLCPP_ERROR(this->get_logger(),
                    "use_model=true 但 %s 后端没有模型路径，已退回 HSV 模式"
-                   "（CPU 填 model_path_cpu 指向切好的 .onnx；BPU 填 model_path_bpu 指向量化 .bin）",
+                   "（CPU/OpenVINO 填 model_path_cpu 指向切好的 .onnx；BPU 填 model_path_bpu 指向量化 .bin）",
                    yq_dart_aim::backendName(mp.backend));
       return false;
     }
@@ -879,9 +898,9 @@ private:
                     use_model_ ? "模型" : "HSV");
       } else if (p.get_name() == "infer_backend") {
         yq_dart_aim::InferBackend parsed{};
-        if (!yq_dart_aim::parseInferBackend(p.as_string(), parsed)) {
+        if (!yq_dart_aim::parseInferBackendOrAuto(p.as_string(), parsed)) {
           result.successful = false;
-          result.reason = "infer_backend 只能是 CPU / BPU / DNN";
+          result.reason = "infer_backend 只能是 auto / CPU / BPU / OpenVINO / DNN";
           continue;
         }
         scheduleModelReload("infer_backend");
@@ -944,6 +963,7 @@ private:
 // ==================== 图像订阅 ====================
     void createImageSubscription(const std::string &topic) {
         image_sub_.reset();
+        image_compressed_sub_.reset();
         // QoS 必须和发布端匹配，否则一帧都收不到（而且是静默的，没有任何报错）。
         // hik_camera 侧 use_sensor_data_qos=true 时发布端是 BEST_EFFORT；
         // 而 create_subscription(topic, 10, ...) 默认是 RELIABLE，
@@ -952,21 +972,49 @@ private:
         // 默认图像管线一致，且能同时兼容发布端的两种设置。
         // 深度取 1：图像来得比处理快时宁可丢旧的也不要堆积，积压只会让瞄准变迟钝。
         rclcpp::QoS qos(rclcpp::SensorDataQoS().keep_last(1));
-        image_sub_ = this->create_subscription<sensor_msgs::msg::Image>(
-            topic, qos, std::bind(&DartAimNode::imageCallback, this, _1)
-        );
+        // 优先用相机端直出的 JPEG：1280x720 raw 每帧 2.76MB，Fast DDS 实测
+        // 只能送出 2~6fps；JPEG 约 100KB，可以跟满相机帧率。
+        const std::string compressed_topic =
+            this->get_parameter("image_topic_compressed").as_string();
+        if (!compressed_topic.empty()) {
+            image_compressed_sub_ =
+                this->create_subscription<sensor_msgs::msg::CompressedImage>(
+                    compressed_topic, qos,
+                    std::bind(&DartAimNode::imageCallbackCompressed, this, _1));
+            RCLCPP_INFO(this->get_logger(), "图像源: %s (JPEG)", compressed_topic.c_str());
+        } else {
+            image_sub_ = this->create_subscription<sensor_msgs::msg::Image>(
+                topic, qos, std::bind(&DartAimNode::imageCallback, this, _1)
+            );
+            RCLCPP_INFO(this->get_logger(), "图像源: %s (raw)", topic.c_str());
+        }
     }
 
   // ==================== 图像回调（核心处理流程） ====================
   void imageCallback(const sensor_msgs::msg::Image::SharedPtr msg) {
     // 保持 cv_bridge 共享指针存活，确保 ROI 视图数据有效
     auto cv_image = cv_bridge::toCvShare(msg, "bgr8");
+    processImage(cv_image->image, msg->header);
+  }
 
-    const rclcpp::Time now = msg->header.stamp;
+  // 压缩图回调：相机端直接发 JPEG（约 100KB），避免 2.76MB raw 图
+  // 在 Fast DDS 上实测只有 2~6fps 的吞吐。
+  void imageCallbackCompressed(const sensor_msgs::msg::CompressedImage::SharedPtr msg) {
+    cv::Mat image = cv::imdecode(msg->data, cv::IMREAD_COLOR);
+    if (image.empty()) {
+      static rclcpp::Clock steady_clock(RCL_STEADY_TIME);
+      RCLCPP_WARN_THROTTLE(this->get_logger(), steady_clock, 2000, "JPEG 解码失败，丢帧");
+      return;
+    }
+    processImage(image, msg->header);
+  }
+
+  void processImage(const cv::Mat& image, const std_msgs::msg::Header& header) {
+    const rclcpp::Time now = header.stamp;
 
     // 裁剪中心区域（ROI 视图，零拷贝）
     cv::Mat cropped = image_processor_.cropCenter(
-        cv_image->image, image_params_.crop_width, image_params_.crop_height);
+        image, image_params_.crop_width, image_params_.crop_height);
 
     // 图像中心（按裁剪区域尺寸算，两种模式一致）
     int cx = cropped.cols / 2;
@@ -985,6 +1033,10 @@ private:
     // 在同一帧里判两次的话第二次必然是 false，会导致调试图永远发不出去。
     const bool debug_this_frame = publish_debug_image_ && debugDue(now);
 
+    // 调试图底图：模型模式下先 clone 一次并画好检测框，
+    // 后面的十字/目标点直接叠加在同一张上，避免每帧 clone 两次、编码两次。
+    cv::Mat debug_base;
+
     if (use_model_ && model_detector_.isReady()) {
       // 模型模式：异步提交裁剪图，获取最新结果
       model_detector_.submit(cropped);
@@ -998,13 +1050,8 @@ private:
       // 回调被拖住还会连带拖慢瞄准。所以和普通调试图一样丢给调试线程去做，
       // 并且调试线程再限一次速率（见 debugPublishLoop）。
       if (debug_this_frame) {
-        cv::Mat model_vis = cropped.clone();
-        drawModelDetections(model_vis, targets);
-        {
-          std::lock_guard<std::mutex> lock(debug_mutex_);
-          debug_model_img_ = std::move(model_vis);
-          debug_model_header_ = msg->header;
-        }
+        debug_base = cropped.clone();
+        drawModelDetections(debug_base, targets);
       }
     } else {
       // HSV 模式：裁剪图 -> 二值化 -> 形态学，灰度图用于亚像素加权质心
@@ -1120,7 +1167,8 @@ private:
     // 限速：只是给人看的可视化，不需要跟满相机帧率。相机能到 134fps，
     // 每帧都 clone + JPEG 编码纯属浪费（clone 2.7MB + 编码约 20ms）。
     if (debug_this_frame) {
-      cv::Mat debug_vis = cropped.clone();
+      // 模型模式下 debug_base 已经画好检测框；HSV 模式为空，clone 原图
+      cv::Mat debug_vis = debug_base.empty() ? cropped.clone() : std::move(debug_base);
       // 画调试图标注（十字瞄准线 + 目标点）
       if (target.x >= 0) {
         cv::circle(debug_vis, center_img, 6, cv::Scalar(255, 0, 0), 2);
@@ -1129,18 +1177,41 @@ private:
       std::lock_guard<std::mutex> lock(debug_mutex_);
       debug_img_ = std::move(debug_vis);
       debug_mask_ = mask;
-      debug_header_ = msg->header;
+      debug_header_ = header;
       new_debug_frame_.store(true);
     }
   }
 
   // 调试图限速：最多 debug_max_fps_ 帧/秒
-  bool debugDue(const rclcpp::Time& now) {
+  //
+  // 注意：这里必须用单调时钟，不能用 msg->header.stamp。
+  // 主回调本身会丢帧（相机 58fps、处理 27fps），相邻帧的相机时间戳
+  // 可能 17ms / 34ms 交替；用 header.stamp 配合 33ms 周期会把大量帧误判掉
+  // （实测限速 30fps 只发出 11fps）。单调时钟按真实经过时间判，行为稳定。
+  bool debugDue(const rclcpp::Time& /*now*/) {
     const double period = 1.0 / static_cast<double>(std::max(1, debug_max_fps_));
-    const double t = now.seconds();
-    if (last_debug_time_ > 0.0 && (t - last_debug_time_) < period) return false;
+    const double t = std::chrono::duration<double>(
+                         std::chrono::steady_clock::now().time_since_epoch())
+                         .count();
+    // 留 5ms（且不超过周期的 20%）容差：主回调帧间隔与限速周期很接近时
+    // （例如主回调 32fps、限速 30fps），严格比较会变成「每两帧放行一帧」，
+    // 实测 30fps 只发出 11fps。容差让实际输出贴近主回调频率。
+    const double tol = std::min(0.005, period * 0.2);
+    if (last_debug_time_ > 0.0 && (t - last_debug_time_) < period - tol) return false;
     last_debug_time_ = t;
     return true;
+  }
+
+  // 调试图只给人看，编码前统一缩到 640 宽。
+  // 1280x720 JPEG 编码在推理线程满载时会被挤到 20~30ms/张，
+  // 缩到 640x360 后编码量降到 1/4，调试发布频率不再被编码拖住。
+  static cv::Mat shrinkForDebug(const cv::Mat& img) {
+    if (img.cols <= 640) return img;
+    cv::Mat small;
+    const int w = 640;
+    const int h = std::max(1, img.rows * w / img.cols);
+    cv::resize(img, small, cv::Size(w, h), 0, 0, cv::INTER_AREA);
+    return small;
   }
 
   // ==================== 调试图像发布 ====================
@@ -1151,13 +1222,18 @@ private:
       if (!img.empty()) {
         try {
           std::vector<unsigned char> buf;
-          std::vector<int> params = {cv::IMWRITE_JPEG_QUALITY, 90};
-          if (cv::imencode(".jpg", img, buf, params)) {
+          std::vector<int> params = {cv::IMWRITE_JPEG_QUALITY, 80};
+          if (cv::imencode(".jpg", shrinkForDebug(img), buf, params)) {
             sensor_msgs::msg::CompressedImage comp_msg;
             comp_msg.header = header;
             comp_msg.format = "jpeg";
             comp_msg.data.assign(buf.begin(), buf.end());
             compressed_image_pub_->publish(comp_msg);
+            // 模型模式下 /model_debug 与 /dart_debug 是同一张图（框+十字都在上面），
+            // 复用同一份 JPEG 编码，避免每帧编码两次。
+            if (use_model_ && model_debug_compressed_pub_) {
+              model_debug_compressed_pub_->publish(comp_msg);
+            }
           }
         } catch (const std::exception &e) {
           RCLCPP_WARN(this->get_logger(), "failed publish compressed image: %s", e.what());
@@ -1168,7 +1244,7 @@ private:
       if (publish_compressed_mask_ && !mask.empty()) {
         try {
           std::vector<unsigned char> mbuf;
-          if (cv::imencode(".png", mask, mbuf)) {
+          if (cv::imencode(".png", shrinkForDebug(mask), mbuf)) {
             sensor_msgs::msg::CompressedImage mcomp;
             mcomp.header = header;
             mcomp.format = "png";
@@ -1189,8 +1265,8 @@ private:
     try {
       if (!vis.empty()) {
         std::vector<unsigned char> buf;
-        std::vector<int> params = {cv::IMWRITE_JPEG_QUALITY, 90};
-        if (cv::imencode(".jpg", vis, buf, params)) {
+        std::vector<int> params = {cv::IMWRITE_JPEG_QUALITY, 80};
+        if (cv::imencode(".jpg", shrinkForDebug(vis), buf, params)) {
           sensor_msgs::msg::CompressedImage comp_msg;
           comp_msg.header = header;
           comp_msg.format = "jpeg";
@@ -1261,6 +1337,7 @@ private:
   rclcpp::Publisher<sensor_msgs::msg::CompressedImage>::SharedPtr compressed_image_pub_;
   rclcpp::Publisher<sensor_msgs::msg::CompressedImage>::SharedPtr compressed_mask_pub_;
   rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr image_sub_;
+  rclcpp::Subscription<sensor_msgs::msg::CompressedImage>::SharedPtr image_compressed_sub_;
   rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr serial_pub_;
   rclcpp::Publisher<std_msgs::msg::String>::SharedPtr serial_debug_pub_;
   OnSetParametersCallbackHandle::SharedPtr param_cb_handle_;
