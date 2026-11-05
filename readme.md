@@ -43,7 +43,7 @@ python3 tools/tune.py --port COM5           # 明确走串口（需 pyserial）
 ## 编译
 
 ```bash
-cd /root/dart_ws_on
+cd /path/to/wsDART_new      # RDK X5 上是 /root/dart_ws_on，NUC 上是 ~/DART_WS
 source /opt/ros/humble/setup.bash
 colcon build
 ```
@@ -57,7 +57,8 @@ colcon build
 |------|--------|------|
 | 裁剪（ROI） | **相机** | `roi_height: 720`，相机只传下游要用的行 |
 | 去马赛克 Bayer→BGR | 主机 | 相机不支持 BGR8 直出，只能在主机做（已用 OpenCV 替代更慢的 SDK 转换） |
-| JPEG 调试图 | 主机独立线程 | 限速 `debug_max_fps`（默认 10fps），不在图像回调里做 |
+| 图像传输 | **相机直发 JPEG** | 1280×720 bgr8 每帧 2.76MB，在 Fast DDS 上实测只能送出 2~6fps；改用 `/image_raw/jpeg`（约 100KB/帧），全链路稳定 30Hz |
+| JPEG 调试图 | 主机独立线程 | 限速 `debug_max_fps`（默认 60，实际跟满主回调），编码前缩到 640 宽 |
 
 **为什么相机 ISP 不可用**（实测，不是猜测）：
 
@@ -100,15 +101,17 @@ bash src/ros2_hik_camera/tools/probe_bayer_map.sh
 
 | 取值 | 说明 | 模型文件 |
 |---|---|---|
+| `auto` | 按平台自动：BPU → OpenVINO → ORT → DNN（推荐，跨平台共用一套配置） | 依后端 |
 | `BPU` | RDK X5 BPU（hobot_dnn），板子部署用，速度最快 | `model_path_bpu` 指向量化 `.bin` |
+| `OPENVINO` / `ov` | OpenVINO（Intel CPU/iGPU），x86/NUC 部署用 | 同 CPU |
 | `CPU` | ONNX Runtime，纯 CPU 推理，用于没量化模型时验证 | `model_path_cpu` 指向切好后的 `.onnx` |
 | `DNN` | OpenCV DNN，备选（比 ONNX Runtime 慢） | 同 CPU |
 
 ```yaml
 use_model: true          # 一级开关：模型模式（false = 传统 HSV）
-infer_backend: BPU       # 二级开关：选 BPU 还是 CPU
-model_path_cpu: /root/dart_ws_on/src/yq_dart_aim/model/praysky_dart_576x768_cut.onnx
-model_path_bpu: /root/dart_ws_on/src/yq_dart_aim/model/praysky_coord_576x768.bin
+infer_backend: auto      # 二级开关：auto / BPU / OPENVINO / CPU / DNN
+model_path_cpu: praysky_coord_576x768_cut.onnx    # 相对路径按包 share/model 解析
+model_path_bpu: praysky_coord_576x768.bin
 model_nms_threshold: 0.7 # 同类框 IoU NMS（0.7 = 与模型内置 NMS 一致）
 ```
 
@@ -126,9 +129,9 @@ ros2 param set /dart_aim_node infer_backend BPU
 colcon build --cmake-args -DORT_ROOT=/path/to/onnxruntime-linux-aarch64
 
 # 关掉某个后端（减小体积/避免缺依赖）
-colcon build --cmake-args -DDART_ENABLE_ORT=OFF
+colcon build --cmake-args -DDART_ENABLE_ORT=OFF -DDART_ENABLE_OPENVINO=OFF
 
-# params.yaml 没写 infer_backend 时的默认值
+# params.yaml 没写 infer_backend 时（或写 auto）的首选后端；AUTO=按平台自动
 colcon build --cmake-args -DDART_INFER_BACKEND=BPU
 ```
 
@@ -145,11 +148,35 @@ yq_dart_aim: CPU(ORT) 后端 = 启用 (/usr/local/lib/libonnxruntime.so)
 > `praysky_coord_576x768.bin`；模型模式预处理同步改为 letterbox（与训练/标定分布一致）。
 > 完整的量化部署经验（选型、验证方法、踩坑、实测数据）见 `docs/量化部署经验总结.md`。
 
+## x86 / NUC 适配（2026-11）
+
+同一套代码在 NUC（i7-1260P，Ubuntu 22.04 + ROS humble）上的实测结论：
+
+**推理后端**
+- 新增 OpenVINO 后端（CMake 自动探测 `OpenVINOConfig.cmake`，`DART_ENABLE_OPENVINO=AUTO|ON|OFF`）；
+- CPU 4 线程 **16.7 ms/帧**；Iris Xe GPU 单帧 10.1 ms，但**端到端反而更慢**
+  （主回调 12 Hz vs 27 Hz）——每次推理要在内存和 iGPU 之间拷 5.3 MB 输入 + 1 MB 输出，
+  共享内存带宽与 DDS 抢资源。所以默认 CPU，需要时用 `DART_OV_DEVICE=GPU` 切换；
+- Intel GPU 需要系统装 `intel-opencl-icd`，否则 OpenVINO 只识别到 CPU；
+- 线程数用 `DART_OV_THREADS` 覆盖，默认 4（正好吃满 4 个 P 核；6/8 线程会被调度到 E 核，反而更慢）。
+
+**图像链路（关键）**
+- 1280×720 bgr8 每帧 2.76 MB，经 Fast DDS 实测只能送出 **2~6 fps**（与 QoS、CycloneDDS 无关）；
+- 改为相机节点直接发布 `/image_raw/jpeg`（约 100 KB/帧），dart_aim 端解码，
+  DDS 带宽 **105 MB/s → 2.9 MB/s**，主回调/调试图全部稳定 **30 Hz**；
+- 发布侧限频 30 fps（未到发布时刻直接释放缓冲，连去马赛克也省掉）；
+- 关闭自动曝光/自动增益：暗光下曝光被自动拉长会把帧率拖到约 12 fps。
+
 ## 生产部署（systemd 开机自启）
 
 ```bash
-sudo bash /root/dart_ws_on/src/rm_start/register_service.sh
+cd /path/to/wsDART_new/src/rm_start
+sudo WORKSPACE_DIR=/path/to/wsDART_new ./register_service.sh
 ```
+
+- 服务名 `rm.service`，看门狗每 5 秒检查 `dart_aim_node` / `hik_camera`，掉线自动重启；
+- 运行日志在 `<工作区>/screen.output`，看门狗日志 `/tmp/rm_watchdog.log`；
+- USB 网络调参服务（`dart-usb-network.service`）只在 aarch64 板端安装，x86 上自动跳过。
 
 ## 调试命令
 
