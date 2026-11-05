@@ -24,13 +24,25 @@ fi
 install -m 755 "$SCRIPT_DIR/rm_clean_up.sh" /usr/sbin/rm_clean_up.sh
 install -m 755 "$SCRIPT_DIR/rm_watch_dog.sh" /usr/sbin/rm_watch_dog.sh
 
-# USB 网络调参通道（RNDIS/ECM over Type-C），独立服务，开机自启
-if [ -f "$SCRIPT_DIR/dart-usb-network.service" ]; then
+# USB 网络调参通道（RNDIS/ECM over Type-C）只适用于 RDK X5 板端，
+# x86（NUC/开发机）上跳过；板端首次安装时用 ENABLE_USB_NETWORK=1 显式打开。
+if [ -z "${ENABLE_USB_NETWORK:-}" ]; then
+  if [ "$(uname -m)" = "aarch64" ]; then
+    ENABLE_USB_NETWORK=1
+  else
+    ENABLE_USB_NETWORK=0
+  fi
+fi
+if [ "$ENABLE_USB_NETWORK" = "1" ] && [ -f "$SCRIPT_DIR/dart-usb-network.service" ]; then
   install -m 644 "$SCRIPT_DIR/dart-usb-network.service" /etc/systemd/system/dart-usb-network.service
+  # 服务文件里的板端路径替换成当前工作区（原生支持任意安装位置）
+  sed -i "s|/root/dart_ws_on|$WORKSPACE_DIR|g" /etc/systemd/system/dart-usb-network.service
   systemctl daemon-reload
   systemctl enable dart-usb-network.service >/dev/null 2>&1 || true
   systemctl restart dart-usb-network.service >/dev/null 2>&1 || true
   echo "USB 网络调参通道已注册 (dart-usb-network.service)"
+else
+  echo "跳过 USB 网络调参通道（非板端或 ENABLE_USB_NETWORK=0）"
 fi
 
 # 动态创建 systemd service 文件内容

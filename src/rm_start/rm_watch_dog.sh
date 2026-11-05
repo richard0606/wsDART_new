@@ -51,6 +51,7 @@ function bringup() {
   source /opt/ros/humble/setup.bash || true
   source "$WORKING_DIR/install/setup.bash" || true
   nohup ros2 launch $LAUNCH_FILE > "$OUTPUT_FILE" 2>&1 &
+  LAUNCH_PID=$!
   # bringup_bag
   sleep 1
   chown -R "$USER_NAME":"$USER_NAME" "$BAG_DIR" 2>/dev/null || true
@@ -58,11 +59,14 @@ function bringup() {
 
 function stop_stack() {
   log "stopping stack"
-  pkill -f "ros2 bag record" 2>/dev/null || true
-  pkill -f "ros2 launch $LAUNCH_FILE" 2>/dev/null || true
-  for node in "${MONITORED_NODES[@]}"; do
-    pkill -f "$node" 2>/dev/null || true
-  done
+  # 只停自己拉起的 launch（launch 会把 SIGINT 转发给各节点），
+  # 不要 pkill -f 匹配节点名：会误杀命令行含该字符串的其他进程（ssh/编辑器）。
+  if [ -n "${LAUNCH_PID:-}" ] && kill -0 "$LAUNCH_PID" 2>/dev/null; then
+    kill -INT "$LAUNCH_PID" 2>/dev/null || true
+    sleep 2
+    kill -TERM "$LAUNCH_PID" 2>/dev/null || true
+  fi
+  LAUNCH_PID=""
 }
 
 function restart() {
